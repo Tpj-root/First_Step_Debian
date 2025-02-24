@@ -512,8 +512,20 @@ sudo timedatectl set-timezone Asia/Kolkata
 
 **step_6 :**
 
+packages can be upgraded
+
+```
+apt list --upgradable
+```
+
+
+
 
 **step_7 :**
+
+```
+sudo ln -s /usr/bin/python3 /usr/bin/python
+```
 
 
 **step_8 :**
