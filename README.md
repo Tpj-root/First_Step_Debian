@@ -132,7 +132,7 @@ Install some basic software.
 
 ```
 
-sudo apt-get install git gedit crunch iptables xclip cmake curl
+sudo apt-get install git gedit crunch iptables xclip cmake curl gcc build-essential
 
 ```
 
