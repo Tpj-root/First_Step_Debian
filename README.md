@@ -241,7 +241,10 @@ alias pyhttp='python3 -m http.server 8000'
 #
 alias miniconda_activate='source $HOME/miniconda3/bin/activate'
 alias miniconda_deactivate='conda deactivate'
-
+check_new_packages() {
+    comm -13 <(sort $HOME/Desktop/MY_GIT/First_Step_Debian/installed_packages.txt) <(pip list | sort)
+}
+alias mini_check='check_new_packages'
 
 ############
 #### git
