@@ -5,6 +5,12 @@ This is the procedure for installing Debian 12, both before and after installati
 **Debian 12.9.0**
 
 ```
+old
+https://cdimage.debian.org/cdimage/archive/
+
+https://cdimage.debian.org/cdimage/archive/11.6.0/amd64/iso-dvd/
+
+
 https://cdimage.debian.org/debian-cd/current/amd64/bt-dvd/
 https://cdimage.debian.org/debian-cd/current/amd64/bt-dvd/debian-12.9.0-amd64-DVD-1.iso.torrent
 
@@ -39,6 +45,7 @@ sudo eject /dev/sdb
 
 
 why ?? sync  ---> flush all buffers to disk
+
 why ?? eject ---> safely remove the USB
 
 
@@ -334,11 +341,11 @@ alias fire='$HOME/Desktop/RUN_TIME/firefox/firefox'
 
 
 ################
-#
+# 
 #
 # Download_full_playlist
 # https://github.com/aandrew-me/ytDownloader/releases
-#alias you='/home/cnc/Desktop/RUN_TIME/YTDownloader_Linux.AppImage'
+#alias you='$HOME/Desktop/RUN_TIME/YTDownloader_Linux.AppImage'
 
 
 ###############
