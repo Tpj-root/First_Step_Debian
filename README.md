@@ -131,9 +131,16 @@ mkdir -p MY_GIT RUN_TIME IM_FILES TEMP_FILES BUILD_FILES LIB_FILES
 Install some basic software.
 
 ```
-
-sudo apt-get install git gedit crunch iptables xclip cmake curl gcc build-essential
-
+sudo apt-get install git \
+gedit \
+crunch \
+iptables \
+xclip \
+cmake \
+curl \
+gcc \
+build-essential \
+evince
 ```
 
 ```

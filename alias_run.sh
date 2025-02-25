@@ -105,7 +105,7 @@ alias gitaddkey='ssh-add $HOME/Desktop/IM_FILES/id_rsa'
 #ssh-add ~/.ssh/id_rsa
 #git config --global user.name "Tpj-root"
 #git config --global user.email "trichy_hackerspace@outlook.com"
-#alias addkey='ssh-add /home/cnc/Documents/KEY/id_rsa'
+#alias addkey='ssh-add $HOME/Documents/KEY/id_rsa'
 #
 #Check SSH Key Permissions:
 #Ensure that your SSH key has the correct permissions.
@@ -195,7 +195,7 @@ alias fire='$HOME/Desktop/RUN_TIME/firefox/firefox'
 # https://desktop.telegram.org/
 # 
 #
-#alias tele='cd $HOME/Desktop/RUN_TIME/Telegram && ./Telegram'
+alias tele='cd $HOME/Desktop/RUN_TIME/Telegram && ./Telegram'
 
 
 ###############
@@ -292,7 +292,7 @@ alias game='cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c stone'
 # ./emsdk activate latest
 # source ./emsdk_env.sh
 ## GUi
-#source "/home/cnc/Desktop/RUN_TIME/emsdk-master/emsdk_env.sh"
+#source "$HOME/Desktop/RUN_TIME/emsdk-master/emsdk_env.sh"
 #############
 # 
 #   raylib
@@ -341,3 +341,9 @@ figlet shadow6
 #           END
 #      ***       ****
 ##################################
+
+
+# add library temp
+export CPLUS_INCLUDE_PATH=$HOME/Desktop/BUILD_FILES/boost_1_83_0
+export LIBRARY_PATH=$HOME/Desktop/BUILD_FILES/boost_1_83_0/stage/lib
+export LD_LIBRARY_PATH=$HOME/Desktop/BUILD_FILES/boost_1_83_0/stage/lib:$LD_LIBRARY_PATH
