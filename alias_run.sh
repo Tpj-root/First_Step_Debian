@@ -330,6 +330,12 @@ check_new_packages() {
 }
 #alias dpkg_update='check_new_packages'
 
+#sudo nano /etc/apt/sources.list
+#https://wiki.debian.org/SourcesList
+#
+#apt list --upgradable
+
+
 ##################################
 # Title_screen
 ##################################

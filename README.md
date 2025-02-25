@@ -140,7 +140,8 @@ cmake \
 curl \
 gcc \
 build-essential \
-evince
+evince \
+ruby-full
 ```
 
 ```
