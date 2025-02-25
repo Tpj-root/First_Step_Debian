@@ -141,7 +141,8 @@ curl \
 gcc \
 build-essential \
 evince \
-ruby-full
+ruby-full \
+transmission
 ```
 
 ```
