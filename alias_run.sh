@@ -284,6 +284,42 @@ function mygit() {
     #open the Readme file
     gedit README.md
 }
+
+check_and_install_jocker() {
+    # Check if the file /usr/local/bin/jocker.sh exists
+    if [ ! -f /usr/local/bin/jocker.sh ]; then
+        echo "jocker.sh not found, cloning repository..."
+
+        # Create a temporary directory to store the cloned repo
+        temp_dir=$(mktemp -d)
+
+        # Clone the repository into the temporary directory
+        git clone https://github.com/Tpj-root/And_Here_we_Go.git "$temp_dir"
+
+        # Check if jocker.sh exists in the cloned repo
+        if [ -f "$temp_dir/jocker.sh" ]; then
+            # Copy jocker.sh to /usr/local/bin/
+            sudo cp "$temp_dir/jocker.sh" /usr/local/bin/
+
+            # Set executable permissions
+            sudo chmod +x /usr/local/bin/jocker.sh
+
+            echo "jocker.sh installed successfully."
+        else
+            # Print error if jocker.sh is not found in the cloned repo
+            echo "Error: jocker.sh not found in the cloned repository."
+        fi
+
+        # Remove the temporary directory to clean up
+        rm -rf "$temp_dir"
+    else
+        echo "jocker.sh already exists."
+    fi
+}
+
+# Call the function to execute the steps
+check_and_install_jocker
+
 #function gitgo() V2.0
 # git clone https://github.com/Tpj-root/And_Here_we_Go.git
 # sudo cp jocker.sh /usr/local/bin/
@@ -523,6 +559,58 @@ figlet shadow6
 #           END
 #      ***       ****
 ##################################
+
+# TOdo
+# Create a temporary user environment for me on someone else's system.
+# Checking if basic software and libraries are installed
+
+# Declare an indexed array with software names
+declare -a index_array
+index_array[0]="crunch"
+index_array[1]="curl"
+index_array[2]="transmission"
+index_array[99]="wireshark"
+
+# Define categories with indices
+basic_software=(0 2)     # crunch, transmission
+networking=(99)          # wireshark
+
+# Function to check and install software
+check_and_install() {
+    local update_needed=false  # Flag to track if 'apt-get update' is needed
+    local last_update_file="/var/log/last_apt_update"  # File to store last update date
+
+    # Check if 'apt-get update' was run today
+    if [ ! -f "$last_update_file" ] || [[ $(date +%F) != $(cat "$last_update_file") ]]; then
+        update_needed=true  # Mark that an update is needed
+    fi
+
+    # Loop through each provided index to check/install software
+    for index in "$@"; do
+        package="${index_array[$index]}"  # Get package name from index_array
+
+        # Check if the package is already installed
+        if dpkg -l | grep -q "^ii  $package "; then
+            echo "$package is already installed."  # Print status if installed
+        else
+            # Run 'apt-get update' only if it hasn't been run today
+            if [ "$update_needed" = true ]; then
+                echo "Running 'sudo apt-get update' (only once per day)..."
+                sudo apt-get update  # Update package list
+                date +%F | sudo tee "$last_update_file" > /dev/null  # Store today's date
+                update_needed=false  # Ensure it doesn't run again for this execution
+            fi
+
+            echo "$package is not installed. Installing now..."
+            sudo apt-get install -y "$package"  # Install the missing package
+        fi
+    done
+}
+
+# Run the function for selected categories
+#check_and_install "${basic_software[@]}"  # Check/install basic software
+#check_and_install "${networking[@]}"      # Check/install networking software
+
 
 
 # add library temp
