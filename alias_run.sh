@@ -314,6 +314,8 @@ check_and_install_jocker() {
         rm -rf "$temp_dir"
     else
         echo "jocker.sh already exists."
+        sleep 0.5
+        clear
     fi
 }
 
