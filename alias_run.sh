@@ -23,7 +23,10 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 MAGENTA='\033[0;35m'
 CYAN='\033[0;36m'
+GRAY='\033[0;90m'   # Gray (Light Black)
 RESET='\033[0m'
+BLINK='\033[5m'
+
 
 
 print_random_color() {
@@ -78,7 +81,8 @@ check_the_condition_Title_screen
 set_edit_alias() {
     # Check if 'subl' (Sublime Text) is installed and available
     if command -v subl &>/dev/null; then
-        alias edit='subl $HOME/.bashrc'  # Use Sublime Text if available
+        #alias edit='subl $HOME/.bashrc'  # Use Sublime Text if available
+        alias edit='subl $HOME/Desktop/MY_GIT/First_Step_Debian/alias_run.sh'
     # If 'subl' is not found, check for 'gedit' (GNOME Text Editor)
     elif command -v gedit &>/dev/null; then
         alias edit='gedit $HOME/.bashrc'  # Use Gedit if available
@@ -698,8 +702,12 @@ index_array[15]="gimp" # gimp - an image manipulation and paint program.
 #index_array[16]="libjpeg-progs" # Lossless Repair
 index_array[16]="libjpeg-turbo-progs" # Lossless Repair
 index_array[17]="imagemagick" #  Convert to PNG
+index_array[18]="tmux" # terminal multiplexer
 
-basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17)     # crunch, transmission
+
+
+
+basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18)     # crunch, transmission
 
 
 ##########
@@ -790,15 +798,80 @@ check_the_condition_SoftWare() {
 
 
 
-
 # Run the function
 check_the_condition_SoftWare
 
 
 
+
+spinner1() {
+    local chars="/-\|"
+    while true; do
+        for (( i=0; i<${#chars}; i++ )); do
+            echo -ne "${chars:$i:1}" "\r"
+            sleep 0.1
+        done
+    done
+}
+
+#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 {$spinner}"
+#spinner  # Run the spinner (Press Ctrl+C to stop)
+#spinner1 &
+
+
+###############
+# change your Bash terminal prompt 
+#
+#export PS1="👽@debian:\w$ "
+#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 💀"
+#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 👽"
+#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 {$spinner}"
+#spinner
+
+spinner() {
+    local chars=("👽" "💀" "🐺" "👻")
+    echo -n "${chars[$((SECONDS % ${#chars[@]}))]}"
+}
+
+export PS1="${GRAY}${BLINK}🅂 🅷 🅰 🅳 🅾 🆆 ${RESET} @ bash $(spinner) 🡆 "
+#export PS1='🅂 🅷 🅰 🅳 🅾 🆆 @ bash $(spinner) 🡆 '
+
+print_colors() {
+    for i in {0..107}; do
+        printf "\e[${i}m%-10s \e[0m" "[$i]"
+        if (( (i + 1) % 8 == 0 )); then
+            echo  # New line after every 8 colors
+        fi
+    done
+}
+
+#print_colors
 #figlet shadow6
 
 #check_and_install "${networking[@]}"      # Check/install networking software
+
+
+# --geometry=COLUMNSxROWS+X+Y
+#open_terminals() {
+#    xfce4-terminal --geometry=80x24+100+100 --title="Terminal 1" &
+#    xfce4-terminal --geometry=100x30+500+200 --title="Terminal 2" &
+#}
+
+
+open_terminals() {
+    SCREEN_WIDTH=$(xdotool getdisplaygeometry | awk '{print $1}')
+    SCREEN_HEIGHT=$(xdotool getdisplaygeometry | awk '{print $2}')
+    
+    TERM_WIDTH=$((SCREEN_WIDTH / 2))
+    TERM_HEIGHT=$((SCREEN_HEIGHT / 2))
+
+    xfce4-terminal --geometry=78x16+0+0 --title="Top Terminal" &
+    xfce4-terminal --geometry=78x16+0+540 --title="Bottom Terminal" &
+}
+
+alias need2='open_terminals'
+
+
 
 
 

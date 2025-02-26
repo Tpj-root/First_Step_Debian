@@ -1,0 +1,73 @@
+
+
+basic
+fonts-taml"#  A package providing Tamil font support for Linux systems.
+git"#  A version control system for tracking changes in source code.
+gedit"#  A simple text editor for the GNOME desktop environment.
+curl"#  A command-line tool for transferring data with URLs.
+xclip"#  A command-line interface to interact with the X clipboard.
+figlet"#  A program that generates text banners using ASCII characters.
+firefox"#  A popular open-source web browser known for speed, privacy features, and customization options.
+gnome-font-viewer"#  font viewer for GNOME
+font-manager"#  Simple font management for GTK+ desktop environments
+vlc"#  VLC media player
+transmission"#  Transmission is a BitTorrent client
+axel"#  light command line download accelerator
+
+"development"
+
+gcc"#  C compiler
+g++"#  C++ compiler
+gdb"#  Debugger
+cmake"#  CMake is a cross-platform build system that automates build generation and project configuration.
+ruby"#  Interpreted object-oriented scripting language
+ninja-build"#  Ninja is a fast build tool.
+
+
+
+
+"library
+libglfw3-dev"#  Development package for GLFW, a library for creating windows and managing OpenGL contexts.
+libboost-dev"#  High-performance C++ libraries for tasks like multithreading, filesystem operations, networking, and mathematical computations.
+libssl-dev"#  SSL/TLS libraries for secure communication.
+libeigen3-dev"#  Eigen is a C++ template library used for linear algebra computations.
+libfmt-dev"#  fmt - simple optimal text formatter.
+libglm-dev"#  OpenGL Mathematics
+libglew-dev"#  OpenGL Extension Wrangler
+
+
+
+library_kin
+liborocos-kdl-dev"#  Orocos KDL (Kinematics and Dynamics Library)
+
+
+ImGui_Dependencies"
+
+libfreetype6-dev"#  FreeType a library used for rendering fonts, enabling text display in graphics applications.
+libsdl2-dev"#  SDL2, a multimedia library for handling graphics, input, and sound.
+freeglut3-dev"#  GLUT, a toolkit for creating OpenGL applications.
+
+
+Photo_Editing": 
+
+gimp"#  GIMP (GNU Image Manipulation Program)
+
+
+Video_Processing
+ffmpeg"#  converting formats, streaming, and editing video or audio files
+
+
+
+Kali_Tools
+aircrack-ng"#  wireless WEP/WPA cracking utilities
+crunch"#  tool for creating wordlist
+nmap"#  Network exploration tool and security / port scanner
+
+
+Fun
+cowsay"#  configurable talking cow
+
+
+Rust
+rustc"#  Rust compiler
+cargo"#  package manager and build tool
