@@ -6,8 +6,6 @@
 
 # cnc@debian:~$ fc-list | grep -i emoji
 # /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Noto Color Emoji:style=Regular
-
-
 # 
 #
 #print_emoji() {
@@ -22,8 +20,10 @@ print_emoji() {
 }
 
 # Example usage: # U+2705: ✅
-Green_tick() {
+GreenTick() {
     print_emoji 0x2705
 }
 
-#Green_tick
+# sample
+#GreenTick
+#echo "$(GreenTick) $package is already installed."

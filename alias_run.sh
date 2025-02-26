@@ -228,6 +228,11 @@ alias mini_check='check_new_packages'
 ############
 source $HOME/Desktop/MY_GIT/First_Step_Debian/linuxcnc_alias.sh
 
+############
+#### LINUXCNC
+############
+source $HOME/Desktop/MY_GIT/First_Step_Debian/emoji_pack.sh
+
 
 
 
@@ -633,7 +638,9 @@ check_and_install() {
 
         # Check if the package is already installed
         if dpkg -l | grep -q "^ii  $package "; then
-            echo "$package is already installed."  # Print status if installed
+            #echo "$package is already installed."  # Print status if installed
+            # update emojitick
+            echo "$(GreenTick) $package is already installed."
         else
             # Run 'apt-get update' only if it hasn't been run today
             if [ "$update_needed" = true ]; then
@@ -651,7 +658,7 @@ check_and_install() {
 
 # Run the function for selected categories
 check_and_install "${basic_software[@]}"  # Check/install basic software
-sleep 0.5
+sleep 0.8
 clear # 
 figlet shadow6
 
