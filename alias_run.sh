@@ -4,9 +4,94 @@
 #          START
 #      ***       ****
 ##################################
-alias edit='gedit $HOME/.bashrc'
+version="1.0"
+
+## Enabled for only one time for insatinng basicsoftwares
+## Enabled or Disable
+SoftWare_Installing=0  # 1 means enabled, 0 means disabled
+Jocker_Installing=0 # 1 means enabled, 0 means disabled
+
+###
+Title_screen=1 # 1 means enabled, 0 means disabled
+
+
+
+# Define color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+RESET='\033[0m'
+
+
+print_random_color() {
+    local message=$1
+    local random_color=${colors[$RANDOM % ${#colors[@]}]}
+    echo -e "${random_color}${message}${RESET}"
+}
+
+print_special_color() {
+    local message=$1
+    local random_color=${BLUE}
+    echo -e "${random_color}${message}${RESET}"
+}
+
+
+title_fun() {
+
+print_special_color " .d8888. db   db  .d8b.  d8888b.  .d88b.  db   d8b   db " 
+print_special_color " 88'  YP 88   88 d8' \`8b 88  \`8D .8P  Y8. 88   I8I   88 " 
+print_special_color " \`8bo.   88ooo88 88ooo88 88   88 88    88 88   I8I   88 " 
+print_special_color "   \`Y8b. 88~~~88 88~~~88 88   88 88    88 Y8   I8I   88 " 
+print_special_color " db   8D 88   88 88   88 88  .8D \`8b  d8' \`8b d8'8b d8' " 
+print_special_color " \`8888Y' YP   YP YP   YP Y8888D'  \`Y88P'   \`8b8' \`8d8'  " 
+print_special_color "                          bash ${version}    "
+}
+
+
+why() {
+echo -e ${GREEN} "The journey of a thousand miles begins with a single step."
+echo -e ${GREEN} "The reason to start is to open the door to the possibilities that lie ahead."
+}
+
+
+
+# Function to check the condition SoftWare_Installing 
+check_the_condition_Title_screen() {
+    if [[ "$Title_screen" -eq 1 ]]; then
+        # Run the function for selected categories
+		title_fun
+		why
+    fi
+}
+
+check_the_condition_Title_screen
+
+
+#alias edit='gedit $HOME/.bashrc'
 #alias edit='subl $HOME/.bashrc'
 #alias edit='nano $HOME/.bashrc'
+
+# Function to set the 'edit' alias based on available text editors
+set_edit_alias() {
+    # Check if 'subl' (Sublime Text) is installed and available
+    if command -v subl &>/dev/null; then
+        alias edit='subl $HOME/.bashrc'  # Use Sublime Text if available
+    # If 'subl' is not found, check for 'gedit' (GNOME Text Editor)
+    elif command -v gedit &>/dev/null; then
+        alias edit='gedit $HOME/.bashrc'  # Use Gedit if available
+    # If neither 'subl' nor 'gedit' is available, fallback to 'nano'
+    else
+        alias edit='nano $HOME/.bashrc'  # Use Nano as the last resort
+    fi
+}
+
+# Call the function to set the alias when the shell starts
+set_edit_alias
+
+
 
 # daily notes 
 #alias study='gedit $HOME/Desktop/IM_FILES/study.all'
@@ -337,8 +422,17 @@ check_and_install_jocker() {
     fi
 }
 
-# Call the function to execute the steps
-check_and_install_jocker
+
+# Function to check the condition SoftWare_Installing 
+check_the_condition_jocker() {
+    if [[ "$Jocker_Installing" -eq 1 ]]; then
+        # Run the function for selected categories
+		# Call the function to execute the steps
+		check_and_install_jocker
+    fi
+}
+
+check_the_condition_jocker
 
 #function gitgo() V2.0
 # git clone https://github.com/Tpj-root/And_Here_we_Go.git
@@ -559,7 +653,7 @@ check_new_packages() {
 # Title_screen
 ##################################
 #
-figlet shadow6
+# figlet shadow6
 #
 ##################################
 #      ***       ****
@@ -601,7 +695,8 @@ index_array[13]="fonts-noto-color-emoji" # Font That Supports New Emojis
 index_array[14]="rlwrap" # rlwrap is a command-line utility that adds readline support
 index_array[14]="vlc" # The VLC media player
 index_array[15]="gimp" # gimp - an image manipulation and paint program.
-index_array[16]="libjpeg-progs" # Lossless Repair
+#index_array[16]="libjpeg-progs" # Lossless Repair
+index_array[16]="libjpeg-turbo-progs" # Lossless Repair
 index_array[17]="imagemagick" #  Convert to PNG
 
 basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17)     # crunch, transmission
@@ -618,11 +713,6 @@ basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17)     # crunch, trans
 # imagemagick
 #
 # convert DSCF0075.jpg fixed.png
-
-
-
-
-
 
 
 
@@ -663,12 +753,12 @@ check_and_install() {
             # Run 'apt-get update' only if it hasn't been run today
             if [ "$update_needed" = true ]; then
                 echo "Running 'sudo apt-get update' (only once per day)..."
-                sudo apt-get update  # Update package list
+                #sudo apt-get update  # Update package list
                 date +%F | sudo tee "$last_update_file" > /dev/null  # Store today's date
                 update_needed=false  # Ensure it doesn't run again for this execution
             fi
 
-            #echo "$package is not installed. Installing now..."
+            echo "$package is not installed. Installing now..."
             # update emoji style
             echo "$(RedTick) $package is not installed. Installing now..."
             sudo apt-get install -y "$package"  # Install the missing package
@@ -688,11 +778,25 @@ check_and_install() {
 
 
 
-# Run the function for selected categories
-check_and_install "${basic_software[@]}"  # Check/install basic software
-sleep 0.8
-clear # 
-figlet shadow6
+# Function to check the condition SoftWare_Installing 
+check_the_condition_SoftWare() {
+    if [[ "$SoftWare_Installing" -eq 1 ]]; then
+        # Run the function for selected categories
+		check_and_install "${basic_software[@]}"  # Check/install basic software
+		sleep 2
+		clear # 
+    fi
+}
+
+
+
+
+# Run the function
+check_the_condition_SoftWare
+
+
+
+#figlet shadow6
 
 #check_and_install "${networking[@]}"      # Check/install networking software
 
