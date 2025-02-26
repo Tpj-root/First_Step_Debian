@@ -66,8 +66,6 @@ alias fix='sudo apt-get install -f'
 alias t='touch'
 alias e='exit'
 #alias q='exit'
-## forcefully kill any process using port 8000
-alias k8000='sudo kill -9 $(lsof -t -i:8000)'
 #alias findport='sudo lsof -i :$1'
 
 
@@ -187,6 +185,8 @@ alias ip='nmcli -p'
 alias ip2='sudo ip addr add 192.168.96.55/24 dev ens2'
 # wifi password list
 alias wifipass='cd /etc/NetworkManager/system-connections'
+## forcefully kill any process using port 8000
+alias k8000='sudo kill -9 $(lsof -t -i:8000)'
 
 
 ########## 
