@@ -255,3 +255,11 @@ sudo apt-get install rlwrap cowsay toilet  # For Debian-based systems
 ## Todo:
 
 Add private key encryption for files.
+
+
+
+## Make one_line command
+
+```
+
+```

@@ -598,10 +598,30 @@ index_array[11]="crunch" # A command-line utility for generating custom wordlist
 # linuxcnc
 index_array[12]="xdotool" # xclip is a command-line utility that allows you to copy and paste text to and from the system clipboard in Linux.
 index_array[13]="fonts-noto-color-emoji" # Font That Supports New Emojis
+index_array[14]="rlwrap" # rlwrap is a command-line utility that adds readline support
+index_array[14]="vlc" # The VLC media player
+index_array[15]="gimp" # gimp - an image manipulation and paint program.
+index_array[16]="libjpeg-progs" # Lossless Repair
+index_array[17]="imagemagick" #  Convert to PNG
+
+basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17)     # crunch, transmission
+
+
+##########
+##
+# libjpeg-progs
+#
+# jpegtran -copy none -optimize -outfile fixed.jpg DSCF0075.jpg
+
+##########
+##
+# imagemagick
+#
+# convert DSCF0075.jpg fixed.png
 
 
 
-basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)     # crunch, transmission
+
 
 
 
@@ -618,8 +638,6 @@ index_array[101]="wireshark"
 #basic_software=(0 2)     # crunch, transmission
 ## Define categories with indices
 #networking=(99)          # wireshark
-
-
 
 
 # Function to check and install software
@@ -650,11 +668,25 @@ check_and_install() {
                 update_needed=false  # Ensure it doesn't run again for this execution
             fi
 
-            echo "$package is not installed. Installing now..."
+            #echo "$package is not installed. Installing now..."
+            # update emoji style
+            echo "$(RedTick) $package is not installed. Installing now..."
             sudo apt-get install -y "$package"  # Install the missing package
         fi
     done
 }
+
+# FIX ME
+#if ! dpkg -s libjpeg-turbo-progs &>/dev/null; then
+#    echo "❌ libjpeg-turbo-progs is not installed. Installing now..."
+#    sudo apt install -y libjpeg-turbo-progs
+#else
+#    echo "✅ libjpeg-turbo-progs is already installed."
+#fi
+
+
+
+
 
 # Run the function for selected categories
 check_and_install "${basic_software[@]}"  # Check/install basic software
