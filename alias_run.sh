@@ -128,6 +128,8 @@ download_gif() {
 
 
 
+
+
 ################
 #Backup_function
 ################
@@ -218,6 +220,17 @@ check_new_packages() {
     comm -13 <(sort $HOME/Desktop/MY_GIT/First_Step_Debian/installed_packages.txt) <(pip list | sort)
 }
 alias mini_check='check_new_packages'
+
+
+
+############
+#### LINUXCNC
+############
+source $HOME/Desktop/MY_GIT/First_Step_Debian/linuxcnc_alias.sh
+
+
+
+
 
 ############
 #### git
@@ -398,20 +411,7 @@ alias whereisT='cd $HOME/.config/transmission/torrents/'
 alias tele='cd $HOME/Desktop/RUN_TIME/Telegram && ./Telegram'
 
 
-###############
-# http://linuxcnc.org/
-# https://github.com/LinuxCNC/linuxcnc
-# Installing Tips
-# https://docs.google.com/document/d/1jeV_4VKzVmOIzbB-ytcgsW2I_PhCm1x7oiw8VcLFdiY/edit?tab=t.0#heading=h.macj649sy0yq
-# linuxcnc_update
-#
-#source /home/sab/Desktop/TRY_BUILD/linuxcnc-dev/scripts/rip-environment
-#alias lc='linuxcnc'
-#alias h='halcmd'
-#alias hs='halshow'
-#alias hk='halrun -U'
-#alias halkill=' halrun -U'
-#alias mvso=' ls *.so | while read line; do sudo mv $line $HOME/Desktop/CNC_BUILD/linuxcnc-dev/rtlib/; done'
+
 
 
 
@@ -568,14 +568,54 @@ figlet shadow6
 
 # Declare an indexed array with software names
 declare -a index_array
-index_array[0]="crunch"
-index_array[1]="curl"
-index_array[2]="transmission"
-index_array[99]="wireshark"
 
-# Define categories with indices
-basic_software=(0 2)     # crunch, transmission
-networking=(99)          # wireshark
+
+##########
+##
+# Basic_software
+#
+
+
+index_array[0]="git"
+index_array[1]="gedit"
+index_array[2]="iptables"
+index_array[3]="xclip"
+index_array[4]="cmake"
+index_array[5]="curl" # A command-line tool to transfer data to/from a server using various protocols 
+index_array[6]="gcc"
+index_array[7]="build-essential"
+index_array[8]="evince"
+index_array[9]="ruby-full"
+index_array[10]="transmission"
+index_array[11]="crunch" # A command-line utility for generating custom wordlists,
+# To run Matrix Keyboards requires you to install and test "xdotool". 
+# You can install it by typing "sudo apt install xdotool" in your console.
+# linuxcnc
+index_array[12]="xdotool" # xclip is a command-line utility that allows you to copy and paste text to and from the system clipboard in Linux.
+index_array[13]="fonts-noto-color-emoji" # Font That Supports New Emojis
+
+
+
+basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)     # crunch, transmission
+
+
+
+
+##########
+##
+# NetWorking
+#
+
+index_array[101]="wireshark"
+
+
+#
+#basic_software=(0 2)     # crunch, transmission
+## Define categories with indices
+#networking=(99)          # wireshark
+
+
+
 
 # Function to check and install software
 check_and_install() {
@@ -610,7 +650,11 @@ check_and_install() {
 }
 
 # Run the function for selected categories
-#check_and_install "${basic_software[@]}"  # Check/install basic software
+check_and_install "${basic_software[@]}"  # Check/install basic software
+sleep 0.5
+clear # 
+figlet shadow6
+
 #check_and_install "${networking[@]}"      # Check/install networking software
 
 
