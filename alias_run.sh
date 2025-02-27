@@ -12,10 +12,9 @@ version="1.0"
 ## Enabled or Disable
 SoftWare_Installing=0  # 1 means enabled, 0 means disabled
 Jocker_Installing=0 # 1 means enabled, 0 means disabled
-
 ###
-Title_screen=1 # 1 means enabled, 0 means disabled
-
+Title_screen=0 # 1 means enabled, 0 means disabled
+Prompt_Animation=0
 
 
 # Define color codes
@@ -73,6 +72,62 @@ check_the_condition_Title_screen() {
 }
 
 check_the_condition_Title_screen
+
+# 
+# Function to check the condition Animation prompt
+check_the_condition_Animation() {
+    if [[ "$Prompt_Animation" -eq 1 ]]; then
+        # Run the function for selected categories
+
+		spinner1() {
+		    local chars="/-\|"
+		    while true; do
+		        for (( i=0; i<${#chars}; i++ )); do
+		            echo -ne "${chars:$i:1}" "\r"
+		            sleep 0.1
+		        done
+		    done
+		}
+
+		#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 {$spinner}"
+		#spinner  # Run the spinner (Press Ctrl+C to stop)
+		#spinner1 &
+
+
+		###############
+		# change your Bash terminal prompt 
+		#
+		#export PS1="👽@debian:\w$ "
+		#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 💀"
+		#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 👽"
+		#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 {$spinner}"
+		#spinner
+
+		spinner() {
+		    local chars=("👽" "💀" "🐺" "👻")
+		    echo -n "${chars[$((SECONDS % ${#chars[@]}))]}"
+		}
+
+		export PS1="${GRAY}${BLINK}🅂 🅷 🅰 🅳 🅾 🆆 ${RESET} @ bash $(spinner) 🡆 "
+		#export PS1='🅂 🅷 🅰 🅳 🅾 🆆 @ bash $(spinner) 🡆 '
+
+		print_colors() {
+		    for i in {0..107}; do
+		        printf "\e[${i}m%-10s \e[0m" "[$i]"
+		        if (( (i + 1) % 8 == 0 )); then
+		            echo  # New line after every 8 colors
+		        fi
+		    done
+		}
+
+		#print_colors
+		#figlet shad
+    fi
+}
+
+check_the_condition_Animation
+
+
 
 
 #alias edit='gedit $HOME/.bashrc'
@@ -190,6 +245,21 @@ extract() {
         esac
     else
         echo "'$1' is not a valid file"
+    fi
+}
+
+
+
+# mtouch <filename>
+mtouch() {
+    if command -v subl &>/dev/null; then
+        touch "$1" && subl "$1"
+    # If 'subl' is not found, check for 'gedit' (GNOME Text Editor)
+    elif command -v gedit &>/dev/null; then
+        touch "$1" && gedit "$1"
+    # If neither 'subl' nor 'gedit' is available, fallback to 'nano'
+    else
+        touch "$1" && nano "$1"
     fi
 }
 
@@ -910,49 +980,6 @@ check_the_condition_SoftWare
 
 
 
-spinner1() {
-    local chars="/-\|"
-    while true; do
-        for (( i=0; i<${#chars}; i++ )); do
-            echo -ne "${chars:$i:1}" "\r"
-            sleep 0.1
-        done
-    done
-}
-
-#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 {$spinner}"
-#spinner  # Run the spinner (Press Ctrl+C to stop)
-#spinner1 &
-
-
-###############
-# change your Bash terminal prompt 
-#
-#export PS1="👽@debian:\w$ "
-#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 💀"
-#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 👽"
-#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 {$spinner}"
-#spinner
-
-spinner() {
-    local chars=("👽" "💀" "🐺" "👻")
-    echo -n "${chars[$((SECONDS % ${#chars[@]}))]}"
-}
-
-export PS1="${GRAY}${BLINK}🅂 🅷 🅰 🅳 🅾 🆆 ${RESET} @ bash $(spinner) 🡆 "
-#export PS1='🅂 🅷 🅰 🅳 🅾 🆆 @ bash $(spinner) 🡆 '
-
-print_colors() {
-    for i in {0..107}; do
-        printf "\e[${i}m%-10s \e[0m" "[$i]"
-        if (( (i + 1) % 8 == 0 )); then
-            echo  # New line after every 8 colors
-        fi
-    done
-}
-
-#print_colors
-#figlet shadow6
 
 #check_and_install "${networking[@]}"      # Check/install networking software
 
