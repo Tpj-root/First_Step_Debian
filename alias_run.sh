@@ -5,6 +5,8 @@
 #      ***       ****
 ##################################
 version="1.0"
+#echo "Script Name: ${BASH_SOURCE[0]}"
+
 
 ## Enabled for only one time for insatinng basicsoftwares
 ## Enabled or Disable
@@ -315,14 +317,114 @@ alias mini_check='check_new_packages'
 ############
 #### LINUXCNC
 ############
-source $HOME/Desktop/MY_GIT/First_Step_Debian/linuxcnc_alias.sh
+# Bug in Auto-Completion
+#source $HOME/Desktop/MY_GIT/First_Step_Debian/linuxcnc_alias.sh
+###############
+# http://linuxcnc.org/
+# https://github.com/LinuxCNC/linuxcnc
+# Installing Tips
+# https://docs.google.com/document/d/1jeV_4VKzVmOIzbB-ytcgsW2I_PhCm1x7oiw8VcLFdiY/edit?tab=t.0#heading=h.macj649sy0yq
+# linuxcnc_update
+#
+#source /home/sab/Desktop/TRY_BUILD/linuxcnc-dev/scripts/rip-environment
+#alias lc='linuxcnc'
+#alias h='halcmd'
+#alias hs='halshow'
+#alias hk='halrun -U'
+#alias halkill=' halrun -U'
+#alias mvso=' ls *.so | while read line; do sudo mv $line $HOME/Desktop/CNC_BUILD/linuxcnc-dev/rtlib/; done'
+## Perfect
+## linuxcnc alias
+#alias halkill='halrun -U'
 
+
+mvcomp() {
+    if [ -z "$1" ]; then
+        echo "Usage: mvcomp <filename>"
+        return 1
+    fi
+
+    local target_dir="/home/sab/Desktop/TRY_BUILD/linuxcnc-dev/rtlib/"
+    local filename="$1"
+
+    # Check if the file exists
+    if [ ! -f "$filename" ]; then
+        echo "Error: File '$filename' does not exist."
+        return 1
+    fi
+
+    # Check if the file is a .so file
+    if [[ "$filename" != *.so ]]; then
+        echo "Error: '$filename' is not a .so file."
+        return 1
+    fi
+
+    # Move the file
+    mv "$filename" "$target_dir"
+    echo "Moved '$filename' to $target_dir"
+}
+
+#####
+# testing script
+#
+
+
+
+
+################################################
+#### Emoji
 ############
-#### LINUXCNC
-############
-source $HOME/Desktop/MY_GIT/First_Step_Debian/emoji_pack.sh
+#source $HOME/Desktop/MY_GIT/First_Step_Debian/emoji_pack.sh
+# UTF-8 is the encoding that supports all Unicode characters, 
+# but displaying emojis depends on the installed font. 
+# Not all fonts include all Unicode characters, especially emojis.
+
+# cnc@debian:~$ fc-list | grep -i emoji
+# /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Noto Color Emoji:style=Regular
+# 
+#
+#print_emoji() {
+#    local code=$1
+#    printf "U+%04X: \U$(printf "%08x" "$code")\n" "$code"
+#}
 
 
+print_emoji() {
+    local code=$1
+    printf "\U$(printf "%08x" "$code")" "$code"
+}
+
+# Example usage: # U+2705: ✅
+GreenTick() {
+    print_emoji 0x2705
+}
+
+# U+274C: ❌
+RedTick() {
+    print_emoji 0x274C
+}
+
+# U+1F47D: 👽
+Alien() {
+    print_emoji 0x1F47D
+}
+
+
+# sample
+#GreenTick
+#echo "$(GreenTick) $package is already installed."
+#U+2753: ❓
+#U+1F608: 😈
+#U+1F607: 😇
+#U+2700: ✀
+#U+1F3A7: 🎧
+#U+1F3B5: 🎵
+#U+1F43A: 🐺
+#U+1F47E: 👾
+#U+1F47F: 👿
+#U+1F480: 💀
+#U+1F4F7: 📷
+################################################
 
 
 
