@@ -1,9 +1,34 @@
 #!/bin/bash
+##########################################################
+#/*
+# * Copyright (C) 2025 [Tpj-root]
+# * https://github.com/Tpj-root
+# *
+# * This program is free software; you can redistribute it and/or modify
+# * it under the terms of the GNU General Public License version 2
+# * as published by the Free Software Foundation.
+# *
+# * This program is distributed in the hope that it will be useful,
+# * but WITHOUT ANY WARRANTY; without even the implied warranty of
+# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# * GNU General Public License for more details.
+# *
+# * You should have received a copy of the GNU General Public License
+# * along with this program; if not, see <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
+# */
+#
+#
+# Linux apps that run anywhere
+# https://appimage.org/
+# https://www.appimagehub.com/
+# https://appimage.github.io/apps/
+#
+# Beyond Linux® From Scratch (System V Edition)
+# https://www.linuxfromscratch.org/blfs/view/svn/index.html
 ##################################
-#      ***       ****
 #          START
-#      ***       ****
 ##################################
+
 version="1.0"
 #echo "Script Name: ${BASH_SOURCE[0]}"
 
@@ -213,6 +238,13 @@ alias t='touch'
 alias e='exit'
 #alias q='exit'
 #alias findport='sudo lsof -i :$1'
+
+
+# xclock
+# https://github.com/ereslibre/x11/tree/master
+# https://gitlab.freedesktop.org/xorg/app/xclock
+# https://www.linuxfromscratch.org/blfs/view/svn/x/xclock.html
+#
 
 
 
@@ -673,10 +705,76 @@ alias whereisT='cd $HOME/.config/transmission/torrents/'
 
 ################
 # 
-#
+# #alias you='$HOME/Desktop/RUN_TIME/YTDownloader_Linux.AppImage'
 # Download_full_playlist
 # https://github.com/aandrew-me/ytDownloader/releases
-#alias you='$HOME/Desktop/RUN_TIME/YTDownloader_Linux.AppImage'
+# make function if 
+
+# Function to check and run YTDownloader_Linux.AppImage
+you() {
+    # Define the file path
+    local file="$HOME/Desktop/RUN_TIME/YTDownloader_Linux.AppImage"
+    local url="https://github.com/aandrew-me/ytDownloader/releases/download/v3.19.0/YTDownloader_Linux.AppImage"
+    local dir="$HOME/Desktop/RUN_TIME"
+
+    # Ensure the directory exists
+    mkdir -p "$dir"
+
+    # Check if the file exists, download if not
+    if [[ ! -f "$file" ]]; then
+        echo "File not found. Downloading..."
+        wget -O "$file" "$url" || { echo "Download failed!"; return 1; }
+    fi
+
+    # Ensure the file is executable
+    if [[ ! -x "$file" ]]; then
+        echo "Setting executable permission..."
+        chmod +x "$file"
+    fi
+
+    # Run the AppImage
+    echo "Running $file..."
+    "$file"
+}
+
+# Execute the function
+#you
+
+
+
+################
+# 
+# A Hex Editor for Reverse Engineers, Programmers
+# https://github.com/WerWolv/ImHex
+# https://github.com/WerWolv/ImHex/releases
+# 
+
+imhex() {
+    # Define the file path
+    local file="$HOME/Desktop/RUN_TIME/imhex-1.37.4-x86_64.AppImage"
+    local url="https://github.com/WerWolv/ImHex/releases/download/v1.37.4/imhex-1.37.4-x86_64.AppImage"
+    local dir="$HOME/Desktop/RUN_TIME"
+
+    # Ensure the directory exists
+    mkdir -p "$dir"
+
+    # Check if the file exists, download if not
+    if [[ ! -f "$file" ]]; then
+        echo "File not found. Downloading..."
+        wget -O "$file" "$url" || { echo "Download failed!"; return 1; }
+    fi
+
+    # Ensure the file is executable
+    if [[ ! -x "$file" ]]; then
+        echo "Setting executable permission..."
+        chmod +x "$file"
+    fi
+
+    # Run the AppImage
+    echo "Running $file..."
+    "$file"
+}
+
 
 
 ###############
@@ -871,8 +969,13 @@ index_array[13]="fonts-noto-color-emoji" # Font That Supports New Emojis
 index_array[14]="rlwrap" # rlwrap is a command-line utility that adds readline support
 index_array[14]="vlc" # The VLC media player
 index_array[15]="gimp" # gimp - an image manipulation and paint program.
+
+# libjpeg-turbo-progs
+# jpegtran -copy none -optimize -outfile fixed.jpg DSCF0075.jpg
 #index_array[16]="libjpeg-progs" # Lossless Repair
 index_array[16]="libjpeg-turbo-progs" # Lossless Repair
+# imagemagick
+# convert DSCF0075.jpg fixed.png
 index_array[17]="imagemagick" #  Convert to PNG
 index_array[18]="tmux" # terminal multiplexer
 # Move Terminal to (X=100, Y=100) with size (Width=800, Height=600)
@@ -882,21 +985,9 @@ index_array[19]="wmctrl" # wmctrl - interact with a EWMH/NetWM compatible X Wind
 index_array[20]="xdotool" # wmctrl - interact with a EWMH/NetWM compatible X Window Manager.
 
 
-
+### 
 basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)     # crunch, transmission
 
-
-##########
-##
-# libjpeg-progs
-#
-# jpegtran -copy none -optimize -outfile fixed.jpg DSCF0075.jpg
-
-##########
-##
-# imagemagick
-#
-# convert DSCF0075.jpg fixed.png
 
 
 
