@@ -696,11 +696,46 @@ alias whereisT='cd $HOME/.config/transmission/torrents/'
 ############
 # Arduino
 # https://github.com/arduino/arduino-cli/releases
-# 
+# https://github.com/Tpj-root/Arduino_CLI
 #
 #
 #alias ard='$HOME/Desktop/RUN_TIME/arduino-cli_1.1.1_Linux_64bit/arduino-cli'
 #alias arduino-cli='ard'
+
+arduino-cli() {
+    # Define the file path
+    local dir="$HOME/Desktop/RUN_TIME"
+    local archive="$dir/arduino-cli_1.2.0_Linux_64bit.tar.gz"
+    local file="$dir/arduino-cli"
+    local url="https://github.com/arduino/arduino-cli/releases/download/v1.2.0/arduino-cli_1.2.0_Linux_64bit.tar.gz"
+
+    # Ensure the directory exists
+    mkdir -p "$dir"
+
+    # Check if the archive exists, download if not
+    if [[ ! -f "$archive" ]]; then
+        echo "Archive not found. Downloading..."
+        wget -O "$archive" "$url" || { echo "Download failed!"; return 1; }
+    fi
+
+    # Extract the archive if the executable doesn't exist
+    if [[ ! -f "$file" ]]; then
+        echo "Extracting archive..."
+        tar -xzf "$archive" -C "$dir" || { echo "Extraction failed!"; return 1; }
+    fi
+
+    # Ensure the file is executable
+    if [[ ! -x "$file" ]]; then
+        echo "Setting executable permission..."
+        chmod +x "$file"
+    fi
+
+    # Run the executable
+    echo "Running $file..."
+    "$file"
+}
+
+#arduino-cli
 
 
 ################
