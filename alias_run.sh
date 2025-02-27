@@ -805,11 +805,15 @@ index_array[15]="gimp" # gimp - an image manipulation and paint program.
 index_array[16]="libjpeg-turbo-progs" # Lossless Repair
 index_array[17]="imagemagick" #  Convert to PNG
 index_array[18]="tmux" # terminal multiplexer
+# Move Terminal to (X=100, Y=100) with size (Width=800, Height=600)
+# wmctrl -r :ACTIVE: -e 0,100,100,800,600
+index_array[19]="wmctrl" # wmctrl - interact with a EWMH/NetWM compatible X Window Manager.
+# xdotool getactivewindow windowmove 100 100 windowsize 800 600
+index_array[20]="xdotool" # wmctrl - interact with a EWMH/NetWM compatible X Window Manager.
 
 
 
-
-basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18)     # crunch, transmission
+basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)     # crunch, transmission
 
 
 ##########
@@ -952,7 +956,6 @@ print_colors() {
 
 #check_and_install "${networking[@]}"      # Check/install networking software
 
-
 # --geometry=COLUMNSxROWS+X+Y
 #open_terminals() {
 #    xfce4-terminal --geometry=80x24+100+100 --title="Terminal 1" &
@@ -960,19 +963,74 @@ print_colors() {
 #}
 
 
-open_terminals() {
+# 1920*1080 WIDTH*HEIGHT
+open_terminals_left_2() {
     SCREEN_WIDTH=$(xdotool getdisplaygeometry | awk '{print $1}')
     SCREEN_HEIGHT=$(xdotool getdisplaygeometry | awk '{print $2}')
     
-    TERM_WIDTH=$((SCREEN_WIDTH / 2))
-    TERM_HEIGHT=$((SCREEN_HEIGHT / 2))
+    SCREEN_PX=24
 
-    xfce4-terminal --geometry=78x16+0+0 --title="Top Terminal" &
-    xfce4-terminal --geometry=78x16+0+540 --title="Bottom Terminal" &
+    TERM_WIDTH=$((SCREEN_WIDTH / ${SCREEN_PX}))
+    TERM_HEIGHT=$(awk "BEGIN {print $SCREEN_HEIGHT / ($SCREEN_PX * 2.5)}")
+
+    #TERM_WIDTH=$((SCREEN_WIDTH ))
+    #TERM_HEIGHT=$((SCREEN_HEIGHT ))
+
+
+    # Debug help
+    # echo "${TERM_WIDTH}"
+    # echo "${TERM_HEIGHT}"
+    # xdotool getactivewindow getwindowgeometry
+
+    xfce4-terminal --geometry=${TERM_WIDTH}x${TERM_HEIGHT}+0+0 --title="Top Terminal" &
+# run the command 
+#	xfce4-terminal --geometry=${TERM_WIDTH}x${TERM_HEIGHT}+0+0 --title="Top Terminal" -e "bash -c 'crunch 1 5; exec bash'"
+    xfce4-terminal --geometry=${TERM_WIDTH}x${TERM_HEIGHT}+0+540 --title="Bottom Terminal" &
+    xfce4-terminal --geometry=${TERM_WIDTH}x${TERM_HEIGHT}+960+540 --title="Left Bottom Terminal" &
+    # why 970 reduce -10 ??
+    # why 85 reduce - 58 ??
+	xdotool getactivewindow windowmove 960 27 windowsize 817 443
+	#clear
+	#xdotool getactivewindow getwindowgeometry
+
+#
+# FIXME
+# dont run this lines Geometry problem 
+# --geometry=817x443   so big    max value is 180x42
+#    xfce4-terminal --geometry=817x443+0+0 --title="Top Terminal" &
+#    xfce4-terminal --geometry=817x443+0+540 --title="Bottom Terminal" &
+#    xfce4-terminal --geometry=817x443+960+540 --title="Left Bottom Terminal" &
+#	xdotool getactivewindow windowmove 969 85 windowsize 817 443
+
+
+# FIXME moving problem
+    # Open and move first terminal
+#    xfce4-terminal & sleep 0.5  
+#    xdotool search --onlyvisible --class "xfce4-terminal" | tail -n 1 | xargs -I {} xdotool windowmove {} 59 85 windowsize {} 817 443 
+#
+#    # Open and move second terminal
+#    xfce4-terminal & sleep 0.5  
+#    xdotool search --onlyvisible --class "xfce4-terminal" | tail -n 1 | xargs -I {} xdotool windowmove {} 59 598 windowsize {} 817 443 
+#
+#    # Open and move third terminal
+#    xfce4-terminal & sleep 0.5  
+#    xdotool search --onlyvisible --class "xfce4-terminal" | tail -n 1 | xargs -I {} xdotool windowmove {} 969 85 windowsize {} 817 443  
+#
+#    # Move the currently active terminal
+#    sleep 0.5
+#    xdotool getactivewindow windowmove 969 598 windowsize 817 443
+
 }
 
-alias need2='open_terminals'
+# Debug help
+# Todo Fixme mathematical calculations 
+#alias tel='xdotool getactivewindow getwindowgeometry'
+# Position: 59,85 Geometry: 817x443 Left_top
+# Position: 59,598 Geometry: 817x443 Left_bottom
+# Position: 969,85 Geometry: 817x443 Right_top
+# Position: 969,598 Geometry: 817x443 Right_bottom
 
+alias need4='open_terminals_left_2'
 
 
 
