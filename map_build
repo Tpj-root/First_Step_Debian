@@ -1,0 +1,854 @@
+
+
+import geopandas as gpd
+
+
+
+https://github.com/openstreetmap/mod_tile/
+
+
+Check mod_tile config in /etc/apache2/sites-available/renderd-example-map.conf.
+
+
+LoadModule tile_module /usr/lib/apache2/modules/mod_tile.so
+
+
+
+2. Verify Renderd Socket Exists
+ls -l /run/renderd/renderd.sock
+
+
+
+By default, renderd should use a Unix socket (/run/renderd/renderd.sock), not localhost:5000. Run:
+
+ss -tlnp | grep renderd
+
+
+
+
+
+Edit /etc/apache2/sites-available/renderd-example-map.conf and check:
+
+<IfModule mod_tile.c>
+    LoadTileConfigFile /usr/local/etc/renderd.conf
+    ModTileRenderdSocketName /run/renderd/renderd.sock
+    ModTileRequestTimeout 3
+    ModTileMissingRequestTimeout 10
+</IfModule>
+
+
+
+
+
+
+
+
+
+sudo systemctl restart renderd
+
+
+Use nc to check if the socket is accessible:
+
+nc -U /run/renderd/renderd.sock
+
+
+
+4. Restart Everything
+
+sudo systemctl restart renderd apache2
+
+
+
+Then recheck the connection:
+
+curl --unix-socket /run/renderd/renderd.sock http://localhost/
+
+
+
+
+5. Check File Permissions
+
+ls -l /run/renderd/
+
+
+
+
+sudo chown www-data:www-data /run/renderd/renderd.sock
+sudo chmod 777 /run/renderd/renderd.sock
+
+
+
+
+ls -ld /run/renderd/
+
+
+
+
+Check if another process is using the socket:
+sudo lsof -nP | grep renderd.sock
+
+
+getent passwd renderd
+
+
+
+you need to create the user and group:
+sudo groupadd renderd
+sudo useradd -g renderd -m -s /bin/bash renderd
+sudo chown -R renderd:renderd /run/renderd
+
+
+
+
+
+
+
+
+deb-src enabled
+
+
+
+apt source libapache2-mod-tile
+
+
+
+
+cd libapache2-mod-tile-*
+dpkg-buildpackage -us -uc
+
+
+
+
+
+
+downloads and extracts the source code into the current directory.
+
+apt source libapache2-mod-tile renderd
+
+
+
+
+
+
+
+build
+
+
+sudo apt update
+sudo apt build-dep libapache2-mod-tile
+./autogen.sh
+./configure
+make -j$(nproc)
+sudo make install
+
+sudo a2enmod mod_tile
+sudo systemctl restart apache2
+
+
+
+
+
+
+
+
+
+
+
+Yes, add this line to /etc/apache2/apache2.conf:
+
+ServerName localhost
+
+
+
+
+
+Your tile server configuration files are located in:
+
+    Apache site config: /etc/apache2/sites-available/renderd-example-map.conf
+    Renderd configuration: /etc/renderd.conf
+    Tile data directory: /usr/share/renderd/example-map
+
+
+
+define Host in /etc/renderd.conf or your Apache config.
+
+
+
+renderd.conf
+
+[renderd]
+host=localhost
+pid_file=/run/renderd/renderd.pid
+socketname=/run/renderd/renderd.sock
+stats_file=/run/renderd/renderd.stats
+tile_dir=/var/cache/renderd/tiles
+
+
+
+
+
+
+
+
+Check renderd logs for errors
+
+sudo systemctl restart renderd
+systemctl status renderd
+
+
+
+
+
+
+
+Enable mod_tile in Apache
+sudo a2enmod tile
+sudo systemctl restart apache2
+
+
+
+
+
+Ensure mapnik and mod_tile are installed
+
+sudo apt install mapnik-utils libmapnik3.1 mod_tile
+
+
+
+
+Verify GPU Support
+
+sudo apt install mesa-utils
+glxinfo | grep "OpenGL renderer"
+
+
+
+
+
+
+
+
+Manually test tile rendering
+renderd -f -c /etc/renderd.conf
+
+
+
+
+
+
+
+ls /etc/apache2/mods-enabled/ | grep tile
+sudo a2enmod tile
+sudo systemctl restart apache2
+
+
+
+
+
+
+
+sudo systemctl stop renderd
+sudo renderd -f -d
+
+
+mapnik-config --version
+
+LIBGL_ALWAYS_SOFTWARE=1 renderd -f -d
+
+
+
+
+
+
+Check if another instance is running:
+sudo systemctl stop renderd
+ps aux | grep renderd
+
+
+
+
+
+Remove the existing socket file:
+sudo rm -f /run/renderd/renderd.sock
+
+
+
+
+ls -ld /run/renderd
+ls -l /run/renderd/renderd.sock
+
+
+
+
+
+cat /etc/passwd | grep renderd
+
+
+
+sudo useradd -r -s /bin/false renderd
+sudo mkdir -p /run/renderd
+sudo chown renderd:renderd /run/renderd
+sudo chmod 755 /run/renderd
+
+
+
+
+
+
+
+If it still fails, check if another process is using the socket:
+sudo lsof -i :7653  # Default port for renderd
+
+
+
+
+
+
+
+sudo mkdir -p /run/renderd
+sudo chown renderd:renderd /run/renderd  # If the 'renderd' user exists
+sudo chmod 755 /run/renderd
+
+
+
+
+
+sudo systemctl status renderd
+
+
+Feb 28 12:56:23 debian renderd[4547]: socket bind failed for: /run/renderd/renderd.sock
+Feb 28 12:56:23 debian systemd[1]: renderd.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED
+Feb 28 12:56:23 debian systemd[1]: renderd.service: Failed with result 'exit-code'.
+
+
+socket bind failed for: /run/renderd/renderd.sock
+
+
+ls -l /run/renderd/
+
+
+sudo rm -f /run/renderd/renderd.sock
+sudo systemctl restart renderd
+
+
+. Ensure correct ownership and permissions
+
+sudo chown -R renderd:renderd /run/renderd
+sudo chmod 755 /run/renderd
+
+
+sudo systemctl restart renderd
+
+
+
+
+
+
+Run renderd manually to check for detailed errors
+
+sudo -u renderd /usr/bin/renderd -f
+
+
+
+Check if another process is using the socket
+
+sudo lsof -nP | grep renderd.sock
+
+
+
+
+
+
+
+
+
+
+```
+
+cnc@debian:~$ cat /lib/systemd/system/renderd.service
+[Unit]
+Description=Daemon that renders map tiles using mapnik
+Documentation=man:renderd
+After=network.target auditd.service
+
+[Service]
+ExecStart=/usr/bin/renderd -f
+User=renderd
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+```
+
+Ensure that:
+
+    User=renderd
+    ExecStart=/usr/bin/renderd -f
+    RuntimeDirectory=renderd
+
+
+
+
+
+
+
+sudo nano /lib/systemd/system/renderd.service
+
+User=_renderd
+to
+User=renderd
+
+
+
+
+
+Reload and restart the service
+
+
+sudo systemctl daemon-reload
+sudo systemctl restart renderd
+sudo systemctl status renderd
+
+journalctl -xe | grep renderd
+
+
+
+
+Work
+curl http://localhost:80/tiles/renderd-example/0/0/0.png
+
+
+
+
+
+ls /etc/apache2/mods-enabled/ | grep tile
+
+
+
+sudo a2enmod tile
+sudo systemctl restart apache2
+
+
+
+
+Check Apache site configuration
+
+sudo nano /etc/apache2/sites-available/000-default.conf
+
+
+LoadModule tile_module /usr/lib/apache2/modules/mod_tile.so
+
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+
+    LoadTileConfigFile /etc/renderd.conf
+    ModTileRenderdSocketName /run/renderd/renderd.sock
+    ModTileRequestTimeout 0
+</VirtualHost>
+
+
+
+
+
+
+
+
+
+
+
+ check logs:
+
+journalctl -u renderd --no-pager --lines=50
+journalctl -u apache2 --no-pager --lines=50
+
+
+
+
+
+
+
+
+
+Check Apache Headers:
+
+sudo nano /etc/apache2/sites-available/000-default.conf
+
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type"
+</IfModule>
+
+
+sudo systemctl restart apache2
+
+
+
+
+
+
+3. Disable Source Maps (Temporary Fix)
+If debugging isn’t needed, disable source maps in your browser:
+
+    Firefox: about:config → Set devtools.source-map.enabled to false.
+
+
+
+
+
+
+
+
+sudo chmod 644 /var/www/html/renderd-example-map/leaflet/leaflet.js.map
+sudo chown www-data:www-data /var/www/html/renderd-example-map/leaflet/leaflet.js.map
+
+
+
+
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+
+
+
+
+
+
+
+1. Check File Path in Apache Root
+Try accessing it directly:
+ls -l /var/www/html/renderd-example-map/leaflet/leaflet.js.map
+
+
+
+
+
+
+Find Apache’s document root:
+
+
+grep -i "DocumentRoot" /etc/apache2/sites-enabled/000-default.conf
+
+
+
+
+
+
+
+
+sudo nano /etc/apache2/apache2.conf
+
+
+
+Find <Directory /var/www/> and make sure it contains:
+
+
+Options Indexes FollowSymLinks
+AllowOverride All
+Require all granted
+
+
+
+
+
+
+Ensure Apache can read the file:
+
+ls -ld /var/www/html/renderd-example-map/leaflet
+ls -l /var/www/html/renderd-example-map/leaflet/leaflet.js.map
+
+
+
+
+2. Check Apache Configuration
+If .htaccess exists in /var/www/html/renderd-example-map/, it might be blocking access. Try renaming it:
+
+
+mv /var/www/html/renderd-example-map/.htaccess /var/www/html/renderd-example-map/.htaccess.bak
+
+
+
+
+
+3. Test Access with wget
+wget -S http://localhost/renderd-example-map/leaflet/leaflet.js.map
+
+
+
+
+4. Check Apache Logs
+sudo tail -f /var/log/apache2/access.log /var/log/apache2/error.log
+
+
+
+
+Ensure Apache is correctly serving the directory. Run:
+
+grep -i "Alias\|Redirect\|Rewrite" /etc/apache2/sites-enabled/*.conf
+If there are unexpected aliases, adjust them.
+
+
+
+
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+
+
+Then check /etc/apache2/apache2.conf for:
+
+<Directory /var/www/>
+    AllowOverride All
+</Directory>
+
+
+
+
+
+curl -I http://127.0.0.1/renderd-example-map/leaflet/leaflet.js.map
+
+
+
+Edit /etc/apache2/sites-enabled/renderd-example-map.conf and add:
+
+```
+
+Redirect /renderd-example-map/leaflet/leaflet.js.map https://unpkg.com/leaflet/dist/leaflet.js.map
+```
+
+
+curl -I http://localhost/renderd-example-map/leaflet/leaflet.js.map
+
+
+
+
+Manually generate tiles
+sudo -u www-data render_list -a -z 0 -Z 10 -n 4 -m example-map
+
+
+
+sudo systemctl restart apache2
+
+
+
+
+
+Verify Apache logs
+sudo tail -f /var/log/apache2/error.log
+
+
+
+Test tile access with curl
+curl -I http://localhost:8001/tiles/example-map/0/0/0.png
+
+
+
+
+Rendering time depends on factors like CPU power, RAM, disk speed, and map complexity.
+
+Lower zoom levels (0-7): Fast (minutes to an hour).
+Higher zoom levels (8-10): Much slower (several hours or even days).
+
+For zoom 9 and 10, expect several hours, possibly a day or more if your system is not very powerful.
+
+
+
+htop  # Monitor CPU usage  
+du -sh /var/cache/renderd/tiles/example-map/  # Check tile size growth  
+
+
+
+
+
+sudo apt install ristretto
+ristretto /var/cache/renderd/tiles/example-map/7/0/0/0/0/0.png
+
+
+
+
+
+Kill all renderd processes:
+sudo pkill -9 renderd
+sudo kill -9 <PID>
+
+
+
+Verify if renderd is still running:
+ps aux | grep renderd
+
+
+
+Remove the socket file (if exists):
+sudo rm -f /run/renderd/renderd.sock
+sudo systemctl restart renderd
+sudo systemctl status renderd
+sudo systemctl start renderd
+sudo systemctl stop renderd
+
+
+
+??
+sudo dmesg | grep -i denied
+sudo aa-complain /usr/bin/renderd
+
+
+??
+
+
+
+
+sudo -u www-data renderd -f
+
+
+
+
+sudo -u www-data render_list -a -z 0 -Z 4 -n 4 -m example-map
+
+
+sudo -u www-data → Runs the command as the www-data user (used by web servers like Apache/Nginx).
+render_list → A tool for pre-generating tiles with Mapnik.
+-a → Renders all tiles, even if they already exist.
+-z 0 -Z 4 → Defines the zoom level range (from 0 to 4).
+-n 4 → Uses 4 rendering threads for faster processing.
+-m example-map → Specifies the map style named example-map.
+
+
+This command pre-generates and caches tiles up to zoom level 4, so they can be served offline without requiring on-the-fly rendering.
+
+
+
+
+
+
+Your renderd is failing to write metatiles due to permission issues:
+Permission denied: Failed to write metatile to /var/cache/renderd/tiles/example-map/4/0/0/0/0/0.meta
+
+
+
+# bug code??
+Change ownership to renderd
+sudo chown -R renderd:renderd /var/cache/renderd/tiles
+
+
+
+
+
+
+ls -ld /var/cache/renderd/tiles/example-map/
+
+
+sudo chown -R renderd:www-data /var/cache/renderd/tiles
+sudo chmod -R 775 /var/cache/renderd/tiles
+
+
+```
+drwxrwxr-x 3 renderd  renderd  4096 Feb 28 06:11 .
+drwxr-xr-x 3 _renderd _renderd 4096 Feb 28 03:07 ..
+drwxrwxr-x 8 renderd  renderd  4096 Feb 28 11:20 example-map
+
+
+
+```
+
+What is 0.meta?
+
+Metatiles store multiple smaller tiles together in a single file to improve rendering efficiency.
+
+/var/cache/renderd/tiles/example-map/4/0/0/0/0/0.meta
+
+
+Stored in the tile cache directory (/var/cache/renderd/tiles/).
+example-map is the map style.
+4 is the zoom level.
+0/0/0/0/0.meta refers to a specific tile group.
+
+
+
+
+
+sudo service renderd restart
+
+
+manually remove old tiles:
+
+rm -rf /var/lib/mod_tile/*
+
+render_list -a -z 0 -Z 10
+
+
+
+If you don’t want to assign colors manually, you can generate colors dynamically using CartoCSS or preprocessing in QGIS.
+
+
+
+
+
+```
+sudo apt update
+sudo apt install gdal-bin -y
+ogrinfo --version
+
+
+check the metadata 
+
+ogrinfo -al -so very_simplified_land_polygons.shp
+
+
+
+ogrinfo very_simplified_land_polygons.shp very_simplified_land_polygons -sql "SELECT * FROM very_simplified_land_polygons"
+
+ogrinfo very_simplified_land_polygons.shp
+
+
+```
+
+
+How to Check if Country Data Exists?
+
+
+ogrinfo -al -so very_simplified_land_polygons.shp
+
+
+ogrinfo very_simplified_land_polygons.shp very_simplified_land_polygons -sql "PRAGMA table_info(very_simplified_land_polygons)"
+
+
+
+
+This will list the available columns. Look for fields like:
+
+    name
+    ISO_A2
+    ADMIN
+    COUNTRY
+
+
+
+
+
+
+
+
+
+
+Convert to GeoJSON:
+
+ogr2ogr -f GeoJSON countries.json ne_10m_admin_0_countries.shp
+
+
+Convert back to Shapefile:
+
+ogr2ogr -f "ESRI Shapefile" new_countries.shp countries.json
+
+
+
+
+
+
+
+
+GOOD_REP
+https://github.com/iamtekson/leaflet-geojson-vt
