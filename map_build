@@ -7,6 +7,82 @@ import geopandas as gpd
 https://github.com/openstreetmap/mod_tile/
 
 
+
+
+
+
+FILE_DIR LIST
+
+
+git clone https://github.com/openstreetmap/mod_tile/
+
+cd mod_tile
+
+sudo mkdir -p /usr/share/renderd
+sudo cp -av utils/example-map /usr/share/renderd/
+
+sudo cp -av etc/apache2/renderd-example-map.conf /etc/apache2/sites-available/renderd-example-map.conf
+
+ed /etc/renderd.conf
+
+
+```
+[renderd]
+host=localhost
+pid_file=/run/renderd/renderd.pid
+socketname=/run/renderd/renderd.sock
+stats_file=/run/renderd/renderd.stats
+tile_dir=/var/cache/renderd/tiles
+
+[mapnik]
+font_dir=/usr/share/fonts
+font_dir_recurse=0
+plugins_dir=/usr/lib/mapnik/3.1/input
+
+[example-map]
+URI=/tiles/renderd-example
+XML=/usr/share/renderd/example-map/mapnik.xml
+
+[example-map-jpg]
+TYPE=jpg image/jpeg jpeg
+URI=/tiles/renderd-example-jpg
+XML=/usr/share/renderd/example-map/mapnik.xml
+
+[example-map-png256]
+TYPE=png image/png png256
+URI=/tiles/renderd-example-png256
+XML=/usr/share/renderd/example-map/mapnik.xml
+
+[example-map-png32]
+TYPE=png image/png png32
+URI=/tiles/renderd-example-png32
+XML=/usr/share/renderd/example-map/mapnik.xml
+
+[example-map-webp]
+TYPE=webp image/webp webp
+URI=/tiles/renderd-example-webp
+XML=/usr/share/renderd/example-map/mapnik.xml
+
+
+```
+
+
+
+sudo mkdir -p /run/renderd
+sudo renderd
+sudo a2enmod tile
+sudo a2ensite renderd-example-map
+sudo apache2ctl restart
+
+
+
+
+
+
+
+
+
+
 Check mod_tile config in /etc/apache2/sites-available/renderd-example-map.conf.
 
 

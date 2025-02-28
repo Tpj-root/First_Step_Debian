@@ -1233,6 +1233,36 @@ open_terminals_left_2() {
 alias need4='open_terminals_left_2'
 
 
+# apache2 and renderd
+restartall() {
+    sudo systemctl restart renderd apache2
+    #sudo systemctl status renderd
+    #sudo systemctl status apache2
+    clear
+}
+
+
+stopall() {
+    sudo systemctl stop renderd
+    sudo systemctl stop apache2
+    clear
+}
+startall() {
+    sudo systemctl start renderd
+    sudo systemctl start apache2
+    clear
+}
+
+password_set="123"
+
+
+alias ap2s='sudo systemctl status apache2'
+alias rds='sudo systemctl status renderd'
+
+
+#alias render_config='sudo subl /etc/renderd.conf'
+alias render_config='echo ${password_set} | sudo -S subl /etc/renderd.conf'
+
 
 
 # add library temp
