@@ -236,6 +236,7 @@ alias ins='sudo apt-get install'
 alias fix='sudo apt-get install -f'
 alias t='touch'
 alias e='exit'
+alias ed='sudo subl $1'
 #alias q='exit'
 #alias findport='sudo lsof -i :$1'
 
