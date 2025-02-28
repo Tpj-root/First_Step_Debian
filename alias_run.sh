@@ -596,6 +596,13 @@ function mygit() {
     gedit README.md
 }
 
+
+
+
+##########################################
+#     jocker start
+#
+##########################################
 check_and_install_jocker() {
     # Check if the file /usr/local/bin/jocker.sh exists
     if [ ! -f /usr/local/bin/jocker.sh ]; then
@@ -651,7 +658,46 @@ check_the_condition_jocker
 source /usr/local/bin/jocker.sh
 alias githerewego='gitHereWeGo'
 alias gitgo='gitHereWeGo'
+##########################################
+#      jocker end
+##########################################
+##########################################
+#      apache start
+##########################################
 
+check_and_setup_apache() {
+    # Check if apache2 command is available
+    if ! command -v apache2 &>/dev/null; then
+        echo "apache2 command not found, trying /usr/sbin/apache2..."
+        
+        # Check if apache2 exists in /usr/sbin
+        if [ -x /usr/sbin/apache2 ]; then
+            echo "Using /usr/sbin/apache2"
+            /usr/sbin/apache2 -v
+        else
+            echo "apache2 not found in PATH or /usr/sbin. Adding /usr/sbin to PATH..."
+            export PATH=$PATH:/usr/sbin
+            
+            # Check again after updating PATH
+            if ! command -v apache2 &>/dev/null && [ ! -x /usr/sbin/apache2 ]; then
+                echo "Apache2 is still not available, installing required packages..."
+                sudo apt install apache2-bin apache2-utils -y
+            fi
+        fi
+    else
+        echo "apache2 is available:"
+        apache2 -v
+    fi
+}
+
+# Run the function
+export PATH=$PATH:/usr/sbin
+check_and_setup_apache
+sleep 1
+clear
+##########################################
+#      apache end
+##########################################
 
 ###########################
 #
