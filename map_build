@@ -1,10 +1,119 @@
 
 
+
+
+sudo apt install node-carto
+
+
+
+
+
+
+
+
+
+
 import geopandas as gpd
 
 
 
 https://github.com/openstreetmap/mod_tile/
+
+
+
+location of xml
+
+/usr/share/renderd/example-map/
+
+
+
+
+location of png and tiles
+
+
+
+
+cnc@debian:/usr/share/renderd/example-map$ ls
+index.html  mapnik.xml  very_simplified_land_polygons.gpkg
+cnc@debian:/usr/share/renderd/example-map$ 
+
+
+
+
+
+
+
+
+
+
+
+cnc@debian:/usr/lib/mapnik/3.1/input$ ls
+csv.input  gdal.input  geojson.input  ogr.input  pgraster.input  postgis.input  raster.input  shape.input  sqlite.input  topojson.input
+
+
+/usr/lib/mapnik/3.1/input
+
+```
+
+Plugin	Description
+csv.input	Reads CSV files with spatial data.
+gdal.input	Uses GDAL to load raster images (GeoTIFF, JPEG, PNG, etc.).
+geojson.input	Reads GeoJSON vector data.
+ogr.input	Reads vector data from various sources (Shapefiles, GeoJSON, KML, etc.).
+pgraster.input	Loads raster data from PostgreSQL/PostGIS.
+postgis.input	Loads vector data from PostgreSQL/PostGIS.
+raster.input	Loads standard raster images (JPEG, PNG, TIFF, etc.).
+shape.input	Reads ESRI Shapefiles (.shp).
+sqlite.input	Reads spatial data from SQLite databases.
+topojson.input	Reads TopoJSON vector data.
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sudo chown _renderd:_renderd example-map
+sudo chmod 755 example-map
+
+
+
+```
+cnc@debian:/var/cache/renderd/tiles$ ls -al
+total 24
+drwxr-xr-x 6 _renderd _renderd 4096 Mar  1 17:18 .
+drwxr-xr-x 3 _renderd _renderd 4096 Feb 27 16:19 ..
+drwxr-xr-x 2 root     root     4096 Mar  1 16:06 example-map
+drwxr-xr-x 7 _renderd _renderd 4096 Mar  1 17:19 example-map-jpg
+drwxr-xr-x 7 _renderd _renderd 4096 Mar  1 17:20 example-map-png32
+drwxr-xr-x 6 _renderd _renderd 4096 Mar  1 17:20 example-map-webp
+cnc@debian:/var/cache/renderd/tiles$ sudo chown _renderd:_renderd example-map
+[sudo] password for cnc: 
+cnc@debian:/var/cache/renderd/tiles$ ls
+example-map  example-map-jpg  example-map-png32  example-map-webp
+cnc@debian:/var/cache/renderd/tiles$ ls -al
+total 24
+drwxr-xr-x 6 _renderd _renderd 4096 Mar  1 17:18 .
+drwxr-xr-x 3 _renderd _renderd 4096 Feb 27 16:19 ..
+drwxr-xr-x 2 _renderd _renderd 4096 Mar  1 16:06 example-map
+drwxr-xr-x 7 _renderd _renderd 4096 Mar  1 17:19 example-map-jpg
+drwxr-xr-x 7 _renderd _renderd 4096 Mar  1 17:20 example-map-png32
+drwxr-xr-x 6 _renderd _renderd 4096 Mar  1 17:20 example-map-webp
+
+
+```
+
 
 
 

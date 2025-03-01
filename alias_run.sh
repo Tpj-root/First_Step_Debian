@@ -1253,16 +1253,13 @@ startall() {
     clear
 }
 
-password_set="123"
-
-
 alias ap2s='sudo systemctl status apache2'
 alias rds='sudo systemctl status renderd'
 
 
 #alias render_config='sudo subl /etc/renderd.conf'
-alias render_config='echo ${password_set} | sudo -S subl /etc/renderd.conf'
-
+password_set="0x7B"
+alias render_config='echo $((password_set)) | sudo -S subl /etc/renderd.conf'
 
 
 # add library temp
