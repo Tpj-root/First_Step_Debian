@@ -1307,15 +1307,23 @@ alias rds='sudo systemctl status renderd'
 #alias render_config='sudo subl /etc/renderd.conf'
 password_set="0x7B"
 alias render_config='echo $((password_set)) | sudo -S subl /etc/renderd.conf'
-
-
+alias apache2_config='echo $((password_set)) | sudo -S subl /etc/apache2/sites-available/renderd-example-map.conf'
 
 
 map_test() {
-    sudo systemctl restart renderd apache2
+    #sudo systemctl restart renderd apache2
     sudo rm -rf /var/cache/renderd/tiles/*
+    echo "tiles are removed sucessfuilly"
     sudo chown cnc:cnc /usr/share/renderd/example-map/*
     sudo chown -R cnc:cnc /usr/share/renderd/example-map/
+    echo "permissin are changed suceffuly"
+    sudo rm -f /run/renderd/renderd.sock
+    echo "removed the old sock file"
+    sudo chown -R renderd:renderd /run/renderd
+    sudo chmod 755 /run/renderd
+    echo "renderd sock permissin are changed suceffuly"
+    sudo systemctl restart renderd
+    echo "apache2 and renderd restard suceffuly"
     clear
 }
 

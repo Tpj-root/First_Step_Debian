@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE Map[]>
+<Map background-color="#1a1a1a" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over">
+  
+  <Parameters>
+    <Parameter name="name"><![CDATA[Custom Styled World Map]]></Parameter>
+    <Parameter name="description"><![CDATA[Modified style with random colors for each polygon.]]></Parameter>
+    <Parameter name="bounds">68.1,6.5,97.4,35.5</Parameter>
+    <Parameter name="center">82.75,21,5</Parameter>
+    <Parameter name="format"><![CDATA[png]]></Parameter>
+    <Parameter name="minzoom">3</Parameter>
+    <Parameter name="maxzoom">10</Parameter>
+  </Parameters>
+
+  <Style filter-mode="first" name="world">
+    <Rule>
+      <Filter><![CDATA[ [area] > 10000 ]]></Filter>
+      <PolygonSymbolizer fill="#ff6666" fill-opacity="0.9" />
+      <LineSymbolizer stroke="#ff0000" stroke-width="2" />
+    </Rule>
+    <Rule>
+      <Filter><![CDATA[ [area] > 5000 && [area] <= 10000 ]]></Filter>
+      <PolygonSymbolizer fill="#66ff66" fill-opacity="0.9" />
+      <LineSymbolizer stroke="#008000" stroke-width="2" />
+    </Rule>
+    <Rule>
+      <Filter><![CDATA[ [area] > 1000 && [area] <= 5000 ]]></Filter>
+      <PolygonSymbolizer fill="#6666ff" fill-opacity="0.9" />
+      <LineSymbolizer stroke="#0000ff" stroke-width="2" />
+    </Rule>
+    <Rule>
+      <Filter><![CDATA[ [area] > 500 && [area] <= 1000 ]]></Filter>
+      <PolygonSymbolizer fill="#ffff66" fill-opacity="0.9" />
+      <LineSymbolizer stroke="#cccc00" stroke-width="2" />
+    </Rule>
+    <Rule>
+      <Filter><![CDATA[ [area] > 100 && [area] <= 500 ]]></Filter>
+      <PolygonSymbolizer fill="#ff66ff" fill-opacity="0.9" />
+      <LineSymbolizer stroke="#990099" stroke-width="2" />
+    </Rule>
+    <Rule>
+      <Filter><![CDATA[ [area] <= 100 ]]></Filter>
+      <PolygonSymbolizer fill="#66ffff" fill-opacity="0.9" />
+      <LineSymbolizer stroke="#009999" stroke-width="2" />
+    </Rule>
+  </Style>
+
+  <Layer name="world_filtered" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over">
+    <StyleName><![CDATA[world]]></StyleName>
+    <Datasource>
+      <Parameter name="file"><![CDATA[very_simplified_land_polygons.gpkg]]></Parameter>
+      <Parameter name="type"><![CDATA[ogr]]></Parameter>
+      <Parameter name="layer"><![CDATA[very_simplified_land_polygons]]></Parameter>
+      <Parameter name="srs">EPSG:3857</Parameter>
+      <Parameter name="extent">7580857.32,725133.78,10842518.40,4232038.46</Parameter>
+    </Datasource>
+  </Layer>
+
+<Style name="road_style">
+  <!-- Outer thick road -->
+  <Rule>
+    <LineSymbolizer stroke="black" stroke-width="10" stroke-linecap="round"/>
+  </Rule>
+  <!-- Center dashed white line -->
+  <Rule>
+    <LineSymbolizer stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="10,5"/>
+  </Rule>
+</Style>
+
+<Layer name="custom_road" srs="+proj=longlat +datum=WGS84">
+  <StyleName><![CDATA[road_style]]></StyleName>
+  <Datasource>
+    <Parameter name="type"><![CDATA[geojson]]></Parameter>
+    <Parameter name="file"><![CDATA[polygon.geojson]]></Parameter>
+  </Datasource>
+</Layer>
+
+
+</Map>
