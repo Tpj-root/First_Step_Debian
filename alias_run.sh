@@ -819,9 +819,56 @@ you() {
     "$file"
 }
 
+
 # Execute the function
 #you
 
+################
+
+
+
+
+
+
+
+################
+# AnyDISK
+# 
+
+myanydesk() {
+    # Set variables
+    local dir="$HOME/Desktop/RUN_TIME"
+    local file="$dir/anydesk_6.4.2-1_amd64.deb"
+    local url="https://download.anydesk.com/linux/anydesk_6.4.2-1_amd64.deb"
+
+    # Ensure the directory exists
+    mkdir -p "$dir"
+
+    # Download if the file does not exist
+    if [[ ! -f "$file" ]]; then
+        echo "File not found. Downloading to $dir..."
+        wget -O "$file" "$url" || { echo "Download failed!"; return 1; }
+    else
+        echo "File already exists: $file"
+    fi
+
+    # Check if AnyDesk is installed
+    if ! dpkg -l | grep -q "anydesk"; then
+        echo "Installing $file..."
+        sudo dpkg -i "$file" || { echo "Installation failed!"; return 1; }
+        echo "Restarting AnyDesk service..."
+        sudo systemctl restart anydesk.service || echo "Warning: Failed to restart AnyDesk."
+        echo "AnyDesk installation completed."
+    else
+        echo "AnyDesk is already installed."
+    fi
+
+    # Ensure DISPLAY variable is set
+    export DISPLAY=:0
+
+    # Run AnyDesk
+    anydesk &>/dev/null &
+}
 
 
 ################
