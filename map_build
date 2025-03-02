@@ -5,20 +5,10 @@
 sudo apt install node-carto
 
 
-
-
-
-
-
-
-
-
 import geopandas as gpd
 
 
-
 https://github.com/openstreetmap/mod_tile/
-
 
 
 location of xml
@@ -26,9 +16,43 @@ location of xml
 /usr/share/renderd/example-map/
 
 
-
-
 location of png and tiles
+
+/var/cache/renderd/tiles
+
+remove all tiles
+
+sudo rm -rf /var/cache/renderd/tiles/example-map-custom/*
+
+
+sudo rm -rf /var/cache/renderd/tiles/example-map-png32/*
+
+
+
+Manually generate tiles
+sudo -u www-data render_list -a -z 0 -Z 10 -n 4 -m example-map
+
+# GEN ONLY 19 ZOOM
+sudo -u www-data render_list -a -z 19 -Z 19 -n 4 -m  example-map
+
+
+
+
+
+config files
+
+ed /etc/apache2/sites-available/renderd-example-map.conf
+ed /etc/renderd.conf
+ed /etc/apache2/sites-available/000-default.conf
+
+
+
+
+restart
+
+sudo systemctl restart renderd apache2
+
+
 
 
 
@@ -41,6 +65,10 @@ cnc@debian:/usr/share/renderd/example-map$
 
 
 
+permissions issue 
+
+sudo chown cnc:cnc /usr/share/renderd/example-map/*
+sudo chown -R cnc:cnc /usr/share/renderd/example-map/
 
 
 
@@ -1037,3 +1065,35 @@ ogr2ogr -f "ESRI Shapefile" new_countries.shp countries.json
 
 GOOD_REP
 https://github.com/iamtekson/leaflet-geojson-vt
+
+
+
+
+
+
+rds -report
+
+
+Mar 02 16:58:58 debian renderd[62404]: Received request for map layer example-map is outside of acceptable bounds z(19), x(0), y(16)
+Mar 02 16:58:58 debian renderd[62404]: Received request for map layer example-map is outside of acceptable bounds z(19), x(0), y(24)
+Mar 02 16:59:08 debian renderd[62404]: ** INFO: 16:59:08.272: got bad co-ords: x(0) y(32) z(19)
+Mar 02 16:59:08 debian renderd[62404]: ** INFO: 16:59:08.272: got bad co-ords: x(0) y(40) z(19)
+Mar 02 16:59:08 debian renderd[62404]: Received request for map layer example-map is outside of acceptable bounds z(19), x(0), y(32)
+Mar 02 16:59:08 debian renderd[62404]: ** INFO: 16:59:08.272: got bad co-ords: x(0) y(48) z(19)
+Mar 02 16:59:08 debian renderd[62404]: ** INFO: 16:59:08.272: got bad co-ords: x(0) y(56) z(19)
+Mar 02 16:59:08 debian renderd[62404]: Received request for map layer example-map is outside of acceptable bounds z(19), x(0), y(40)
+Mar 02 16:59:08 debian renderd[62404]: Received request for map layer example-map is outside of acceptable bounds z(19), x(0), y(48)
+Mar 02 16:59:08 debian renderd[62404]: Received request for map layer example-map is outside of acceptable bounds z(19), x(0), y(56)
+
+
+
+cnc@debian:~$ sudo -u www-data render_list -a -z 19 -Z 19 -n 4 -m  example-map
+[sudo] password for cnc: 
+Rendering client
+Starting 4 rendering threads
+Rendering all tiles from zoom 19 to zoom 19
+Rendering all tiles for zoom 19 from (0, 0) to (524287, 524287)
+rendering failed with command 0, pausing.
+rendering failed with command 0, pausing.
+rendering failed with command 0, pausing.
+rendering failed with command 0, pausing.

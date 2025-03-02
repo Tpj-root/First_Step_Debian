@@ -1309,6 +1309,19 @@ password_set="0x7B"
 alias render_config='echo $((password_set)) | sudo -S subl /etc/renderd.conf'
 
 
+
+
+map_test() {
+    sudo systemctl restart renderd apache2
+    sudo rm -rf /var/cache/renderd/tiles/*
+    sudo chown cnc:cnc /usr/share/renderd/example-map/*
+    sudo chown -R cnc:cnc /usr/share/renderd/example-map/
+    clear
+}
+
+
+
+
 # add library temp
 export CPLUS_INCLUDE_PATH=$HOME/Desktop/BUILD_FILES/boost_1_83_0
 export LIBRARY_PATH=$HOME/Desktop/BUILD_FILES/boost_1_83_0/stage/lib
