@@ -153,6 +153,16 @@ check_the_condition_Animation() {
 check_the_condition_Animation
 
 
+##########
+# replace spaces with underscores in all filenames in the current directory
+# remove special characters from filenames
+clean_filenames() {
+  for file in *; do
+    new_name=$(echo "$file" | tr ' ' '_' | tr -d '(){}\-~!@#$%^&*()+|')
+    [ "$file" != "$new_name" ] && mv "$file" "$new_name"
+  done
+}
+
 
 
 #alias edit='gedit $HOME/.bashrc'
