@@ -1352,7 +1352,7 @@ alias rds='sudo systemctl status renderd'
 password_set="0x7B"
 alias render_config='echo $((password_set)) | sudo -S subl /etc/renderd.conf'
 alias apache2_config='echo $((password_set)) | sudo -S subl /etc/apache2/sites-available/renderd-example-map.conf'
-
+alias openxml='cd /usr/share/renderd/example-map/ && echo $((password_set)) | sudo -S xdg-open .'
 
 map_test() {
     #sudo systemctl restart renderd apache2

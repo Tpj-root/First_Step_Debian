@@ -1,6 +1,14 @@
 
 
 
+# that work perfect
+
+https://tile.openstreetmap.org/11/1427/888.png
+https://tile.openstreetmap.org/{z}/{x}/{y}.png
+
+
+
+
 
 sudo apt install node-carto
 
