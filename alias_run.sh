@@ -597,9 +597,43 @@ function mygit() {
     gedit README.md
 }
 
+##########################################
+#     trackers start
+#
+##########################################
+#
+# https://github.com/ngosang/trackerslist/tree/master
+
+giturl_convert_to_raw() {
+    local url="$1"
+    echo "$url" | sed -E 's|https://github.com/([^/]+)/([^/]+)/blob/([^/]+)/(.*)|https://raw.githubusercontent.com/\1/\2/\3/\4|'
+}
+
+# Example usage
+#convert_to_raw "https://github.com/ngosang/trackerslist/blob/master/trackers_all.txt"
 
 
+#copy_raw_to_clipboard() {
+#    local url="$1"
+#    curl -s "$url" | xclip -selection clipboard
+#}
+#
+## Example usage
+#copy_raw_to_clipboard "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt"
 
+
+trackerscopy() {
+    local url="$1"
+    curl -s "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt" | xclip -selection clipboard
+}
+
+# Example usage
+#copy_raw_to_clipboard "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt"
+
+##########################################
+#     trackers end
+#
+##########################################
 ##########################################
 #     jocker start
 #
