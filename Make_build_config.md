@@ -190,12 +190,6 @@ declare -f open_terminals_left_2
 
 
 
-
-
-
-
-
-
 spaceship-trajectory
 
 ```
