@@ -307,6 +307,26 @@ mtouch() {
 }
 
 
+
+################
+#
+# gcc help
+header_files_list()
+{
+    # Find all .c and .cpp files in the current directory and subdirectories
+    find . -type f \( -name "*.c" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) | while read -r file; do
+        echo "Processing: $file"
+        # Extract and print unique header includes
+        grep -E "^#include <.*>" "$file" | awk '!seen[$0]++'
+    done
+}
+
+alias h_list='header_files_list | sort -n | uniq | grep -i "#include"'
+
+
+
+
+
 ################
 #
 # add TOdo
