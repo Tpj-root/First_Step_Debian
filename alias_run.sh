@@ -248,7 +248,7 @@ set_edit_alias
 
 ##################################
 # A good way to share bug details
-#
+#  seq 1 100 | paste-online 
 alias paste-online='curl --data-binary @- https://paste.rs; echo'
 
 
@@ -363,7 +363,7 @@ function mtouch() {
 
 ################
 #
-# gcc help
+# project folder analyzing
 function header_files_list()
 {
     # Find all .c and .cpp files in the current directory and subdirectories
@@ -375,6 +375,7 @@ function header_files_list()
 }
 
 alias h_list='header_files_list | sort -n | uniq | grep -i "#include"'
+alias h_list_out='header_files_list | sort -n | uniq | grep -i "#include" >h_list_out.txt'
 
 
 
