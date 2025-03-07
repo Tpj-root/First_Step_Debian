@@ -43,32 +43,85 @@ Prompt_Animation=0
 
 
 # Define color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-GRAY='\033[0;90m'   # Gray (Light Black)
-RESET='\033[0m'
-BLINK='\033[5m'
+#
+#  color list
+#
+# Define colors function
+function get_colors() {
+    RESET='\033[0m'
+    BLACK='\033[30m'
+    RED='\033[31m'
+    GREEN='\033[32m'
+    YELLOW='\033[33m'
+    BLUE='\033[34m'
+    MAGENTA='\033[35m'
+    CYAN='\033[36m'
+    WHITE='\033[37m'
+    BOLD='\033[1m'
+    UNDERLINE='\033[4m'
+    GRAY='\033[90m'
+    BRIGHT_RED='\033[91m'
+    BRIGHT_GREEN='\033[92m'
+    BRIGHT_YELLOW='\033[93m'
+    BRIGHT_BLUE='\033[94m'
+    BRIGHT_MAGENTA='\033[95m'
+    BRIGHT_CYAN='\033[96m'
+    BRIGHT_WHITE='\033[97m'
+    BLINK='\033[5m'
+}
+
+# Call the function to define colors
+get_colors
+
+# Store all colors in an array
+colors=("$RESET" "$BLACK" "$RED" "$GREEN" "$YELLOW" "$BLUE" "$MAGENTA" "$CYAN" "$WHITE" \
+        "$BOLD" "$UNDERLINE" "$BRIGHT_BLACK" "$GRAY" "$BRIGHT_RED" "$BRIGHT_GREEN" "$BRIGHT_YELLOW" \
+        "$BRIGHT_BLUE" "$BRIGHT_MAGENTA" "$BRIGHT_CYAN" "$BRIGHT_WHITE")
 
 
+function Test_All_The_colurs()
+{
+    # Test - Print all colors
+    for color in "${colors[@]}"; do
+        echo -e "${color}This is a test message${RESET}"
+    done
+    
+}
 
-print_random_color() {
+#Test_All_The_colurs
+#sleep 10
+
+#SoftWare_Installing_func()
+#{
+#    if ! command -v figlet &> /dev/null; then
+#        echo "figlet is not installed. Installing figlet..."
+#        sudo apt install -y figlet
+#        if ! command -v figlet &> /dev/null; then
+#            echo "Failed to install figlet. Please install it manually and try again."
+#            exit 1
+#        fi
+#    fi
+#}
+#
+
+
+function print_random_color() {
     local message=$1
     local random_color=${colors[$RANDOM % ${#colors[@]}]}
     echo -e "${random_color}${message}${RESET}"
 }
 
-print_special_color() {
+function print_special_color() {
     local message=$1
     local random_color=${BLUE}
     echo -e "${random_color}${message}${RESET}"
 }
 
+#print_random_color HELLO
+#print_special_color HELLOO
 
-title_fun() {
+
+function title_fun() {
 
 print_special_color " .d8888. db   db  .d8b.  d8888b.  .d88b.  db   d8b   db " 
 print_special_color " 88'  YP 88   88 d8' \`8b 88  \`8D .8P  Y8. 88   I8I   88 " 
@@ -80,7 +133,7 @@ print_special_color "                          bash ${version}    "
 }
 
 
-why() {
+function why() {
 echo -e ${GREEN} "The journey of a thousand miles begins with a single step."
 echo -e ${GREEN} "The reason to start is to open the door to the possibilities that lie ahead."
 }
@@ -88,7 +141,7 @@ echo -e ${GREEN} "The reason to start is to open the door to the possibilities t
 
 
 # Function to check the condition SoftWare_Installing 
-check_the_condition_Title_screen() {
+function check_the_condition_Title_screen() {
     if [[ "$Title_screen" -eq 1 ]]; then
         # Run the function for selected categories
 		title_fun
@@ -100,11 +153,11 @@ check_the_condition_Title_screen
 
 # 
 # Function to check the condition Animation prompt
-check_the_condition_Animation() {
+function check_the_condition_Animation() {
     if [[ "$Prompt_Animation" -eq 1 ]]; then
         # Run the function for selected categories
 
-		spinner1() {
+		function spinner1() {
 		    local chars="/-\|"
 		    while true; do
 		        for (( i=0; i<${#chars}; i++ )); do
@@ -128,7 +181,7 @@ check_the_condition_Animation() {
 		#export PS1="🅂 🅷 🅰 🅳 🅾 🆆 @ bash 🡆 {$spinner}"
 		#spinner
 
-		spinner() {
+		function spinner() {
 		    local chars=("👽" "💀" "🐺" "👻")
 		    echo -n "${chars[$((SECONDS % ${#chars[@]}))]}"
 		}
@@ -136,7 +189,7 @@ check_the_condition_Animation() {
 		export PS1="${GRAY}${BLINK}🅂 🅷 🅰 🅳 🅾 🆆 ${RESET} @ bash $(spinner) 🡆 "
 		#export PS1='🅂 🅷 🅰 🅳 🅾 🆆 @ bash $(spinner) 🡆 '
 
-		print_colors() {
+		function print_colors() {
 		    for i in {0..107}; do
 		        printf "\e[${i}m%-10s \e[0m" "[$i]"
 		        if (( (i + 1) % 8 == 0 )); then
@@ -156,7 +209,7 @@ check_the_condition_Animation
 ##########
 # replace spaces with underscores in all filenames in the current directory
 # remove special characters from filenames
-clean_filenames() {
+function clean_filenames() {
   for file in *; do
     new_name=$(echo "$file" | tr ' ' '_' | tr -d '(){}\-~!@#$%^&*()+|')
     [ "$file" != "$new_name" ] && mv "$file" "$new_name"
@@ -170,7 +223,7 @@ clean_filenames() {
 #alias edit='nano $HOME/.bashrc'
 
 # Function to set the 'edit' alias based on available text editors
-set_edit_alias() {
+function set_edit_alias() {
     # Check if 'subl' (Sublime Text) is installed and available
     if command -v subl &>/dev/null; then
         #alias edit='subl $HOME/.bashrc'  # Use Sublime Text if available
@@ -271,7 +324,7 @@ alias paneledit='xfce4-panel --preferences'
 ##
 ## Quickly Extract Files
 ##
-extract() {
+function extract() {
     if [ -f "$1" ]; then
         case "$1" in
             *.tar.bz2) tar xjf "$1" ;;
@@ -294,7 +347,7 @@ extract() {
 
 
 # mtouch <filename>
-mtouch() {
+function mtouch() {
     if command -v subl &>/dev/null; then
         touch "$1" && subl "$1"
     # If 'subl' is not found, check for 'gedit' (GNOME Text Editor)
@@ -311,7 +364,7 @@ mtouch() {
 ################
 #
 # gcc help
-header_files_list()
+function header_files_list()
 {
     # Find all .c and .cpp files in the current directory and subdirectories
     find . -type f \( -name "*.c" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) | while read -r file; do
@@ -339,7 +392,7 @@ alias h_list='header_files_list | sort -n | uniq | grep -i "#include"'
 #
 # gif download from giphy site
 #
-download_gif() {
+function download_gif() {
     # Generate a random filename with 8 characters (alphanumeric)
     filename=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 8).gif
 
@@ -357,7 +410,7 @@ download_gif() {
 ################
 #Backup_function
 ################
-bashrc_backup() {
+function bashrc_backup() {
     #    #
     # Copy .bashrc to backup location
     cp /home/cnc/.bashrc /home/cnc/Desktop/GIT_MAIN/silent/Alias_Backup/bashrc_backup
@@ -391,7 +444,7 @@ bashrc_backup() {
 ##########
 ## Directory copied to clipboard
 ##########
-oc() {
+function oc() {
     pwd
     pwd | xclip -selection clipboard
     echo "Directory copied to clipboard."
@@ -471,7 +524,7 @@ alias mini_check='check_new_packages'
 #alias halkill='halrun -U'
 
 
-mvcomp() {
+function mvcomp() {
     if [ -z "$1" ]; then
         echo "Usage: mvcomp <filename>"
         return 1
@@ -522,23 +575,23 @@ mvcomp() {
 #}
 
 
-print_emoji() {
+function print_emoji() {
     local code=$1
     printf "\U$(printf "%08x" "$code")" "$code"
 }
 
 # Example usage: # U+2705: ✅
-GreenTick() {
+function GreenTick() {
     print_emoji 0x2705
 }
 
 # U+274C: ❌
-RedTick() {
+function RedTick() {
     print_emoji 0x274C
 }
 
 # U+1F47D: 👽
-Alien() {
+function Alien() {
     print_emoji 0x1F47D
 }
 
