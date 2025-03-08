@@ -5,7 +5,7 @@
 
 
 
-** DIY Laser Image Projector**
+**DIY Laser Image Projector**
 
 
 ```
