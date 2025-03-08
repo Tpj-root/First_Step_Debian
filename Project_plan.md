@@ -18,7 +18,7 @@ https://www.youtube.com/watch?v=bdo3djJrw9o
 source:
 
 https://github.com/bitluni/LaserCRT
-
+https://www.scanneroptics.com/products/galvo-scanner/
 
 Study:
 
