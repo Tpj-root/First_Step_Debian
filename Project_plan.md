@@ -81,3 +81,19 @@ https://www.technologyreview.com/2016/01/11/163927/in-pursuit-of-an-affordable-t
 ```
 https://www.youtube.com/watch?v=_eo8l7HP-9U
 ```
+
+
+
+
+**tool plan**
+
+
+```
+https://www.youtube.com/shorts/3MfN6_7_MAY
+
+```
+
+
+
+
+
