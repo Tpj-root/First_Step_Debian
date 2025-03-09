@@ -256,10 +256,259 @@ Most programmers use `int *ptr;` for clarity.
 
 
 
-
+```
 
 int factorial(int a) {
     if (a == 0 || a == 1)  // Base case
         return 1;
     return a * factorial(a - 1);
 }
+
+```
+
+
+```
+// if we define DEBUG_OUTPUT, the below debug code will be included when the
+// source code is compiled
+
+#define DEBUG_OUTPUT 0
+
+
+
+  #ifdef DEBUG_OUTPUT
+  int sum = 0;
+  for (int i = 0; i < 10; i++)
+    printf("a[%d] = %d : %d \n", i, a[i], sum);
+  #endif
+
+
+```
+
+
+
+
+```
+
+#define SOFTWARE_VERSION 10001
+
+int main()
+{
+
+  #if SOFTWARE_VERSION == 10000
+  printf("SOFTWARE_VERSION == 10000 \n");
+  #endif
+
+  #if SOFTWARE_VERSION == 10001
+  printf("SOFTWARE_VERSION == 10001 \n");
+  #endif
+
+  #if SOFTWARE_VERSION == 10002
+  printf("SOFTWARE_VERSION == 10002 \n");
+  #endif
+
+}
+
+```
+
+
+
+Yes, but using `#if SOFTWARE_VERSION == 10002` means that the preprocessor removes any code that doesn't match the defined `SOFTWARE_VERSION`. This approach is useful for conditional compilation but has limitations because it's resolved before compilation.  
+
+
+### **When to Use `#if` vs. `if`**
+- **`#if SOFTWARE_VERSION == X`** → Used for compile-time conditions (code is included/excluded before compilation).
+- **`if (SOFTWARE_VERSION == X)`** → Used for runtime conditions (executes based on variable values).  
+
+
+
+
+
+### **How to Use `#if` in C?**  
+
+The `#if` directive is part of the C preprocessor and is used for **conditional compilation**. It allows or excludes parts of code at **compile time**, based on conditions.
+
+---
+
+### **1. Basic `#if` Example**  
+Only one condition is checked. If `SOFTWARE_VERSION == 10001`, the code inside `#if` is compiled. Otherwise, it's ignored.
+
+```c
+#include <stdio.h>
+
+#define SOFTWARE_VERSION 10001
+
+int main() {
+    #if SOFTWARE_VERSION == 10001
+        printf("Version 10001\n");
+    #endif
+
+    return 0;
+}
+```
+**Output:**  
+```
+Version 10001
+```
+
+---
+
+### **2. Using `#elif` (Else If)**
+Multiple conditions can be checked. Only the first matching condition is included.
+
+```c
+#include <stdio.h>
+
+#define SOFTWARE_VERSION 10002
+
+int main() {
+    #if SOFTWARE_VERSION == 10000
+        printf("Version 10000\n");
+    #elif SOFTWARE_VERSION == 10001
+        printf("Version 10001\n");
+    #elif SOFTWARE_VERSION == 10002
+        printf("Version 10002\n");
+    #else
+        printf("Unknown Version\n");
+    #endif
+
+    return 0;
+}
+```
+**Output:**  
+```
+Version 10002
+```
+Only the matching `#elif` block gets compiled.
+
+---
+
+### **3. Using `#else` (Default Case)**
+If no conditions match, the `#else` block runs.
+
+```c
+#include <stdio.h>
+
+#define SOFTWARE_VERSION 9999  // Undefined version
+
+int main() {
+    #if SOFTWARE_VERSION == 10000
+        printf("Version 10000\n");
+    #elif SOFTWARE_VERSION == 10001
+        printf("Version 10001\n");
+    #else
+        printf("Unknown Version\n");
+    #endif
+
+    return 0;
+}
+```
+**Output:**  
+```
+Unknown Version
+```
+
+---
+
+### **4. Using `#ifdef` and `#ifndef`**
+These check if a macro is **defined** or **not defined**.
+
+```c
+#include <stdio.h>
+
+#define DEBUG  // Define DEBUG mode
+
+int main() {
+    #ifdef DEBUG
+        printf("Debug mode is ON\n");
+    #endif
+
+    #ifndef RELEASE
+        printf("Release mode is OFF\n");
+    #endif
+
+    return 0;
+}
+```
+**Output:**  
+```
+Debug mode is ON
+Release mode is OFF
+```
+- `#ifdef DEBUG` → Runs because `DEBUG` is defined.
+- `#ifndef RELEASE` → Runs because `RELEASE` is **not** defined.
+
+---
+
+### **5. Using `#if` with Logical Operators (`&&`, `||`)**
+You can use `&&` (AND) and `||` (OR) to check multiple conditions.
+
+```c
+#include <stdio.h>
+
+#define VERSION 10001
+#define FEATURE_ENABLED 1
+
+int main() {
+    #if VERSION == 10001 && FEATURE_ENABLED
+        printf("Feature is enabled in version 10001\n");
+    #endif
+
+    return 0;
+}
+```
+**Output:**  
+```
+Feature is enabled in version 10001
+```
+
+---
+
+### **6. Using `#define` for Debugging**
+Enable debugging messages only if `DEBUG` is defined.
+
+```c
+#include <stdio.h>
+
+// Uncomment to enable debugging
+#define DEBUG
+
+int main() {
+    #ifdef DEBUG
+        printf("Debugging enabled\n");
+    #endif
+    return 0;
+}
+```
+**Output:**  
+```
+Debugging enabled
+```
+If `#define DEBUG` is **removed**, the output will be empty.
+
+---
+
+### **Summary Table: When to Use Each Method**
+| Directive  | Purpose |
+|------------|---------|
+| `#if` | Compiles code only if condition is `true`. |
+| `#elif` | Adds more conditions after `#if`. |
+| `#else` | Provides a default case if no conditions match. |
+| `#ifdef` | Checks if a macro is defined. |
+| `#ifndef` | Checks if a macro is **not** defined. |
+
+---
+
+### **When to Use `#if` vs. `if`**
+| Feature  | `#if` | `if` |
+|----------|------|-----|
+| **Checked at** | Compile-time | Runtime |
+| **Can check macros?** | ✅ Yes | ❌ No |
+| **Can check variables?** | ❌ No | ✅ Yes |
+| **Where can it be used?** | Anywhere in the file | Inside functions |
+
+---
+
+### **Final Thought**
+- Use `#if` **when different code should be included/excluded at compile time**.
+- Use `if` **when different code should execute based on runtime conditions**.
+
