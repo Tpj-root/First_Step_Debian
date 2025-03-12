@@ -1,4 +1,213 @@
 
+**BASIC**
+
+
+**install pkg-config on Debian**
+
+
+```
+sudo apt install pkg-config
+pkg-config --version
+
+```
+
+
+
+**Get all**
+
+
+```
+find /usr/lib/x86_64-linux-gnu/pkgconfig /usr/lib/pkgconfig /usr/share/pkgconfig -name "*.pc"
+
+
+
+```
+
+
+
+
+**General Syntax**
+
+```
+pkg-config [options] <library_name>
+```
+
+
+**Check Library Paths**
+
+```
+ldconfig -p | grep <library_name>
+
+```
+
+
+
+
+**Get compiler flags (-I include paths)**
+
+
+```
+pkg-config --cflags --libs <library_name>
+
+pkg-config --cflags --libs openssl
+
+```
+
+**Get linker flags (-L library paths and -l linking flags)**
+
+```
+pkg-config --libs openssl
+
+```
+
+
+
+**Get static linking flags (if available)**
+
+```
+pkg-config --static --libs openssl
+```
+
+
+**Check installed version of a library**
+
+```
+pkg-config --modversion openssl
+
+```
+
+**List all available pkg-config libraries**
+
+```
+pkg-config --list-all
+
+```
+
+**Check if a library is installed (no output = not found)**
+
+pkg-config --exists openssl && echo "OpenSSL is installed"
+
+
+
+**Get detailed OpenSSL info**
+
+```
+pkg-config --print-provides openssl
+
+```
+
+**Show installation prefix (base directory)**
+
+```
+pkg-config --variable=prefix openssl
+
+```
+
+**Show library directory**
+
+```
+pkg-config --variable=libdir openssl
+
+```
+
+
+** Show include directory**
+
+
+```
+pkg-config --variable=includedir openssl
+
+```
+
+
+
+If openssl.pc is missing
+
+If OpenSSL is installed but pkg-config can't find it, 
+manually set:
+
+```
+export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
+
+pkg-config --cflags --libs openssl
+
+```
+
+
+Example openssl.pc File
+
+
+```
+
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: OpenSSL
+Description: Secure Sockets Layer and cryptography libraries and tools
+Version: 3.0.15
+Requires: libssl libcrypto
+
+
+```
+
+
+
+Where to Place It?
+
+```
+/usr/lib/x86_64-linux-gnu/pkgconfig/openssl.pc
+or
+
+/usr/local/lib/pkgconfig/openssl.pc
+
+
+Updating pkg-config
+
+
+```
+export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
+
+pkg-config --cflags --libs openssl
+
+
+
+```
+
+
+
+
+
+
+```
+
+
+
+
+
+
+**Find Library Files (.so)**
+
+```
+find /usr/lib /lib -name "lib<name>*.so"
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 `printf` statement syntax is:  

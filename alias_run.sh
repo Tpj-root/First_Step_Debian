@@ -469,6 +469,40 @@ alias wifipass='cd /etc/NetworkManager/system-connections'
 alias k8000='sudo kill -9 $(lsof -t -i:8000)'
 
 
+# Bash function to modify /etc/resolv.conf and replace its content with the given nameservers
+modify_resolv_conf() {
+    sudo bash -c 'cat > /etc/resolv.conf <<EOF
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 2001:4490:3ffe:13::4
+nameserver 2001:4490:3ffe:13::c
+EOF'
+    echo "Updated /etc/resolv.conf successfully."
+}
+
+alias updatedns='modify_resolv_conf'
+
+# If you want to modify /etc/resolv.conf while keeping the old lines as a backup, use this function
+#modify_resolv_conf() {
+#    sudo cp /etc/resolv.conf /etc/resolv.conf.bak  # Backup old file
+#    echo "Backup created at /etc/resolv.conf.bak"
+#
+#    sudo bash -c 'cat > /etc/resolv.conf <<EOF
+#nameserver 8.8.8.8
+#nameserver 8.8.4.4
+#nameserver 2001:4490:3ffe:13::4
+#nameserver 2001:4490:3ffe:13::c
+#EOF'
+#    echo "Updated /etc/resolv.conf successfully."
+#}
+
+
+
+
+
+
+
+
 ########## 
 ## python3
 ## 
@@ -709,6 +743,7 @@ giturl_convert_to_raw() {
 trackerscopy() {
     local url="$1"
     curl -s "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt" | xclip -selection clipboard
+    echo "Now ready to paste wherever you want."
 }
 
 # Example usage
