@@ -233,10 +233,7 @@ myprogram.c:10:5: warning: unused variable ‘x’ [-Wunused-variable]
 
 
 
-
-
-
-**format specifiers**
+**FORMAT SPECIFIERS**
 
 
 `printf` statement syntax is:  
@@ -348,7 +345,7 @@ printf("%-+10.2f", 3.14159);
 
 
 
-
+**POINTER BASIC**
 
 
 There is no difference between:  
@@ -369,7 +366,7 @@ Most programmers use `int *ptr;` for clarity.
 
 
 
-
+**RECURSIVE FUNCTION**
 
 
 
@@ -382,6 +379,188 @@ int factorial(int a) {
 }
 
 ```
+
+
+
+**PREPROCESSOR DIRECTIVES**
+
+
+Here’s a complete list of **C Preprocessor Directives** with explanations and examples:
+
+---
+
+### 1. **`#define` (Macro Definition)**  
+Defines a macro (constant or function-like macro).  
+
+```c
+#include <stdio.h>
+#define PI 3.14  // Defining a constant
+
+int main() {
+    printf("Value of PI: %.2f\n", PI);
+    return 0;
+}
+```
+
+---
+
+### 2. **`#undef` (Undefine a Macro)**  
+Removes a previously defined macro.  
+
+```c
+#include <stdio.h>
+#define VALUE 100
+
+#undef VALUE  // Now VALUE is undefined
+
+int main() {
+    // printf("%d", VALUE);  // This would cause an error since VALUE is undefined
+    return 0;
+}
+```
+
+---
+
+### 3. **`#include` (File Inclusion)**  
+Includes header files.  
+
+```c
+#include <stdio.h>  // Standard library
+#include "myheader.h"  // User-defined header file
+```
+
+---
+
+### 4. **`#if`, `#elif`, `#else`, `#endif` (Conditional Compilation)**  
+Used to conditionally compile code based on a condition.  
+
+```c
+#include <stdio.h>
+#define X 10
+
+#if X > 5
+    #define MESSAGE "X is greater than 5"
+#elif X == 5
+    #define MESSAGE "X is 5"
+#else
+    #define MESSAGE "X is less than 5"
+#endif
+
+int main() {
+    printf("%s\n", MESSAGE);
+    return 0;
+}
+```
+
+---
+
+### 5. **`#ifdef` (If Defined)**  
+Checks if a macro is defined.  
+
+```c
+#include <stdio.h>
+#define DEBUG  // Uncommenting this enables debugging
+
+int main() {
+#ifdef DEBUG
+    printf("Debugging mode enabled\n");
+#endif
+    return 0;
+}
+```
+
+---
+
+### 6. **`#ifndef` (If Not Defined)**  
+Checks if a macro is **not** defined.  
+
+```c
+#include <stdio.h>
+#ifndef PI
+    #define PI 3.14
+#endif
+
+int main() {
+    printf("PI: %.2f\n", PI);
+    return 0;
+}
+```
+
+---
+
+### 7. **`#pragma` (Compiler-Specific Directives)**  
+Used for compiler-specific instructions.  
+
+- **Disable warnings:**  
+  ```c
+  #pragma warning(disable : 4996)
+  ```
+
+- **Once header inclusion:**  
+  ```c
+  #pragma once  // Ensures this file is included only once
+  ```
+
+---
+
+### 8. **`#error` (Stop Compilation with Error Message)**  
+Stops compilation and shows an error.  
+
+```c
+#if __STDC__ != 1
+    #error "This compiler does not support standard C"
+#endif
+```
+
+---
+
+### 9. **`#line` (Change Line Number for Debugging)**  
+Changes the line number in error messages.  
+
+```c
+#include <stdio.h>
+#line 100 "myfile.c"  // Changes the line number
+
+int main() {
+    printf("Hello, World!\n");
+    return 0;
+}
+```
+
+---
+
+### 10. **`#` (Stringizing Operator in Macros)**  
+Converts an argument into a string.  
+
+```c
+#include <stdio.h>
+#define STR(x) #x  // Converts argument to string
+
+int main() {
+    printf("%s\n", STR(Hello World!));
+    return 0;
+}
+```
+
+---
+
+### 11. **`##` (Token-Pasting Operator in Macros)**  
+Concatenates two tokens.  
+
+```c
+#include <stdio.h>
+#define CONCAT(a, b) a##b
+
+int main() {
+    int xy = 10;
+    printf("%d\n", CONCAT(x, y));  // Expands to xy
+    return 0;
+}
+```
+
+---
+
+
 
 
 ```
