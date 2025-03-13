@@ -91,7 +91,7 @@ pkg-config --variable=libdir openssl
 
 ```
 
-** Show include directory**
+**Show include directory**
 
 ```
 pkg-config --variable=includedir openssl
