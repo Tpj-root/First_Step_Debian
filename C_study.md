@@ -335,6 +335,155 @@ printf("%-+10.2f", 3.14159);
 ---
 
 
+**C template**
+
+
+```c
+#include <stdio.h>  // Standard input-output library
+
+// Function prototypes (if needed)
+// void myFunction();
+
+int main() {
+    // Variable declarations
+    int a = 10;
+    int b = 20;
+    
+    // Print output
+    printf("Sum: %d\n", a + b);
+    
+    return 0;  // Indicate successful execution
+}
+
+// Function definitions (if needed)
+// void myFunction() {
+//     printf("Hello from function!\n");
+// }
+
+```
+
+
+
+---
+
+
+
+**C template for handling command-line arguments**
+
+
+```c
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+    // Check if arguments are passed
+    if (argc < 2) {
+        printf("Usage: %s <your_text>\n", argv[0]);
+        return 1;  // Exit with error code
+    }
+
+    // Print all arguments
+    printf("Arguments received:\n");
+    for (int i = 0; i < argc; i++) {
+        printf("argv[%d]: %s\n", i, argv[i]);
+    }
+
+    return 0;
+}
+
+```
+
+
+**functionally identical in C**
+
+
+```
+int main(int argc, char *argv[])
+
+char *argv[] → Array of character pointers (array notation)
+
+
+int main(int argc, char **argv)
+
+char **argv → Pointer to a pointer (pointer notation)
+
+
+Best for this 
+
+int main(int argc, const char *argv[])
+
+
+Why Use const in argv?
+
+✅ Prevents accidental modification of command-line arguments.
+✅ Ensures that argv points to read-only strings.
+✅ Useful in security-sensitive programs to avoid modifying arguments.
+
+```
+
+
+**Using const in argv – Example**
+
+
+```
+#include <stdio.h>
+
+int main(int argc, const char *argv[]) {
+    if (argc < 2) {
+        printf("Usage: %s <name>\n", argv[0]);
+        return 1;
+    }
+
+    // argv[1] is now read-only due to 'const'
+    printf("Hello, %s!\n", argv[1]);
+
+    // argv[1][0] = 'X';  // ❌ ERROR: Cannot modify read-only data
+
+    return 0;
+}
+
+
+```
+
+
+
+**Modifying argv Value**
+
+```
+#include <stdio.h>
+#include <string.h>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Usage: %s <word>\n", argv[0]);
+        return 1;
+    }
+
+    // Copy argv[1] into a mutable buffer
+    char word[100];  // Ensure the buffer is large enough
+    strncpy(word, argv[1], sizeof(word) - 1);
+    word[sizeof(word) - 1] = '\0';  // Null-terminate to be safe
+
+    // Modify the first character
+    word[0] = 'X';
+
+    // Print modified result
+    printf("Modified argument: %s\n", word);
+
+    return 0;
+}
+
+
+```
+
+
+
+
+
+
+
+
+---
+
 **POINTER BASIC**
 
 
