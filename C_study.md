@@ -111,12 +111,9 @@ pkg-config --cflags --libs openssl
 
 ```
 
-
 Example openssl.pc File
 
-
 ```
-
 prefix=/usr
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib/x86_64-linux-gnu
@@ -127,10 +124,7 @@ Description: Secure Sockets Layer and cryptography libraries and tools
 Version: 3.0.15
 Requires: libssl libcrypto
 
-
 ```
-
-
 
 Where to Place It?
 
@@ -144,20 +138,12 @@ Updating pkg-config
 
 ```
 
-
-
-
 export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
-
 
 ```
 pkg-config --cflags --libs openssl
 
 ```
-
-
-
-
 
 **Find Library Files (.so)**
 
@@ -167,6 +153,12 @@ find /usr/lib /lib -name "lib<name>*.so"
 ```
 
 
+
+
+---
+
+
+**GNU Compiler Collection**
 
 
 To **view all warnings** during compilation in **GCC (GNU Compiler Collection)**, use the following flags:
@@ -228,9 +220,7 @@ myprogram.c:10:5: warning: unused variable ‘x’ [-Wunused-variable]
        |     ^
 ```
 
-
-
-
+---
 
 
 **FORMAT SPECIFIERS**
@@ -258,7 +248,6 @@ Here’s a full list of commonly used format specifiers in `printf`:
 | `%p` | Pointer address |
 | `%n` | Stores the number of characters printed so far into a variable |
 | `%%` | Prints a literal `%` sign |
-
 
 
 
@@ -305,7 +294,7 @@ Here’s a full list of commonly used format specifiers in `printf`:
 
 
 
-## **6. Flags for Formatting**
+## **Flags for Formatting**
 You can add flags to control width, alignment, and padding.
 
 | Flag | Description | Example |
@@ -318,7 +307,7 @@ You can add flags to control width, alignment, and padding.
 
 ---
 
-## **7. Field Width & Precision**
+## **Field Width & Precision**
 | Format | Description | Example |
 |--------|------------|---------|
 | `%10d` | Minimum width of 10 | `printf("%10d", 123);` → `       123` |
@@ -328,7 +317,7 @@ You can add flags to control width, alignment, and padding.
 
 ---
 
-## **8. Combining Flags & Width**
+## **Combining Flags & Width**
 You can combine multiple formatting options.
 
 ```c
@@ -343,6 +332,7 @@ printf("%-+10.2f", 3.14159);
 - `10` → Minimum
 
 
+---
 
 
 **POINTER BASIC**
@@ -366,6 +356,8 @@ Most programmers use `int *ptr;` for clarity.
 
 
 
+---
+
 **RECURSIVE FUNCTION**
 
 
@@ -380,6 +372,7 @@ int factorial(int a) {
 
 ```
 
+---
 
 
 **PREPROCESSOR DIRECTIVES**
