@@ -1063,8 +1063,50 @@ imhex() {
 # https://desktop.telegram.org/
 # 
 #
-alias tele='cd $HOME/Desktop/RUN_TIME/Telegram && ./Telegram'
+#alias tele='cd $HOME/Desktop/RUN_TIME/Telegram && ./Telegram'
+################
+# 
 
+tele() {
+    # Define the file path and directory
+    local dir="$HOME/Desktop/RUN_TIME/Telegram"
+    local file="$dir/Telegram"
+    local url="https://td.telegram.org/tlinux/tsetup.5.12.3.tar.xz"
+    local archive="$dir/tsetup.tar.xz"
+
+    # Ensure the directory exists
+    mkdir -p "$dir"
+
+    # Check if the Telegram binary exists
+    if [[ ! -f "$file" ]]; then
+        echo "File not found. Downloading..."
+        wget -O "$archive" "$url" || { echo "Download failed!"; return 1; }
+
+        # Extract the archive
+        echo "Extracting..."
+        tar -xJf "$archive" -C "$dir" --strip-components=1 || { echo "Extraction failed!"; return 1; }
+
+        # Remove the archive after extraction
+        rm -f "$archive"
+    fi
+
+    # Ensure the file is executable
+    if [[ ! -x "$file" ]]; then
+        echo "Setting executable permission..."
+        chmod +x "$file"
+    fi
+
+    # Run the AppImage
+    echo "Running $file..."
+    "$file"
+}
+
+
+
+# Execute the function
+#you
+
+################
 
 
 

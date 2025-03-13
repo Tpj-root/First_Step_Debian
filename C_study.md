@@ -1,9 +1,7 @@
 
 **BASIC**
 
-
 **install pkg-config on Debian**
-
 
 ```
 sudo apt install pkg-config
@@ -11,27 +9,18 @@ pkg-config --version
 
 ```
 
-
-
 **Get all**
-
 
 ```
 find /usr/lib/x86_64-linux-gnu/pkgconfig /usr/lib/pkgconfig /usr/share/pkgconfig -name "*.pc"
 
-
-
 ```
-
-
-
 
 **General Syntax**
 
 ```
 pkg-config [options] <library_name>
 ```
-
 
 **Check Library Paths**
 
@@ -40,11 +29,7 @@ ldconfig -p | grep <library_name>
 
 ```
 
-
-
-
 **Get compiler flags (-I include paths)**
-
 
 ```
 pkg-config --cflags --libs <library_name>
@@ -60,14 +45,11 @@ pkg-config --libs openssl
 
 ```
 
-
-
 **Get static linking flags (if available)**
 
 ```
 pkg-config --static --libs openssl
 ```
-
 
 **Check installed version of a library**
 
@@ -86,7 +68,6 @@ pkg-config --list-all
 **Check if a library is installed (no output = not found)**
 
 pkg-config --exists openssl && echo "OpenSSL is installed"
-
 
 
 **Get detailed OpenSSL info**
@@ -110,15 +91,12 @@ pkg-config --variable=libdir openssl
 
 ```
 
-
 ** Show include directory**
-
 
 ```
 pkg-config --variable=includedir openssl
 
 ```
-
 
 
 If openssl.pc is missing
@@ -171,17 +149,7 @@ export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 
 pkg-config --cflags --libs openssl
 
-
-
 ```
-
-
-
-
-
-
-```
-
 
 
 
@@ -196,6 +164,64 @@ find /usr/lib /lib -name "lib<name>*.so"
 
 
 
+To **view all warnings** during compilation in **GCC (GNU Compiler Collection)**, use the following flags:
+
+### **1. Basic Warning Flags**
+```sh
+gcc -Wall program.c -o program
+```
+- `-Wall` → Enables **most** common warnings.
+
+### **2. Enable Even More Warnings**
+```sh
+gcc -Wall -Wextra program.c -o program
+```
+- `-Wextra` → Enables **additional** warnings.
+
+### **3. Show **All Possible** Warnings**
+```sh
+gcc -Wall -Wextra -Wpedantic program.c -o program
+```
+- `-Wpedantic` → Warns about **strict standard compliance issues**.
+
+### **4. Treat Warnings as Errors (Optional)**
+```sh
+gcc -Wall -Wextra -Werror program.c -o program
+```
+- `-Werror` → Treats **warnings as errors** (stops compilation on warnings).
+
+### **5. Maximum Warnings for Debugging**
+```sh
+gcc -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wstrict-overflow -Wfloat-equal -Wpointer-arith -Wcast-qual -Wformat=2 -Wuninitialized program.c -o program
+```
+This includes:
+- **`-Wconversion`** → Warns about implicit type conversions.
+- **`-Wshadow`** → Warns if a local variable **shadows** a global variable.
+- **`-Wstrict-overflow`** → Detects possible overflow in optimizations.
+- **`-Wfloat-equal`** → Warns about **floating-point comparisons**.
+- **`-Wpointer-arith`** → Detects pointer arithmetic issues.
+- **`-Wcast-qual`** → Warns about discarding `const` or `volatile` qualifiers.
+- **`-Wformat=2`** → Detects **unsafe `printf` usage**.
+- **`-Wuninitialized`** → Warns about **using variables before initialization**.
+
+### **6. Using `-fanalyzer` for Deep Static Analysis**
+```sh
+gcc -Wall -Wextra -fanalyzer program.c -o program
+```
+- **`-fanalyzer`** → Runs a **static code analysis** to detect **potential runtime errors**.
+
+---
+
+### **Example Output:**
+```sh
+gcc -Wall -Wextra -Wpedantic myprogram.c -o myprogram
+```
+🚨 **Compiler Warnings Example:**
+```
+myprogram.c:10:5: warning: unused variable ‘x’ [-Wunused-variable]
+    10 | int x;
+       |     ^
+```
 
 
 
@@ -205,9 +231,7 @@ find /usr/lib /lib -name "lib<name>*.so"
 
 
 
-
-
-
+**format specifiers**
 
 
 `printf` statement syntax is:  
@@ -278,65 +302,6 @@ Here’s a full list of commonly used format specifiers in `printf`:
 
 
 
----
-
-## **1. Integer Format Specifiers**
-| Specifier  | Description                          | Example Output |
-|------------|--------------------------------------|---------------|
-| `%d` or `%i` | Signed integer (decimal) | `printf("%d", -123);` → `-123` |
-| `%u` | Unsigned integer (decimal) | `printf("%u", 123);` → `123` |
-| `%o` | Unsigned octal | `printf("%o", 123);` → `173` |
-| `%x` | Unsigned hexadecimal (lowercase) | `printf("%x", 255);` → `ff` |
-| `%X` | Unsigned hexadecimal (uppercase) | `printf("%X", 255);` → `FF` |
-
----
-
-## **2. Floating-Point Format Specifiers**
-| Specifier  | Description                          | Example Output |
-|------------|--------------------------------------|---------------|
-| `%f` | Floating-point (decimal notation) | `printf("%f", 3.14159);` → `3.141590` |
-| `%e` or `%E` | Scientific notation | `printf("%e", 3.14159);` → `3.141590e+00` |
-| `%g` or `%G` | Uses `%f` or `%e`, whichever is shorter | `printf("%g", 3.14159);` → `3.14159` |
-| `%a` or `%A` | Hexadecimal floating-point | `printf("%a", 3.14);` → `0x1.91eb86p+1` |
-
----
-
-## **3. Character & String Format Specifiers**
-| Specifier  | Description                          | Example Output |
-|------------|--------------------------------------|---------------|
-| `%c` | Single character | `printf("%c", 'A');` → `A` |
-| `%s` | String | `printf("%s", "Hello");` → `Hello` |
-
----
-
-## **4. Pointer & Special Format Specifiers**
-| Specifier  | Description                          | Example Output |
-|------------|--------------------------------------|---------------|
-| `%p` | Pointer address | `printf("%p", ptr);` → `0x7ffeeffab1c0` |
-| `%n` | Stores the number of characters printed so far | `int count; printf("Hello%n", &count);` (stores `5` in `count`) |
-| `%%` | Prints a literal `%` sign | `printf("%%");` → `%` |
-
----
-
-## **5. Length Modifiers**
-You can combine length modifiers with format specifiers for different data types.
-
-| Modifier | Type | Example |
-|----------|------|---------|
-| `h` | Short integer | `%hd`, `%hu` (short int) |
-| `hh` | Signed char (tiny integer) | `%hhd`, `%hhu` |
-| `l` | Long integer | `%ld`, `%lu` |
-| `ll` | Long long integer | `%lld`, `%llu` |
-| `L` | Long double | `%Lf` |
-
-### **Example Usage:**
-```c
-short s = 10;
-long l = 1234567890;
-printf("%hd %ld", s, l);
-```
-
----
 
 ## **6. Flags for Formatting**
 You can add flags to control width, alignment, and padding.
@@ -376,68 +341,6 @@ printf("%-+10.2f", 3.14159);
 - `10` → Minimum
 
 
-
-
-
-
-To **view all warnings** during compilation in **GCC (GNU Compiler Collection)**, use the following flags:
-
-### **1. Basic Warning Flags**
-```sh
-gcc -Wall program.c -o program
-```
-- `-Wall` → Enables **most** common warnings.
-
-### **2. Enable Even More Warnings**
-```sh
-gcc -Wall -Wextra program.c -o program
-```
-- `-Wextra` → Enables **additional** warnings.
-
-### **3. Show **All Possible** Warnings**
-```sh
-gcc -Wall -Wextra -Wpedantic program.c -o program
-```
-- `-Wpedantic` → Warns about **strict standard compliance issues**.
-
-### **4. Treat Warnings as Errors (Optional)**
-```sh
-gcc -Wall -Wextra -Werror program.c -o program
-```
-- `-Werror` → Treats **warnings as errors** (stops compilation on warnings).
-
-### **5. Maximum Warnings for Debugging**
-```sh
-gcc -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wstrict-overflow -Wfloat-equal -Wpointer-arith -Wcast-qual -Wformat=2 -Wuninitialized program.c -o program
-```
-This includes:
-- **`-Wconversion`** → Warns about implicit type conversions.
-- **`-Wshadow`** → Warns if a local variable **shadows** a global variable.
-- **`-Wstrict-overflow`** → Detects possible overflow in optimizations.
-- **`-Wfloat-equal`** → Warns about **floating-point comparisons**.
-- **`-Wpointer-arith`** → Detects pointer arithmetic issues.
-- **`-Wcast-qual`** → Warns about discarding `const` or `volatile` qualifiers.
-- **`-Wformat=2`** → Detects **unsafe `printf` usage**.
-- **`-Wuninitialized`** → Warns about **using variables before initialization**.
-
-### **6. Using `-fanalyzer` for Deep Static Analysis**
-```sh
-gcc -Wall -Wextra -fanalyzer program.c -o program
-```
-- **`-fanalyzer`** → Runs a **static code analysis** to detect **potential runtime errors**.
-
----
-
-### **Example Output:**
-```sh
-gcc -Wall -Wextra -Wpedantic myprogram.c -o myprogram
-```
-🚨 **Compiler Warnings Example:**
-```
-myprogram.c:10:5: warning: unused variable ‘x’ [-Wunused-variable]
-    10 | int x;
-       |     ^
-```
 
 
 
