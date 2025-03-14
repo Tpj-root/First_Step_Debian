@@ -1,0 +1,26 @@
+\documentclass{article}
+\usepackage{geometry}
+\usepackage{dashrule} % For standalone dashed lines
+
+% Define custom paper size
+\geometry{paperwidth=80mm, paperheight=200mm, top=5mm, bottom=5mm, left=1mm, right=1mm}
+
+\begin{document}
+
+\centering
+\textbf{Receipt Example} \par
+
+\noindent Item 1: \textdollar 10.00 \par
+\noindent Item 2: \textdollar 15.50 \par
+
+% Dashed line
+\noindent\hdashrule{\linewidth}{0.5pt}{1mm} % 3mm gaps between dashes
+
+\vspace{2mm}
+
+\noindent\textbf{Total:} \textdollar 25.50 \par
+
+\vspace{5mm}
+\textbf{Thank You!} \par
+
+\end{document}

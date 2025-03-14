@@ -1,0 +1,56 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{fontspec}
+\setmainfont{DejaVu Sans} % Or another font supporting ₹
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{TAX INVOICE}} \\[5pt]
+    \textbf{(GST Invoice)} \\[10pt]
+    \hrulefill
+\end{center}
+
+\begin{flushleft}
+\textbf{Seller Details:} \\
+\textbf{Company Name:} ABC Enterprises  \\
+\textbf{GSTIN:} 22ABCDE1234F1Z5  \\
+\textbf{Address:} 123, Business Street, City, India \\
+\textbf{Phone:} +91-9876543210  \\[5pt]
+
+\textbf{Buyer Details:} \\
+\textbf{Name:} XYZ Pvt Ltd  \\
+\textbf{GSTIN:} 33XYZAB1234C1Z8  \\
+\textbf{Address:} 456, Market Road, City, India \\
+\textbf{Phone:} +91-8765432109  \\
+\end{flushleft}
+
+\hrule
+\vspace{10pt}
+
+\begin{tabular}{|c|l|c|c|c|c|}
+    \hline
+    \textbf{S.No} & \textbf{Item Description} & \textbf{Quantity} & \textbf{Rate} & \textbf{GST} & \textbf{Total} \\
+    \hline
+    1 & Product A & 2 & 500 & 18\% & 1180 \\
+    2 & Product B & 3 & 300 & 12\% & 1008 \\
+    \hline
+    \multicolumn{5}{|r|}{\textbf{Subtotal}} & 2188 \\
+    \multicolumn{5}{|r|}{\textbf{GST Total}} & 288 \\
+    \multicolumn{5}{|r|}{\textbf{Grand Total}} & \textbf{₹2476} \\
+    \hline
+\end{tabular}
+
+\vspace{10pt}
+\textbf{Payment Mode:} Online Transfer / Cash / UPI  \\
+\textbf{Bank Details:} ABC Bank, A/C No: 123456789, IFSC: ABCD0001234 \\
+
+\vspace{15pt}
+\textbf{Authorized Signatory:} \hfill \textbf{Receiver’s Signature:} \\
+\hrulefill \hfill \hrulefill
+
+\end{document}

@@ -1,0 +1,16 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usepackage{geometry}
+
+% Set paper size to A4 with no margins so the grid covers the full page
+\geometry{paperwidth=210mm, paperheight=297mm, margin=26mm}
+
+\begin{document}
+\begin{tikzpicture}[x=1mm, y=1mm]
+  % Draw the full 1mm grid with very thin gray lines
+  \draw[step=1mm, gray, very thin] (0,0) grid (210,297);
+  
+  % Overlay thicker black lines every 10mm
+  \draw[step=10mm, black, thick] (0,0) grid (210,297);
+\end{tikzpicture}
+\end{document}

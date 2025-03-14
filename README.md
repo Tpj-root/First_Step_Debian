@@ -143,7 +143,10 @@ build-essential \
 evince \
 ruby-full \
 transmission \
-gdb
+gdb \
+texlive-latex-base \
+dvipng \
+texlive-latex-extra
 ```
 
 ```
