@@ -142,7 +142,8 @@ gcc \
 build-essential \
 evince \
 ruby-full \
-transmission
+transmission \
+gdb
 ```
 
 ```
