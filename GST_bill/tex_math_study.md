@@ -84,3 +84,5 @@ A \in B \neq \phi
 ```
 
 
+<img src="png/math_3.png"> <p></p>
+
