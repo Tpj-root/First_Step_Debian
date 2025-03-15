@@ -1,0 +1,36 @@
+\documentclass[preview, border=1pt, varwidth]{standalone}
+\usepackage[table]{xcolor} % Required for coloring
+\usepackage{array} % Required for column formatting
+
+% Define missing colors
+\definecolor{Lavender}{rgb}{0.9, 0.9, 0.98}
+\definecolor{CornflowerBlue}{rgb}{0.39, 0.58, 0.93}
+
+\begin{document}
+
+% Apply row coloring correctly
+\begin{tabular}{>{\columncolor{blue!20}}c l l}
+\hline
+No. & Name & Stream \\
+\hline
+\rowcolor{green!30} 1 & Sheetal & CS \\
+2 & Jeet & EE \\
+3 & Priyanka & \cellcolor{red!40} CS \\
+\hline
+\end{tabular}
+
+\vspace{10pt} % Add space between tables
+
+\rowcolors{1}{Lavender!50}{CornflowerBlue!50} % Correct placement of alternating colors
+
+\begin{tabular}{cll}
+\hline
+No. & Name & Stream \\
+\hline
+1 & Sheetal & CS \\
+2 & Jeet & EE \\
+3 & Priyanka & IT \\
+\hline
+\end{tabular}
+
+\end{document}

@@ -122,3 +122,60 @@ A \in B \neq \phi
 
 
 <img src="png/math_8.png"> <p></p>
+
+
+**Basic Table**
+
+
+[View math_9.tex](tex_math/math_9.tex)
+
+
+<img src="png/math_9.png"> <p></p>
+
+
+[View math_10.tex](tex_math/math_10.tex)
+
+
+<img src="png/math_10.png"> <p></p>
+
+
+[View math_11.tex](tex_math/math_11.tex)
+
+
+<img src="png/math_11.png"> <p></p>
+
+
+**Table Color**
+
+[View math_12.tex](tex_math/math_12.tex)
+
+
+<img src="png/math_12.png"> <p></p>
+
+
+
+**Wrap Figures**
+
+[View math_13.tex](tex_math/math_13.tex)
+
+
+<img src="png/math_13.png"> <p></p>
+
+
+[View math_14.tex](tex_math/math_14.tex)
+
+
+<img src="png/math_14.png"> <p></p>
+
+
+
+**dingfill**
+
+```
+https://freeze.sh/_/2016/pifont/
+```
+
+[View math_15.tex](tex_math/math_15.tex)
+
+
+<img src="png/math_15.png"> <p></p>

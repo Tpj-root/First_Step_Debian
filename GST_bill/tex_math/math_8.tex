@@ -2,16 +2,25 @@
 \usepackage{mathtools}
 
 \begin{document}
-Inline: $\sum_{i=-5}^{5} i$  
-
-Display:
 \[
-\sum_{i=-5}^{5} i
+\displaystyle\int_{a}^{b} f(x) \,\mathrm{d}x
 \]
 
-Forced Display Size:
 \[
-\displaystyle\sum_{i=-5}^{5} i
+\displaystyle\iint_{R} f(x,y) \,\mathrm{d}A
 \]
+
+\[
+\displaystyle\int_{a}^{b} \left[ \int_{a}^{b} f(x,y) \,\mathrm{d}y \right] \,\mathrm{d}x
+\]
+
+\[
+\displaystyle\int_{0}^{\infty} \frac{\mathrm{d}x}{(x+1) \sqrt{x}} = \pi
+\]
+
+\[
+\displaystyle\lim_{z\to a} \int_{z}^{b} f(x) \,\mathrm{d}x
+\]
+
 
 \end{document}

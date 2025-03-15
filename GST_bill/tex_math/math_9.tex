@@ -1,0 +1,66 @@
+\documentclass[preview, border=1pt, varwidth]{standalone}
+\usepackage{mathtools}
+
+\begin{document}
+\begin{tabular}{|c|l|r|}
+\hline
+No. & Name & Stream \\
+\hline
+1 & Sheetal & CS \\
+2 & Jeet & EE \\
+3 & Priyanka & CS \\
+\hline
+\end{tabular}
+
+\[
+\begin{array}{clr}
+\textbf{No.} & \textbf{Name} & \textbf{Stream} \\
+1 & Sheetal & CS \\
+2 & Jeet & EE \\
+3 & Priyanka & CS \\
+\end{array}
+\]
+
+\begin{tabular}{|c|l|l|}
+\hline
+No. & Name & Stream \\
+\hline
+1 & Sheetal & CS \\
+2 & Jeet & EE \\
+3 & Priyanka & CS \\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{1cm}|p{5cm}|p{3cm}|}
+\hline
+No. & Name & Stream \\
+\hline
+1 & Sheetal & CS \\
+\hline
+2 & Jeet & EE \\
+\hline
+\end{tabular}
+
+\begin{tabular}{ccc}
+\hline
+R1-C1 & R1-C2 & R1-C3 \\
+\cline{1-2}  % Only affects columns 1-2
+R2-C1 & R2-C2 & R2-C3 \\
+\cline{2-3}  % Only affects columns 2-3
+R3-C1 & R3-C2 & R3-C3 \\
+\hline
+\end{tabular}
+
+\renewcommand{\arraystretch}{2} % Increases row height
+\begin{tabular}{clr}
+\hline
+No. & Name    & Stream \\
+\hline
+1   & Sheetal & CS     \\
+2   & Jeet    & EE     \\
+3   & Priyanka & CS    \\
+\hline
+\end{tabular}
+
+
+\end{document}

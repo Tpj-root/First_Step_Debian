@@ -1,0 +1,16 @@
+\documentclass[preview, border=1pt, varwidth]{standalone}
+\usepackage{arydshln} % Package for dashed lines in tables
+
+\begin{document}
+
+\begin{tabular}{|c|c|c|}
+\hline
+R1-C1 & R1-C2 & R1-C3 \\
+\hdashline % Horizontal dashed line
+R2-C1 & R2-C2 & R2-C3 \\
+\cdashline{1-2} % Dashed line spanning columns 1-2
+R3-C1 & R3-C2 & R3-C3 \\
+\hline
+\end{tabular}
+
+\end{document}

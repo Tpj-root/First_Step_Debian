@@ -1,0 +1,34 @@
+\documentclass[preview, border=1pt, varwidth]{standalone}
+\usepackage{mathtools}
+\usepackage{multirow} % Required for multirow cells
+\begin{document}
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{3}{|c|}{List of Students} \\ % Centered header spanning 3 columns
+\hline
+No. & Name & Stream \\
+\hline
+1 & Sheetal & CS \\
+\hline
+2 & Jeet & EE \\
+\hline
+\multicolumn{2}{|r|}{Class Avg} & 7.33 \\ % Right-align spans first two columns
+\hline
+\end{tabular}
+\\
+
+\begin{tabular}{|c|l|r|}
+\hline
+Grp. & Name & Marks \\
+\hline
+\multirow{3}{*}{A} & Sheetal & 8 \\
+                   & Jeet    & 9 \\
+                   & Jyoti   & 5 \\
+\hline
+\multirow{2}{*}{B} & Priyanka & 5 \\
+                   & Neel     & 9 \\
+\hline
+\end{tabular}
+
+
+\end{document}
