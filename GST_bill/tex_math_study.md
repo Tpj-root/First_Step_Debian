@@ -179,3 +179,9 @@ https://freeze.sh/_/2016/pifont/
 
 
 <img src="png/math_15.png"> <p></p>
+
+
+
+[View math_16.tex](tex_math/math_16.tex)
+
+<img src="png/math_16.png"> <p></p>

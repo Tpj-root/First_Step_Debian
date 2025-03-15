@@ -1,0 +1,53 @@
+\documentclass[preview, border=1pt, varwidth]{standalone}
+\usepackage{pifont} % For checkmarks and crosses
+\usepackage{array}   % For table formatting
+\usepackage{xcolor}  % For colors
+
+% Black and white checkmarks for the first table
+\newcommand{\bwCmark}{\ding{51}}  % ✅ Black Checkmark
+\newcommand{\bwXmark}{\ding{55}}  % ❌ Black Crossmark
+
+% Colored checkmarks for the second table
+\newcommand{\cmark}{\textcolor{green}{\ding{51}}}  % ✅ Green Checkmark
+\newcommand{\xmark}{\textcolor{red}{\ding{55}}}    % ❌ Red Crossmark
+
+\begin{document}
+
+% First table (Black & White)
+\begin{tabular}{| l | l | c |}
+    \hline
+    \textbf{IP Address}  & \textbf{Purpose}  & \textbf{Usable?} \\ 
+    \hline
+    192.168.0.0  & Network Address      & \bwXmark \\ 
+    192.168.0.1  & Usable Host 1      & \bwCmark \\ 
+    192.168.0.2  & Usable Host 2      & \bwCmark \\ 
+    192.168.0.3  & Broadcast Address  & \bwXmark \\ 
+    \hline
+\end{tabular}
+
+\vspace{1cm} % Adds some space between the tables
+
+% Second table (Color)
+\begin{tabular}{| l | l | c |}
+    \hline
+    \textbf{IP Address}  & \textbf{Purpose}  & \textbf{Usable?} \\ 
+    \hline
+    192.168.0.0  & Network Address      & \xmark \\ 
+    192.168.0.1  & Usable Host 1      & \cmark \\ 
+    192.168.0.2  & Usable Host 2      & \cmark \\ 
+    192.168.0.3  & Broadcast Address  & \xmark \\ 
+    \hline
+\end{tabular}
+
+\end{document}
+
+
+
+
+
+
+
+\end{document}
+
+
+
