@@ -2,7 +2,7 @@
 
 # List of TeX files
 #FileList=("gst_bill_v_0.1.tex" "gst_bill_v_0.2.tex" "formula.tex" "paper_roll.tex" "paper_roll_3.tex")
-FileList=("math_0.tex")
+FileList=("math_1.tex")
 
 # Loop through each file and compile it
 for file in "${FileList[@]}"; do
@@ -29,7 +29,7 @@ done
 
 rm -rf *.log
 rm -rf *.aux
-#rm -rf *.pdf
+rm -rf *.pdf
 #rm -rf *.png
 # If you want to clean up all temporary LaTeX files, use:
 #rm -rf *.aux *.log *.out *.toc *.synctex.gz *.nav *.snm *.lof *.lot
