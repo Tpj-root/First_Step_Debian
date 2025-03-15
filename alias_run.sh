@@ -533,6 +533,13 @@ check_new_packages() {
 }
 alias mini_check='check_new_packages'
 
+############
+#### LATEX
+############
+
+alias tex='pdflatex'
+
+
 
 
 ############
