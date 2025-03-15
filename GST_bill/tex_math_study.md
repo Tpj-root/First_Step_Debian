@@ -43,7 +43,7 @@ xelatex gst_bill.tex
 \end{document}
 ```
 
-<img src="png/math_0.png" width="444" height="68"> <p>black</p>
+<img src="png/math_0.png" width="444" height="68"> <p></p>
 
 
 
