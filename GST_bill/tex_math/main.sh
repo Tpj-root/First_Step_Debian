@@ -2,7 +2,7 @@
 
 # List of TeX files
 #FileList=("gst_bill_v_0.1.tex" "gst_bill_v_0.2.tex" "formula.tex" "paper_roll.tex" "paper_roll_3.tex")
-FileList=("math_5.tex")
+FileList=("math_7.tex")
 
 # Loop through each file and compile it
 for file in "${FileList[@]}"; do

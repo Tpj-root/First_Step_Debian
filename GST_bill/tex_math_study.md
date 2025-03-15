@@ -105,3 +105,20 @@ A \in B \neq \phi
 
 
 <img src="png/math_5.png"> <p></p>
+
+
+[View math_6.tex](tex_math/math_6.tex)
+
+
+<img src="png/math_6.png"> <p></p>
+
+[View math_7.tex](tex_math/math_7.tex)
+
+
+<img src="png/math_7.png"> <p></p>
+
+
+[View math_8.tex](tex_math/math_8.tex)
+
+
+<img src="png/math_8.png"> <p></p>
