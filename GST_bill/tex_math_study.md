@@ -98,3 +98,10 @@ A \in B \neq \phi
 
 
 <img src="png/math_4.png"> <p></p>
+
+
+
+[View math_5.tex](tex_math/math_5.tex)
+
+
+<img src="png/math_5.png"> <p></p>
