@@ -43,6 +43,10 @@ xelatex gst_bill.tex
 \end{document}
 ```
 
+[View math_0.tex](tex_math/math_0.tex)
+
+
+
 <img src="png/math_0.png"> <p></p>
 
 
@@ -50,6 +54,8 @@ xelatex gst_bill.tex
 \cos(2\theta) = 1 - 2\sin^2\theta
 
 ```
+
+[View math_1.tex](tex_math/math_1.tex)
 
 <img src="png/math_1.png"> <p></p>
 
@@ -75,14 +81,20 @@ A \in B \neq \phi
 
 ```
 
+[View math_2.tex](tex_math/math_2.tex)
+
+
 
 <img src="png/math_2.png"> <p></p>
 
 
-```
-
-```
+[View math_3.tex](tex_math/math_3.tex)
 
 
 <img src="png/math_3.png"> <p></p>
 
+
+[View math_4.tex](tex_math/math_4.tex)
+
+
+<img src="png/math_4.png"> <p></p>
