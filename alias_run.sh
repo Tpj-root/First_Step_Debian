@@ -670,6 +670,7 @@ alias gitsubdownload='git submodule update --init --recursive'
 alias gitwho='git remote get-url origin'
 alias gitrestore='git restore -- .'
 alias gitaddkey='ssh-add $HOME/Desktop/IM_FILES/id_rsa'
+alias gitundo='git reset'
 #set private key and connect github profiles
 #
 #eval "$(ssh-agent -s)"
