@@ -480,7 +480,7 @@ EOF'
     echo "Updated /etc/resolv.conf successfully."
 }
 
-alias updatedns='modify_resolv_conf'
+alias dnsupdate='modify_resolv_conf'
 
 # If you want to modify /etc/resolv.conf while keeping the old lines as a backup, use this function
 #modify_resolv_conf() {
