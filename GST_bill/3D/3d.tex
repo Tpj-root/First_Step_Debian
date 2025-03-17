@@ -1,0 +1,15 @@
+\documentclass{article}
+\usepackage{tikz}
+\usetikzlibrary{3d}
+
+\begin{document}
+
+\begin{tikzpicture}[->]
+    % Corrected cylindrical coordinates
+    \draw (0,0,0) -- (xyz cylindrical cs:radius=1,angle=0);
+    \draw (0,0,0) -- (xyz cylindrical cs:radius=1,angle=90);
+    \draw (0,0,0) -- (xyz cylindrical cs:radius=1,angle=180);
+    \draw (0,0,0) -- (xyz cylindrical cs:z=1);
+\end{tikzpicture}
+
+\end{document}
