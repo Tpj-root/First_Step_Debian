@@ -1,0 +1,16 @@
+\documentclass[tikz,border=2mm]{standalone}
+\usepackage{animate}
+
+\begin{document}
+
+\foreach \i in {0,1,...,9} {
+    \begin{tikzpicture}
+        \fill[white] (-1,-1) rectangle (11,1);  % Clears previous frames
+        \draw[thick] (0,0) -- (10,0);  % Base line
+        \fill[red] (\i,0) circle(0.2); % Moving circle
+    \end{tikzpicture}
+
+    \newpage
+}
+
+\end{document}

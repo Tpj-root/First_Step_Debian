@@ -16,6 +16,8 @@ https://tex.stackexchange.com/questions/174806/how-can-i-create-a-template-for-2
 https://github.com/topics/tikz
 
 
+https://tikz.net/category/engineering/electric-engineering/
+https://tikz.org/contents/
 
 https://texample.net/periodic-table-of-chemical-elements/
 https://texample.net/india-map/
@@ -250,6 +252,30 @@ pdflatex gst_bill.tex
 xelatex gst_bill.tex
 
 ```
+
+
+
+**Animation**
+
+
+
+
+```
+pdflatex ani_0.tex 
+convert -density 300 ani_0.pdf frame%d.png
+convert -dispose previous -delay 10 frame*.png animation.gif
+
+```
+
+
+
+[View ani_0.tex](Animation/ani_0.tex)
+
+
+<img src="png/ani_0.gif"> <p></p>
+
+
+
 
 
 
