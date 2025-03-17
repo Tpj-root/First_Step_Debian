@@ -14,7 +14,12 @@ https://tex.stackexchange.com/questions/174806/how-can-i-create-a-template-for-2
 
 
 https://github.com/topics/tikz
+https://github.com/xinychen/awesome-latex-drawing
+https://github.com/jturner314/engineering-equations
+https://github.com/mohit291298/Engineering_Drawing_Software_tool
+https://github.com/gsilano/drawingExamples-LaTeX
 
+https://gist.github.com/windstriver/223ceee8113c40cd27b05218be8fec07
 
 https://tikz.net/category/engineering/electric-engineering/
 https://tikz.org/contents/
@@ -184,7 +189,10 @@ KIN
 https://texample.net/three-link-annotated/
 https://texample.net/three-link-manipulator/
 https://texample.net/beamer-arrows/
-
+https://tikz.org/examples/chapter-11-transforming-coordinates-and-canvas/
+https://tikz.org/examples/chapter-10-calculating-with-coordinates-and-paths/
+https://tikz.org/examples/chapter-12-drawing-smooth-curves/
+https://tikz.org/examples/chapter-07-filling-and-clipping/
 
 
 
