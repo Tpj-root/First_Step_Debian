@@ -947,6 +947,54 @@ arduino-cli() {
 
 
 ################
+# https://www.texstudio.org/#download
+# https://github.com/texstudio-org/texstudio/
+
+#TeXstudio
+#texstudio
+# Function to check and run TeXstudio AppImage
+texstudio() {
+    # Define the URL
+    local url="https://github.com/texstudio-org/texstudio/releases/download/4.8.6/texstudio-4.8.6-x86_64.AppImage"
+
+    # Extract the filename from the URL
+    local version_app="${url##*/}"
+
+    # Define the file path
+    local file="$HOME/Desktop/RUN_TIME/$version_app"
+    local dir="$HOME/Desktop/RUN_TIME"
+
+    # Ensure the directory exists
+    mkdir -p "$dir"
+
+    # Check if the file exists, download if not
+    if [[ ! -f "$file" ]]; then
+        echo "File not found. Downloading..."
+        wget -O "$file" "$url" || { echo "Download failed!"; return 1; }
+    fi
+
+    # Ensure the file is executable
+    if [[ ! -x "$file" ]]; then
+        echo "Setting executable permission..."
+        chmod +x "$file"
+    fi
+
+    # Run the AppImage
+    echo "Running $file..."
+    "$file"
+}
+
+
+
+# Execute the function
+#you
+
+
+
+
+
+
+################
 # 
 # #alias you='$HOME/Desktop/RUN_TIME/YTDownloader_Linux.AppImage'
 # Download_full_playlist
