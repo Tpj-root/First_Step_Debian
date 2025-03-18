@@ -669,8 +669,54 @@ alias gg='gitgo'
 alias gitsubdownload='git submodule update --init --recursive'
 alias gitwho='git remote get-url origin'
 alias gitrestore='git restore -- .'
-alias gitaddkey='ssh-add $HOME/Desktop/IM_FILES/id_rsa'
 alias gitundo='git reset'
+
+
+#
+# This will check if the key is added. If not,
+# it will prompt for a passphrase.
+#  you can install ssh-askpass
+# For X11-based systems (GUI)
+# sudo apt install ssh-askpass
+# For GTK-based systems (GNOME)
+# sudo apt install ssh-askpass-gnome
+# For Qt-based systems (KDE)
+# sudo apt install ssh-askpass-fullscreen
+#
+alias gitaddkey='ssh-add $HOME/Desktop/IM_FILES/id_rsa'
+# Function to check and add the SSH private key if not already added
+check_ssh_key() {
+    # Define the path to the SSH private key
+    SSH_KEY="/home/cnc/Desktop/IM_FILES/id_rsa"
+
+    # Check if the SSH key is already added to the SSH agent
+    if ! ssh-add -l | grep -q "$(ssh-keygen -lf "$SSH_KEY" | awk '{print $2}')"; then
+        # If the key is not found, prompt the user to enter the passphrase
+        echo "SSH key not added. Enter passphrase to add it:"
+        # Add the SSH key to the agent, which will require the user to enter the passphrase
+        #ssh-add "$SSH_KEY"
+        # the GUI password prompt appears
+        # because ssh-add detects an empty passphrase
+        # input and falls back to using a GUI authentication agent (like ssh-askpass).
+        echo ""| gitaddkey
+
+        # Force terminal-based input
+        # ssh-add < /dev/tty
+        # silent passphrase entry (without echoing characters)
+        # read -s -p "Enter passphrase: " passphrase && echo "$passphrase" | ssh-add $HOME/Desktop/IM_FILES/id_rsa
+
+
+    fi
+}
+
+# Ensure the function runs only in an interactive shell
+# This prevents execution in non-interactive scripts or background processes
+if [[ $- == *i* ]]; then
+    check_ssh_key  # Call the function to check and add the SSH key
+fi
+
+
+
 #set private key and connect github profiles
 #
 #eval "$(ssh-agent -s)"
