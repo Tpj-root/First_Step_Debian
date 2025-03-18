@@ -1,0 +1,15 @@
+total 28G
+drwxr-xr-x  2 cnc  cnc   32K Jul 26 11:35 .
+drwxr-x---+ 5 root root 4.0K Jul 26 11:34 ..
+-rwxr-xr-x  1 cnc  cnc  2.6G Dec  2  2022 absolute64-20221120.iso
+-rwxr-xr-x  1 cnc  cnc  157M Dec  2  2022 CorePlus-current.iso
+-rwxr-xr-x  1 cnc  cnc  4.3G Jul 26 09:08 kali-linux-2024.2-live-amd64.iso
+-rwxr-xr-x  1 cnc  cnc  3.9G Dec 12  2022 openSUSE-Leap-15.4-CR-DVD-x86_64-Build19.2-Media.iso
+-rwxr-xr-x  1 cnc  cnc     0 Jul 26 11:35 OUTPUT
+-rwxr-xr-x  1 cnc  cnc  1.3G Dec  2  2022 Q4OS_KDE-Plasma-desktop_4.10-x64.r2.iso
+-rwxr-xr-x  1 cnc  cnc  1.8G Dec  2  2022 sparkylinux-6.5-x86_64-kde.iso
+-rwxr-xr-x  1 cnc  cnc  1.6G Dec  2  2022 sparkylinux-6.5-x86_64-lxqt.iso
+-rwxr-xr-x  1 cnc  cnc  1.4G Dec  2  2022 sparkylinux-6.5-x86_64-xfce.iso
+-rwxr-xr-x  1 cnc  cnc  3.0G Dec  2  2022 ubuntu-mate-22.10-desktop-amd64.iso
+-rwxr-xr-x  1 cnc  cnc  5.2G Nov  1  2022 Win11_22H2_English_x64v1.iso
+-rwxr-xr-x  1 cnc  cnc  2.4G Dec 18  2022 Win7_Pro_SP1_English_x32.iso

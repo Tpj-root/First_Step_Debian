@@ -657,6 +657,18 @@ function Alien() {
 
 
 ############
+#### git_study
+############
+# If You Want to Keep Both Local & Remote Changes
+# git pull --no-rebase
+# git commit -m "Merge remote changes"
+# git push
+
+
+
+
+
+############
 #### git
 ############
 #
