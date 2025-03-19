@@ -1,0 +1,15 @@
+\documentclass[a4paper]{article}
+\usepackage{tikz}
+\begin{document}
+
+\begin{center}
+    \begin{tikzpicture}
+        \foreach \i in {0,30,...,330} {
+            \draw[thick] (\i:1.5) -- (\i+15:2) -- (\i+30:1.5);
+        }
+        \draw[thick] (0,0) circle (1.5);
+        \draw[thick] (0,0) circle (0.5);
+    \end{tikzpicture}
+\end{center}
+
+\end{document}

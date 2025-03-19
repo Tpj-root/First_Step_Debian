@@ -1,0 +1,46 @@
+\documentclass[a4paper]{article}
+\usepackage[top=13.5mm, bottom=13.5mm, left=10mm, right=10mm]{geometry}
+\usepackage{tikz}
+
+\begin{document}
+
+\begin{center}
+    \begin{tikzpicture}[scale=0.1, anchor=south west] 
+        
+        % Set the canvas origin to the bottom-left corner
+        \useasboundingbox (0,0) rectangle (190,270);
+        
+        % Define number of steps for smooth motion
+        \def\n{20} % Total steps
+        
+        % Move along the line from (0,0) to (100,100)
+        \foreach \i in {0,...,\n} { 
+            % Compute the x and y positions along the trajectory
+            %\pgfmathsetmacro\x{100 * \i / \n}
+            %\pgfmathsetmacro\y{100 * \i / \n}
+            \pgfmathsetmacro\x{190 * \i / \n}  % Scale x to fit page width
+            \pgfmathsetmacro\y{270 * \i / \n}  % Scale y to fit page height
+
+            \pgfmathsetmacro\angle{5 * \i} % Rotate by 5° per step
+
+            % Apply movement and rotation
+            \begin{scope}[shift={(\x,\y)}, rotate around={\angle:(\x,\y)}] 
+                
+                % Draw the cross object
+                \fill (0,0) circle (0.5); 
+                \draw (0,0) -- (0,10);
+                \fill (0,10) circle (0.5); 
+                \draw (0,0) -- (0,-10);
+                \fill (0,-10) circle (0.5); 
+                \draw (0,0) -- (-10,0);
+                \fill (-10,0) circle (0.5); 
+                \draw (0,0) -- (10,0);
+                \fill (10,0) circle (0.5); 
+
+            \end{scope}
+        }
+
+    \end{tikzpicture}
+\end{center}
+
+\end{document}
