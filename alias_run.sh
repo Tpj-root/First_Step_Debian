@@ -695,11 +695,30 @@ alias gitundo='git reset'
 # For Qt-based systems (KDE)
 # sudo apt install ssh-askpass-fullscreen
 #
+check_and_install_ssh_askpass() {
+    if ! dpkg -l | grep -q ssh-askpass; then
+    	# does not produce any output because `-q` (quiet) suppresses output. 
+		# It only sets the exit status:  
+		# - Exit status 0 → `ssh-askpass` is installed.  
+		# - Exit status 1 → `ssh-askpass` is not installed.  
+
+        echo "ssh-askpass is not installed. Installing..."
+        sudo apt install -y ssh-askpass
+    else
+        echo "ssh-askpass is already installed."
+    fi
+}
+
+#check_and_install_ssh_askpass
+
+
 alias gitaddkey='ssh-add $HOME/Desktop/IM_FILES/id_rsa'
 # Function to check and add the SSH private key if not already added
 check_ssh_key() {
     # Define the path to the SSH private key
-    SSH_KEY="/home/cnc/Desktop/IM_FILES/id_rsa"
+    SSH_KEY="$HOME/Desktop/IM_FILES/id_rsa"
+    # check
+    check_and_install_ssh_askpass
 
     # Check if the SSH key is already added to the SSH agent
     if ! ssh-add -l | grep -q "$(ssh-keygen -lf "$SSH_KEY" | awk '{print $2}')"; then
@@ -723,6 +742,7 @@ check_ssh_key() {
 
 # Ensure the function runs only in an interactive shell
 # This prevents execution in non-interactive scripts or background processes
+# https://github.com/Tpj-root/Bash_Scripting/blob/main/bash/Interactive_session.txt
 if [[ $- == *i* ]]; then
     check_ssh_key  # Call the function to check and add the SSH key
 fi
