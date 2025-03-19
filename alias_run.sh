@@ -275,6 +275,19 @@ alias all_into_txt='for file in *; do mv "$file" "${file%}.txt"; done'
 
 
 ##################
+### xdotool
+hw() {
+    clear
+    sleep 0.5
+    xdotool key ctrl+l  # Alternative to clear screen
+    #xdotool key Return  # Ensure a new line
+    sleep 0.2
+    xdotool type "Hello World"
+    #xdotool key Return  # Press Enter after typing
+}
+
+
+##################
 ### Perfect
 ### BASIC
 # debug

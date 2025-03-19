@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage{tikz}
+
+\begin{document}
+
+\begin{center}
+\begin{tikzpicture}
+
+    % Original lines (before rotation)
+    \draw[thick, green] (-3,0) -- (3,0);
+    \draw[thick, green] (-4,0) -- (4,0);
+
+    % Rotated lines (35 degrees)
+    \begin{scope}[rotate=35]
+        \draw[thick, blue] (-3,0) -- (3,0);
+        \draw[thick, blue] (-4,0) -- (4,0);
+    \end{scope}
+
+\end{tikzpicture}
+\end{center}
+
+\end{document}
