@@ -945,7 +945,7 @@ check_and_setup_apache() {
 
 # Run the function
 export PATH=$PATH:/usr/sbin
-check_and_setup_apache
+#check_and_setup_apache
 sleep 1
 clear
 ##########################################
