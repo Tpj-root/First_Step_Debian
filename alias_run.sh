@@ -288,6 +288,16 @@ hw() {
 
 
 ##################
+#
+# Software list
+# sudo apt install unrar-free
+# unrar-free x BOOKS.rar
+
+
+
+
+
+##################
 ### Perfect
 ### BASIC
 # debug
@@ -1277,7 +1287,7 @@ alias rmm='cd .. && rm -rf build'
 # 
 # git clone https://github.com/Tpj-root/3.0.git
 alias game='cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c stone'
-
+alias test='cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c test_windows'
 
 #############
 #
@@ -1370,6 +1380,81 @@ raybuild() {
 }
 
 
+
+#############
+#   File Encrypt
+#   openssl
+#
+#
+# If the key is not found in the specified location, run the function.  
+# Alias: needkey -> Adds the SSH key using ssh-add.  
+# alias needkey='ssh-add $HOME/Desktop/IM_FILES/id_rsa'  
+# Prompt: "Do you need to paste the private key? (yes/no)"  
+# If "no", the key will not be copied.  
+# The prompt appears only once, the first time.  
+# Fix all bugs.  
+
+
+create_file() {
+    echo "helloword" > id_rsa_2
+}
+
+
+### **Comparison:**
+#| **Method**                      | **Security** | **Speed** | **Blocking?** | **Use Case** |
+#|---------------------------------|-------------|-----------|--------------|-------------|
+#| `/dev/random`                   | ✅✅ High   | 🐢 Slow  | Yes (blocks)  | Ultra-secure keys (PGP, RSA, etc.) |
+#| `/dev/urandom`                  | ✅ Secure  | 🚀 Fast  | No (does not block) | Most cryptographic keys |
+#| `openssl rand -base64 64`       | ✅ Secure  | 🚀 Fast  | No | General security, encryption |
+
+# 
+# Perfect way to make bin
+# 1 -> openssl rand -base64 32 >key.bin
+# 2 -> 
+#
+create_key_bin_file() {
+    cat <<EOF | base64 --decode > key.bin2
+V053VUhNaHlpOVp2OTJZVTQrT3lmOEhBVnZjVW5SbUpVVWYvaVdhY3Bodz0K
+EOF
+}
+
+
+# help Binary File as Text
+#  echo "helloworld" | base64 | base64 --decode
+
+# filename : id_rsa
+# openssl enc -aes-256-cbc -salt -in id_rsa -out id_rsa.enc -pass pass:MySecretPassword
+# openssl enc -aes-256-cbc -d -in id_rsa.enc -out id_rsa3 -pass file:mykey.bin
+# openssl enc -aes-256-cbc -d -in id_rsa.enc -out id_rsa3
+
+
+
+# converts any binary file to Base64 
+# save_bin_to_function <input_filename> <func_name>
+#
+save_bin_to_function() {
+    local file="$1"
+    local func_name="$2"
+
+    if [[ ! -f "$file" ]]; then
+        echo "Error: File '$file' not found!"
+        return 1
+    fi
+
+    echo "$func_name() {"
+    echo "    cat <<EOF | base64 --decode > $file"
+    base64 "$file"
+    echo "EOF"
+    echo "}"
+}
+
+my_git_key() {
+    cat <<EOF | base64 --decode > id_rsa.enc2
+U2FsdGVkX1+5IJK9m6K5fScuVlxVxl+I0bZBjVStmQ4X9UKctb1Y0lSz0BTbYzJ/Hr70oZ7h0tRG
+MbDai5JceAqva4kTTVXplRqSJwN2rylnGNX4gLFGOv1NdDlFLxfjpOwTC7bsc9Fq6UVsEqo38rhE
+pf+0LU281ypdVUN8cq9USEnLNcwbIB1YP6Qmdae8XB4OcbMjKR2/LDP6zMtftdboM9YiWA==
+EOF
+}
 
 #############
 # 
