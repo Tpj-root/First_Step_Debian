@@ -41,6 +41,29 @@ Jocker_Installing=0 # 1 means enabled, 0 means disabled
 Title_screen=0 # 1 means enabled, 0 means disabled
 Prompt_Animation=0
 
+# FIND DIFF
+# echo -e "\u2500"
+# printf "\u2500\n"
+# If your terminal supports UTF-8, it will display the box-drawing character correctly.
+
+
+# Method 1: Unicode Escape Sequence
+# echo -e "\u2500"
+# Method 2: Hexadecimal UTF-8 Encoding
+# echo -e "\xe2\x94\x80"
+# Method 3: Using printf
+# printf "\u2500\n"
+
+# ────────────────────
+# --------------------
+# _____________________
+# ......................
+# **********************
+# ``````````````````````
+#+++++++++++++++++++++++
+#
+
+
 
 # Define color codes
 #
@@ -292,6 +315,9 @@ hw() {
 # Software list
 # sudo apt install unrar-free
 # unrar-free x BOOKS.rar
+# A fast, highly customizable system info script
+# sudo apt install neofetch
+
 
 
 
@@ -1284,10 +1310,22 @@ alias rmm='cd .. && rm -rf build'
 #############
 #
 # Trickster Arts Hackers
-# 
+# FIX bug alias into function
 # git clone https://github.com/Tpj-root/3.0.git
-alias game='cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c stone'
-alias test='cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c test_windows'
+#alias game='cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c stone'
+
+function game(){
+    cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c stone
+}
+
+#alias test='cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c test_windows'
+
+function test_windows(){
+    cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c test_windows
+}
+
+
+
 
 #############
 #
