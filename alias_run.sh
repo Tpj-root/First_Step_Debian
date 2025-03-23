@@ -546,6 +546,17 @@ alias dnsupdate='modify_resolv_conf'
 #}
 
 
+########## 
+## KDE CONNECT
+## 
+#########
+# FIX BUG 
+# IP 
+# sudo apt install kdeconnect ufw
+
+
+
+
 
 
 
@@ -563,6 +574,18 @@ alias py='python3'
 alias python='python3'
 alias pyhttp='python3 -m http.server 8000'
 #alias makepipreq='pip freeze > requirements.txt'
+
+
+########## 
+## python3_server
+## 
+#########
+# uploads
+#
+#
+
+
+
 
 
 ##########
