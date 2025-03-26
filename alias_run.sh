@@ -1136,6 +1136,96 @@ arduino-cli() {
 
 
 ################
+# https://www.freecad.org/
+# https://github.com/FreeCAD/FreeCAD/releases/tag/1.0.0
+
+
+# Function to check and run freecad AppImage
+freecad() {
+    # Define the URL
+    local url="https://github.com/FreeCAD/FreeCAD/releases/download/1.0.0/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage"
+
+    # Extract the filename from the URL
+    local version_app="${url##*/}"
+
+    # Define the file path
+    local file="$HOME/Desktop/RUN_TIME/$version_app"
+    local dir="$HOME/Desktop/RUN_TIME"
+
+    # Ensure the directory exists
+    mkdir -p "$dir"
+
+    # Check if the file exists, download if not
+    if [[ ! -f "$file" ]]; then
+        echo "File not found. Downloading..."
+        wget -O "$file" "$url" || { echo "Download failed!"; return 1; }
+    fi
+
+    # Ensure the file is executable
+    if [[ ! -x "$file" ]]; then
+        echo "Setting executable permission..."
+        chmod +x "$file"
+    fi
+
+    # Run the AppImage
+    echo "Running $file..."
+    "$file"
+}
+
+
+
+# Execute the function
+#freecad
+
+
+################
+# https://librecad.org/
+# https://github.com/LibreCAD/LibreCAD/releases
+# https://github.com/LibreCAD/LibreCAD/releases/tag/2.2.1.1_rc-latest
+
+
+# Function to check and run librecad AppImage
+librecad() {
+    # Define the URL
+    local url="https://github.com/LibreCAD/LibreCAD/releases/download/2.2.1.1_rc-latest/LibreCAD-v2.2.1.1-9-g5ad9b999-x86_64.AppImage"
+
+    # Extract the filename from the URL
+    local version_app="${url##*/}"
+
+    # Define the file path
+    local file="$HOME/Desktop/RUN_TIME/$version_app"
+    local dir="$HOME/Desktop/RUN_TIME"
+
+    # Ensure the directory exists
+    mkdir -p "$dir"
+
+    # Check if the file exists, download if not
+    if [[ ! -f "$file" ]]; then
+        echo "File not found. Downloading..."
+        wget -O "$file" "$url" || { echo "Download failed!"; return 1; }
+    fi
+
+    # Ensure the file is executable
+    if [[ ! -x "$file" ]]; then
+        echo "Setting executable permission..."
+        chmod +x "$file"
+    fi
+
+    # Run the AppImage
+    echo "Running $file..."
+    "$file"
+}
+
+
+
+# Execute the function
+#librecad
+
+
+
+
+
+################
 # https://www.texstudio.org/#download
 # https://github.com/texstudio-org/texstudio/
 
