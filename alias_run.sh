@@ -143,6 +143,21 @@ function print_special_color() {
 #print_random_color HELLO
 #print_special_color HELLOO
 
+# TEst
+#
+# echo -e "${GREEN}This is green text.${RESET}"
+# echo -e "${RED}This is red text.${RESET}"
+# echo -e "${BLUE}This is blue text.${RESET}"
+# echo -e "${YELLOW}${BOLD}This is bold yellow text.${RESET}"
+# echo -e "${MAGENTA}${UNDERLINE}This is underlined magenta text.${RESET}"
+
+
+
+
+
+
+
+
 
 function title_fun() {
 
@@ -1087,6 +1102,247 @@ alias fire='$HOME/Desktop/RUN_TIME/firefox/firefox'
 #
 # find the .torrent files
 alias whereisT='cd $HOME/.config/transmission/torrents/'
+
+
+
+
+
+#---------------------------------------------------
+# Function: colored_yes_no
+# Description: Returns a formatted string displaying 
+#              "yes" in green and "no" in red, 
+#              wrapped in parentheses.
+# Usage Example:
+#   echo -e "Do you want to continue? $(colored_yes_no): "
+#---------------------------------------------------
+colored_yes_no() {
+    echo -e "(${GREEN}yes${RESET}/${RED}no${RESET})"
+}
+
+
+# This scheme follows standard UI/UX conventions, making it easy to understand at a glance. 
+#| **Function Name**   | **Color**  | **Purpose**                                      |
+#|---------------------|-----------|--------------------------------------------------|
+#| `warning_message`   | 🔴 Red     | Critical warnings, alerts, errors               |
+#| `status_message`    | 🟡 Yellow  | Informational messages, ongoing processes       |
+#| `active_message`    | 🟢 Green   | Success, completion, active status              |
+#| `error_message`     | 🚨 Bright Red | Serious errors, immediate action needed    |
+#| `info_message`      | 🔵 Blue    | General information, guidance, tips             |
+#| `debug_message`     | 🟣 Magenta | Debugging logs, internal checks                 |
+#| `success_message`   | ✅ Bright Green | Positive feedback, confirmations         |
+#| `notice_message`    | 🔶 Cyan    | Minor notifications, soft alerts                |
+
+
+#---------------------------------------------------
+# Function: warning_message
+# Description: Displays a warning message in a table-style 
+#              format, dynamically adjusting the width.
+# Parameters:
+#   $1 - Custom warning message (centered)
+# Usage Example:
+#   warning_message "This action cannot be undone!"
+#---------------------------------------------------
+warning_message() {
+    local msg="$1"
+    local msg_length=${#msg}
+    local box_width=$((msg_length + 4))  # Add 2 spaces on each side
+
+    # Print top border
+    echo -e "${RED}$(printf '=%.0s' $(seq $box_width))"
+
+    # Print centered message
+    printf "| %s |\n" "$msg"
+
+    # Print bottom border
+    echo -e "$(printf '=%.0s' $(seq $box_width))${RESET}"
+}
+
+
+# warning_message " WARNING: This function will modify and delete files."
+
+
+
+
+
+
+
+
+
+#
+#
+#Turn on 2-Step Verification
+#
+#---------------------------------------------------
+# Function: twoStepVerification
+# Description: Asks the user twice for confirmation before executing.
+#              If confirmed, it runs a test sequence (seq 1 10).
+#              If the user aborts, it exits without executing.
+#---------------------------------------------------
+
+twoStepVerification() {
+    # Create Fucntion
+    # echo -e "${RED}====================================================="
+    # echo "  WARNING: This function will modify and delete files."
+    # echo -e "=====================================================${RESET}"
+    
+    warning_message " WARNING: This function will modify and delete files."
+
+    # First confirmation prompt
+    echo -e "Do you really want to continue?  $(colored_yes_no): "
+    read -r choice1
+    if [[ "$choice1" != "yes" ]]; then
+        echo "Aborted."
+        return 1  # Return 1 to indicate failure
+    fi
+
+    # Second confirmation prompt for extra security
+    read -p "Are you absolutely sure?  $(colored_yes_no): " choice2
+    if [[ "$choice2" != "yes" ]]; then
+        echo "Aborted."
+        return 1  # Return 1 to indicate failure
+    fi
+
+    # If both confirmations are passed, proceed with execution
+    echo "Executing the operation..."
+    #seq 1 10  # Example operation
+    echo "Operation completed successfully."
+    return 0  # Return 0 to indicate success
+}
+
+#---------------------------------------------------
+# Function: seq10
+# Description: Calls twoStepVerification. If the user 
+#              confirms twice, it executes seq 1 10. 
+#              Otherwise, it exits without running.
+#---------------------------------------------------
+seq10() {
+    # Call twoStepVerification and check if it was aborted
+    twoStepVerification || return  # If aborted, exit the function
+
+    # If confirmation passed, execute seq 1 10
+    echo "Running additional sequence..."
+    seq 1 10
+}
+
+# Example usage:
+# Uncomment the line below to test
+# seq10
+
+
+
+
+#################################################
+# 
+# project2html
+# 
+# 
+#################################################
+project2html(){
+
+    twoStepVerification || return  # If aborted, exit the function
+
+    # version 1.0
+    # remove the other files
+    # find . -type f ! \( -name "*.html" -o -name "*.css" \) -exec rm -v {} \;
+    # Check if highlight is installed, if not, install it
+    if ! command -v highlight &> /dev/null
+    then
+        echo "highlight not found, installing..."
+        sudo apt update && sudo apt install highlight
+    fi
+
+    # Function to create an HTML file for the index
+    create_index() {
+        local dir="$1"
+        local index_file="$2"
+        local back_link="$3"
+
+        echo "<html>" > "$index_file"
+        echo "<head>" >> "$index_file"
+        echo "<title>Project Files</title>" >> "$index_file"
+        echo "<style>" >> "$index_file"
+        echo "body.hl { background-color: #e0eaee; }" >> "$index_file"
+        echo "</style>" >> "$index_file"
+        echo "</head>" >> "$index_file"
+        echo "<body class='hl'>" >> "$index_file"
+        
+        if [[ -n "$back_link" ]]; then
+            echo "<a href='$back_link'>Back</a><br>" >> "$index_file"
+        fi
+
+        echo "<h1>Project Files</h1>" >> "$index_file"
+        echo "<ul>" >> "$index_file"
+    }
+
+    # Function to recursively process the directory and convert files
+    process_directory() {
+        local dir="$1"
+        local index_file="$2"
+        local base_dir="$3"
+        local parent_dir="$4"
+
+        # Create the index.html for the current directory
+        local back_link=""
+        if [[ -n "$parent_dir" ]]; then
+            # Create the relative path for the back button
+            local parent_index_file="${parent_dir}/index.html"
+            back_link=$(realpath --relative-to="$dir" "$parent_index_file")
+        fi
+        create_index "$dir" "$index_file" "$back_link"
+
+        # Loop through all files and directories
+        for file in "$dir"/*; do
+            if [[ -d "$file" ]]; then
+                # If it's a directory, recurse into it
+                local dir_name=$(basename "$file")
+                local sub_index_file="$file/index.html"
+                echo "<li><a href='$dir_name/index.html'>$dir_name</a></li>" >> "$index_file"
+                process_directory "$file" "$sub_index_file" "$base_dir" "$dir"
+            elif [[ -f "$file" && ( "$file" == *.c || "$file" == *.cpp || "$file" == *.hpp || "$file" == *.hpp || "$file" == *.rst || "$file" == *.yml || "$file" == *.txt || "$file" == *.h || "$file" == *.in || "$file" == *.diagram || "$file" == *.cmake || "$file" == *.xml || "$file" == *.jam || "$file" == *.md || "$file" == *.dic || "$file" == *.cfg || "$file" == *.am || "$file" == *.yaml || "$file" == *.toml || "$file" == *.dot || "$file" == *.css || "$file" == *.aff || "$file" == *.py || "$file" == *.sh ) ]]; then
+                # Convert supported files into HTML
+                local ext="${file##*.}"
+                local base_name=$(basename "$file" ."$ext")
+                local output_file="${dir}/${base_name}_${ext}.html"
+                
+                # Highlight the file to generate HTML output
+                highlight --force -O html -i "$file" -o "$output_file" 2>/dev/null
+
+                # Calculate the relative path for the link
+                local rel_path=$(realpath --relative-to="$dir" "$output_file")
+                echo "<li><a href='$rel_path'>$(basename "$file")</a></li>" >> "$index_file"
+            fi
+        done
+
+        # Close the HTML tags
+        echo "</ul>" >> "$index_file"
+        echo "</body></html>" >> "$index_file"
+    }
+
+    # Main directory to start processing
+    start_dir="."
+    base_dir=$(realpath "$start_dir")
+
+    # Index file location
+    index_file="index.html"
+
+    # Process the directory and generate HTML links for each file
+    process_directory "$start_dir" "$index_file" "$base_dir" ""
+
+    echo "Project HTML structure has been generated. Open $index_file to view the result."
+    # -i (interactive) asks for confirmation before deleting each file
+    # -f (force) removes files without any prompt, even if they are write-protected.
+    # -v (verbose) shows the names of deleted files.
+    find . -type f ! \( -name "*.html" -o -name "*.css" \) -exec rm -fv {} \;
+    echo "All non html and .css fils are removed"
+}
+
+
+# Execute the function
+#project2html
+
+# alias
+alias p2html='project2html'
+
 
 
 
