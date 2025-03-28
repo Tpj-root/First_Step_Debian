@@ -75,7 +75,10 @@ function get_colors() {
     BLACK='\033[30m'
     RED='\033[31m'
     GREEN='\033[32m'
-    YELLOW='\033[33m'
+    #The 1; makes it bold/bright, which should look more vivid.
+    YELLOW='\033[1;33m'
+    # Some terminals render it as a darker yellow, which might appear brownish.
+    #YELLOW='\033[33m'
     BLUE='\033[34m'
     MAGENTA='\033[35m'
     CYAN='\033[36m'
@@ -95,6 +98,9 @@ function get_colors() {
 
 # Call the function to define colors
 get_colors
+
+
+
 
 # Store all colors in an array
 colors=("$RESET" "$BLACK" "$RED" "$GREEN" "$YELLOW" "$BLUE" "$MAGENTA" "$CYAN" "$WHITE" \
@@ -152,9 +158,11 @@ function print_special_color() {
 # echo -e "${MAGENTA}${UNDERLINE}This is underlined magenta text.${RESET}"
 
 
+test_yellow()
+{
+	echo -e "${YELLOW}This is green text.${RESET}"
 
-
-
+}
 
 
 
@@ -1161,11 +1169,41 @@ warning_message() {
 # warning_message " WARNING: This function will modify and delete files."
 
 
+status_message() {
+    local msg="$1"
+    local msg_length=${#msg}
+    local box_width=$((msg_length + 4))  # Add 2 spaces on each side
+
+    # Print top border
+    echo -e "${YELLOW}$(printf '=%.0s' $(seq $box_width))"
+
+    # Print centered message
+    printf "| %s |\n" "$msg"
+
+    # Print bottom border
+    echo -e "$(printf '=%.0s' $(seq $box_width))${RESET}"
+}
 
 
+# status_message " STATUS: This STATUS message."
 
+active_message() {
+    local msg="$1"
+    local msg_length=${#msg}
+    local box_width=$((msg_length + 4))  # Add 2 spaces on each side
 
+    # Print top border
+    echo -e "${GREEN}$(printf '=%.0s' $(seq $box_width))"
 
+    # Print centered message
+    printf "| %s |\n" "$msg"
+
+    # Print bottom border
+    echo -e "$(printf '=%.0s' $(seq $box_width))${RESET}"
+}
+
+#active_message
+# active_message " ACTIVE: This active_message ."
 
 
 #
