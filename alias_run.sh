@@ -1173,9 +1173,13 @@ freecad() {
 }
 
 
-
 # Execute the function
 #freecad
+
+# alias
+alias 3d='freecad'
+
+
 
 
 ################
@@ -1221,7 +1225,8 @@ librecad() {
 # Execute the function
 #librecad
 
-
+# alias
+alias 2d='librecad'
 
 
 
