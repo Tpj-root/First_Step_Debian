@@ -160,7 +160,7 @@ function print_special_color() {
 
 test_yellow()
 {
-	echo -e "${YELLOW}This is green text.${RESET}"
+	echo -e "${YELLOW}This is yellow text.${RESET}"
 
 }
 
@@ -345,7 +345,6 @@ hw() {
 
 
 
-
 ##################
 ### Perfect
 ### BASIC
@@ -481,6 +480,7 @@ function download_gif() {
 
 
 ################
+# OLD
 #Backup_function
 ################
 function bashrc_backup() {
@@ -1429,6 +1429,69 @@ arduino-cli() {
 #arduino-cli
 
 
+
+
+
+
+################
+# kicad appimage
+# https://www.freecad.org/
+# https://github.com/KiCad/kicad-docker/pkgs/container/kicad
+# https://hub.docker.com/r/kicad/kicad
+
+
+
+# Function to check and run kicad AppImage
+mykicad() {
+    # Define the URL
+    #local url="https://github.com/FreeCAD/FreeCAD/releases/download/1.0.0/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage"
+    # Extract the filename from the URL
+    local version_app
+    version_app=$(cd $HOME/Desktop/RUN_TIME/ && ls KiCad* 2>/dev/null)  # Avoid errors if no match
+
+
+    # Define the file path
+    local file="$HOME/Desktop/RUN_TIME/$version_app"
+    local dir="$HOME/Desktop/RUN_TIME"
+
+    # Ensure the directory exists
+    mkdir -p "$dir"
+
+    # Check if the file exists, download if not
+    if [[ ! -f "$file" ]]; then
+        echo "File not found. Downloading..."
+        echo "Try to download manually"
+        echo "https://github.com/KiCad/kicad-docker/pkgs/container/kicad"
+        
+    fi
+
+    # Ensure the file is executable
+    if [[ ! -x "$file" ]]; then
+        echo "Setting executable permission..."
+        chmod +x "$file"
+    fi
+
+    # Run the AppImage
+    echo "Running $file..."
+    "$file"
+}
+
+
+# Execute the function
+#mykicad
+
+
+
+
+
+
+
+
+
+
+
+
+
 ################
 # https://www.freecad.org/
 # https://github.com/FreeCAD/FreeCAD/releases/tag/1.0.0
@@ -1480,7 +1543,10 @@ alias 3d='freecad'
 # https://librecad.org/
 # https://github.com/LibreCAD/LibreCAD/releases
 # https://github.com/LibreCAD/LibreCAD/releases/tag/2.2.1.1_rc-latest
-
+# Wiki
+# https://dokuwiki.librecad.org/doku.php/start
+# Developing
+# https://github.com/LibreCAD/LibreCAD/wiki/Git-and-GitHub
 
 # Function to check and run librecad AppImage
 librecad() {
@@ -1962,10 +2028,31 @@ check_new_packages() {
 }
 #alias dpkg_update='check_new_packages'
 
+
+
 #sudo nano /etc/apt/sources.list
-#https://wiki.debian.org/SourcesList
+# https://wiki.debian.org/SourcesList
+# https://backports.debian.org/Instructions/
+
+alias edit_sources.list='sudo subl /etc/apt/sources.list'
+# after run
+# sudo apt update
+
+# If there are errors, fix them, then proceed with:
+# sudo apt upgrade
+
+# For a full system upgrade:
+# sudo apt full-upgrade
+
+# To clean up:
+# Unused dependencies – Packages installed automatically but no longer needed.
+# Old kernels – If not in use, to free up space.
+# sudo apt autoremove
+
+# test list
+# apt list --upgradable
 #
-#apt list --upgradable
+
 
 
 ##################################
