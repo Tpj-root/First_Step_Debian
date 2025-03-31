@@ -915,6 +915,7 @@ function mygit() {
         return 1
     fi
 
+    cd $HOME/Desktop/MY_GIT
     local repo_url="$1"
     local repo_name=$(basename "$repo_url" .git)
 
