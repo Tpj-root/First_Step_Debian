@@ -158,7 +158,7 @@ function print_special_color() {
 # echo -e "${MAGENTA}${UNDERLINE}This is underlined magenta text.${RESET}"
 
 
-test_yellow()
+function test_yellow()
 {
 	echo -e "${YELLOW}This is yellow text.${RESET}"
 
@@ -322,7 +322,7 @@ alias all_into_txt='for file in *; do mv "$file" "${file%}.txt"; done'
 
 ##################
 ### xdotool
-hw() {
+function hw() {
     clear
     sleep 0.5
     xdotool key ctrl+l  # Alternative to clear screen
@@ -542,7 +542,7 @@ alias k8000='sudo kill -9 $(lsof -t -i:8000)'
 
 
 # Bash function to modify /etc/resolv.conf and replace its content with the given nameservers
-modify_resolv_conf() {
+function modify_resolv_conf() {
     sudo bash -c 'cat > /etc/resolv.conf <<EOF
 nameserver 8.8.8.8
 nameserver 8.8.4.4
@@ -623,7 +623,7 @@ alias pyhttp='python3 -m http.server 8000'
 #
 alias miniconda_activate='source $HOME/miniconda3/bin/activate'
 alias miniconda_deactivate='conda deactivate'
-check_new_packages() {
+function check_new_packages() {
     comm -13 <(sort $HOME/Desktop/MY_GIT/First_Step_Debian/installed_packages.txt) <(pip list | sort)
 }
 alias mini_check='check_new_packages'
@@ -782,7 +782,7 @@ alias gitundo='git reset'
 # Status of git rep
 # 
 #
-gitcheck() 
+function gitcheck() 
 {
 
 # Change to the main directory
@@ -829,7 +829,7 @@ fi
 # For Qt-based systems (KDE)
 # sudo apt install ssh-askpass-fullscreen
 #
-check_and_install_ssh_askpass() {
+function check_and_install_ssh_askpass() {
     if ! dpkg -l | grep -q ssh-askpass; then
     	# does not produce any output because `-q` (quiet) suppresses output. 
 		# It only sets the exit status:  
@@ -848,7 +848,7 @@ check_and_install_ssh_askpass() {
 
 alias gitaddkey='ssh-add $HOME/Desktop/IM_FILES/id_rsa'
 # Function to check and add the SSH private key if not already added
-check_ssh_key() {
+function check_ssh_key() {
     # Define the path to the SSH private key
     SSH_KEY="$HOME/Desktop/IM_FILES/id_rsa"
     # check
@@ -943,7 +943,7 @@ function mygit() {
 #
 # https://github.com/ngosang/trackerslist/tree/master
 
-giturl_convert_to_raw() {
+function giturl_convert_to_raw() {
     local url="$1"
     echo "$url" | sed -E 's|https://github.com/([^/]+)/([^/]+)/blob/([^/]+)/(.*)|https://raw.githubusercontent.com/\1/\2/\3/\4|'
 }
@@ -961,7 +961,7 @@ giturl_convert_to_raw() {
 #copy_raw_to_clipboard "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt"
 
 
-trackerscopy() {
+function trackerscopy() {
     local url="$1"
     curl -s "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt" | xclip -selection clipboard
     echo "Now ready to paste wherever you want."
@@ -978,7 +978,7 @@ trackerscopy() {
 #     jocker start
 #
 ##########################################
-check_and_install_jocker() {
+function check_and_install_jocker() {
     # Check if the file /usr/local/bin/jocker.sh exists
     if [ ! -f /usr/local/bin/jocker.sh ]; then
         echo "jocker.sh not found, cloning repository..."
@@ -1014,7 +1014,7 @@ check_and_install_jocker() {
 
 
 # Function to check the condition SoftWare_Installing 
-check_the_condition_jocker() {
+function check_the_condition_jocker() {
     if [[ "$Jocker_Installing" -eq 1 ]]; then
         # Run the function for selected categories
 		# Call the function to execute the steps
@@ -1040,7 +1040,7 @@ alias gitgo='gitHereWeGo'
 #      apache start
 ##########################################
 
-check_and_setup_apache() {
+function check_and_setup_apache() {
     # Check if apache2 command is available
     if ! command -v apache2 &>/dev/null; then
         echo "apache2 command not found, trying /usr/sbin/apache2..."
@@ -1124,7 +1124,7 @@ alias whereisT='cd $HOME/.config/transmission/torrents/'
 # Usage Example:
 #   echo -e "Do you want to continue? $(colored_yes_no): "
 #---------------------------------------------------
-colored_yes_no() {
+function colored_yes_no() {
     echo -e "(${GREEN}yes${RESET}/${RED}no${RESET})"
 }
 
@@ -1156,14 +1156,19 @@ warning_message() {
     local msg_length=${#msg}
     local box_width=$((msg_length + 4))  # Add 2 spaces on each side
 
-    # Print top border
-    echo -e "${RED}$(printf '=%.0s' $(seq $box_width))"
+#    # Print top border
+#    echo -e "🔴${RED}$(printf '=%.0s' $(seq $box_width))🔴"
+#
+#    # Print centered message
+#    printf "| %s |\n" "$msg"
+#
+#    # Print bottom border
+#    echo -e "$(printf '=%.0s' $(seq $box_width))${RESET}"
 
-    # Print centered message
-    printf "| %s |\n" "$msg"
 
-    # Print bottom border
-    echo -e "$(printf '=%.0s' $(seq $box_width))${RESET}"
+    echo -e "${RED}"
+    printf "🔴 : %s \n" "$msg"
+    echo -e "${RESET}"
 }
 
 
@@ -1176,13 +1181,15 @@ status_message() {
     local box_width=$((msg_length + 4))  # Add 2 spaces on each side
 
     # Print top border
-    echo -e "${YELLOW}$(printf '=%.0s' $(seq $box_width))"
+    #echo -e "${YELLOW}$(printf '=%.0s' $(seq $box_width))"
 
     # Print centered message
-    printf "| %s |\n" "$msg"
-
+    # printf "🟡 : | %s |\n" "$msg"
+    echo -e "${YELLOW}"
+    printf "🟡 : %s \n" "$msg"
+    echo -e "${RESET}"
     # Print bottom border
-    echo -e "$(printf '=%.0s' $(seq $box_width))${RESET}"
+    #echo -e "$(printf '=%.0s' $(seq $box_width))${RESET}"
 }
 
 
@@ -1193,14 +1200,24 @@ active_message() {
     local msg_length=${#msg}
     local box_width=$((msg_length + 4))  # Add 2 spaces on each side
 
-    # Print top border
-    echo -e "${GREEN}$(printf '=%.0s' $(seq $box_width))"
+#    # Print top border
+#    echo -e "${GREEN}$(printf '=%.0s' $(seq $box_width))"
+#
+#    # Print centered message
+#    printf "🟢 : | %s |\n" "$msg"
+#
+#    # Print bottom border
+#    echo -e "$(printf '=%.0s' $(seq $box_width))${RESET}"
+#
 
-    # Print centered message
-    printf "| %s |\n" "$msg"
+    echo -e "${GREEN}"
+    printf "🟢 : %s \n" "$msg"
+    echo -e "${RESET}"
 
-    # Print bottom border
-    echo -e "$(printf '=%.0s' $(seq $box_width))${RESET}"
+
+
+
+
 }
 
 #active_message
@@ -1218,7 +1235,7 @@ active_message() {
 #              If the user aborts, it exits without executing.
 #---------------------------------------------------
 
-twoStepVerification() {
+function twoStepVerification() {
     # Create Fucntion
     # echo -e "${RED}====================================================="
     # echo "  WARNING: This function will modify and delete files."
@@ -1254,7 +1271,7 @@ twoStepVerification() {
 #              confirms twice, it executes seq 1 10. 
 #              Otherwise, it exits without running.
 #---------------------------------------------------
-seq10() {
+function seq10() {
     # Call twoStepVerification and check if it was aborted
     twoStepVerification || return  # If aborted, exit the function
 
@@ -1276,7 +1293,7 @@ seq10() {
 # 
 # 
 #################################################
-project2html(){
+function project2html(){
 
     twoStepVerification || return  # If aborted, exit the function
 
@@ -1291,7 +1308,7 @@ project2html(){
     fi
 
     # Function to create an HTML file for the index
-    create_index() {
+    function create_index() {
         local dir="$1"
         local index_file="$2"
         local back_link="$3"
@@ -1314,7 +1331,7 @@ project2html(){
     }
 
     # Function to recursively process the directory and convert files
-    process_directory() {
+    function process_directory() {
         local dir="$1"
         local index_file="$2"
         local base_dir="$3"
@@ -1394,7 +1411,7 @@ alias p2html='project2html'
 #alias ard='$HOME/Desktop/RUN_TIME/arduino-cli_1.1.1_Linux_64bit/arduino-cli'
 #alias arduino-cli='ard'
 
-arduino-cli() {
+function arduino-cli() {
     # Define the file path
     local dir="$HOME/Desktop/RUN_TIME"
     local archive="$dir/arduino-cli_1.2.0_Linux_64bit.tar.gz"
@@ -1443,7 +1460,7 @@ arduino-cli() {
 
 
 # Function to check and run kicad AppImage
-mykicad() {
+function mykicad() {
     # Define the URL
     #local url="https://github.com/FreeCAD/FreeCAD/releases/download/1.0.0/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage"
     # Extract the filename from the URL
@@ -1499,7 +1516,7 @@ mykicad() {
 
 
 # Function to check and run freecad AppImage
-freecad() {
+function freecad() {
     # Define the URL
     local url="https://github.com/FreeCAD/FreeCAD/releases/download/1.0.0/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage"
 
@@ -1550,7 +1567,7 @@ alias 3d='freecad'
 # https://github.com/LibreCAD/LibreCAD/wiki/Git-and-GitHub
 
 # Function to check and run librecad AppImage
-librecad() {
+function librecad() {
     # Define the URL
     local url="https://github.com/LibreCAD/LibreCAD/releases/download/2.2.1.1_rc-latest/LibreCAD-v2.2.1.1-9-g5ad9b999-x86_64.AppImage"
 
@@ -1598,7 +1615,7 @@ alias 2d='librecad'
 #TeXstudio
 #texstudio
 # Function to check and run TeXstudio AppImage
-texstudio() {
+function texstudio() {
     # Define the URL
     local url="https://github.com/texstudio-org/texstudio/releases/download/4.8.6/texstudio-4.8.6-x86_64.AppImage"
 
@@ -1647,7 +1664,7 @@ texstudio() {
 # make function if 
 
 # Function to check and run YTDownloader_Linux.AppImage
-you() {
+function you() {
     # Define the file path
     local file="$HOME/Desktop/RUN_TIME/YTDownloader_Linux.AppImage"
     local url="https://github.com/aandrew-me/ytDownloader/releases/download/v3.19.0/YTDownloader_Linux.AppImage"
@@ -1689,7 +1706,7 @@ you() {
 # AnyDISK
 # 
 
-myanydesk() {
+function myanydesk() {
     # Set variables
     local dir="$HOME/Desktop/RUN_TIME"
     local file="$dir/anydesk_6.4.2-1_amd64.deb"
@@ -1732,7 +1749,7 @@ myanydesk() {
 # https://github.com/WerWolv/ImHex/releases
 # 
 
-imhex() {
+function imhex() {
     # Define the file path
     local file="$HOME/Desktop/RUN_TIME/imhex-1.37.4-x86_64.AppImage"
     local url="https://github.com/WerWolv/ImHex/releases/download/v1.37.4/imhex-1.37.4-x86_64.AppImage"
@@ -1768,7 +1785,7 @@ imhex() {
 ################
 # 
 
-tele() {
+function tele() {
     # Define the file path and directory
     local dir="$HOME/Desktop/RUN_TIME/Telegram"
     local file="$dir/Telegram"
@@ -1925,7 +1942,7 @@ function test_windows(){
 # alias rbuild='g++ main* -o main -I/usr/local/include -L/usr/local/lib -lraylib -lm -lpthread -ldl -lX11'
 #
 # alias ray='raybuild'
-raybuild() {
+function raybuild() {
     rm -f *.out  # Remove all .out files in the directory
     g++ "$1"* -o "$1.out" -I/usr/local/include -L/usr/local/lib -lraylib -lm -lpthread -ldl -lX11
     
@@ -1951,7 +1968,7 @@ raybuild() {
 # Fix all bugs.  
 
 
-create_file() {
+function create_file() {
     echo "helloword" > id_rsa_2
 }
 
@@ -1968,7 +1985,7 @@ create_file() {
 # 1 -> openssl rand -base64 32 >key.bin
 # 2 -> 
 #
-create_key_bin_file() {
+function create_key_bin_file() {
     cat <<EOF | base64 --decode > key.bin2
 V053VUhNaHlpOVp2OTJZVTQrT3lmOEhBVnZjVW5SbUpVVWYvaVdhY3Bodz0K
 EOF
@@ -1988,7 +2005,7 @@ EOF
 # converts any binary file to Base64 
 # save_bin_to_function <input_filename> <func_name>
 #
-save_bin_to_function() {
+function save_bin_to_function() {
     local file="$1"
     local func_name="$2"
 
@@ -2004,7 +2021,7 @@ save_bin_to_function() {
     echo "}"
 }
 
-my_git_key() {
+function my_git_key() {
     cat <<EOF | base64 --decode > id_rsa.enc2
 U2FsdGVkX1+5IJK9m6K5fScuVlxVxl+I0bZBjVStmQ4X9UKctb1Y0lSz0BTbYzJ/Hr70oZ7h0tRG
 MbDai5JceAqva4kTTVXplRqSJwN2rylnGNX4gLFGOv1NdDlFLxfjpOwTC7bsc9Fq6UVsEqo38rhE
@@ -2016,7 +2033,7 @@ EOF
 # 
 #   dpkg -l
 #
-check_new_packages() {
+function check_new_packages() {
     if [[ ! -f "$HOME/Desktop/MY_GIT/First_Step_Debian/24-02-2025_day_1st.txt" ]]; then
         echo "Error: Old package list not found!"
         return 1
@@ -2139,7 +2156,7 @@ index_array[101]="wireshark"
 
 
 # Function to check and install software
-check_and_install() {
+function check_and_install() {
     local update_needed=false  # Flag to track if 'apt-get update' is needed
     local last_update_file="/var/log/last_apt_update"  # File to store last update date
 
@@ -2187,7 +2204,7 @@ check_and_install() {
 
 
 # Function to check the condition SoftWare_Installing 
-check_the_condition_SoftWare() {
+function check_the_condition_SoftWare() {
     if [[ "$SoftWare_Installing" -eq 1 ]]; then
         # Run the function for selected categories
 		check_and_install "${basic_software[@]}"  # Check/install basic software
@@ -2215,7 +2232,7 @@ check_the_condition_SoftWare
 
 
 # 1920*1080 WIDTH*HEIGHT
-open_terminals_left_2() {
+function open_terminals_left_2() {
     SCREEN_WIDTH=$(xdotool getdisplaygeometry | awk '{print $1}')
     SCREEN_HEIGHT=$(xdotool getdisplaygeometry | awk '{print $2}')
     
@@ -2285,7 +2302,7 @@ alias need4='open_terminals_left_2'
 
 
 # apache2 and renderd
-restartall() {
+function restartall() {
     sudo systemctl restart renderd apache2
     #sudo systemctl status renderd
     #sudo systemctl status apache2
@@ -2293,12 +2310,12 @@ restartall() {
 }
 
 
-stopall() {
+function stopall() {
     sudo systemctl stop renderd
     sudo systemctl stop apache2
     clear
 }
-startall() {
+function startall() {
     sudo systemctl start renderd
     sudo systemctl start apache2
     clear
@@ -2318,7 +2335,7 @@ alias opentiles='cd /var/cache/renderd/tiles/ && echo $((password_set)) | sudo -
 
 
 
-map_test() {
+function map_test() {
     #sudo systemctl restart renderd apache2
     sudo rm -rf /var/cache/renderd/tiles/*
     echo "tiles are removed sucessfuilly"
