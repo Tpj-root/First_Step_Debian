@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# bug in gitclone
+# mygit FIXME
+#
 ##########################################################
 #/*
 # * Copyright (C) 2025 [Tpj-root]
@@ -768,7 +772,41 @@ function Alien() {
 ############
 #
 alias gitwhois='git remote -v'
-alias gitc='git clone'
+
+#alias gitc='git clone'
+#alias gitc='git clone'
+# Function: gitc
+# Description: This function clones a Git repository into a predefined directory ($HOME/Desktop/MY_GIT).
+# Usage: gitc <repository_url>
+# - If the target directory does not exist, it is created.
+# - If no URL is provided, an error message is displayed.
+
+function G_itclone() {
+    GIT_DIR="$HOME/Desktop/MY_GIT"
+    
+    # Ensure the directory exists
+    if [ ! -d "$GIT_DIR" ]; then
+        echo "Creating directory: $GIT_DIR"
+        mkdir -p "$GIT_DIR"
+    fi
+    
+    # Change to the target directory
+    cd "$GIT_DIR" || { echo "Error: Failed to change directory to $GIT_DIR"; return 1; }
+
+    # Check if a repository URL is provided
+    if [[ -z "$1" ]]; then
+        echo "Usage: gitc <repository_url>"
+        echo "Error: No repository URL provided."
+        return 1
+    fi
+    
+    # Clone the repository
+    echo "Cloning repository: $1"
+    git clone "$1"
+}
+
+
+
 alias gits='git status'
 alias gitlog='git log'
 alias gitd='git diff'
@@ -2359,3 +2397,45 @@ function map_test() {
 export CPLUS_INCLUDE_PATH=$HOME/Desktop/BUILD_FILES/boost_1_83_0
 export LIBRARY_PATH=$HOME/Desktop/BUILD_FILES/boost_1_83_0/stage/lib
 export LD_LIBRARY_PATH=$HOME/Desktop/BUILD_FILES/boost_1_83_0/stage/lib:$LD_LIBRARY_PATH
+
+
+# Script 1st time run
+# 2 time diffrent script
+# Needs testing
+#
+#
+#
+#
+function myhead_connect() {
+    BT_MAC="36:48:13:76:54:0B"
+
+    bluetoothctl power on
+    sleep 1
+    bluetoothctl agent on
+    sleep 1
+    bluetoothctl scan on
+    sleep 3
+    bluetoothctl pair $BT_MAC
+    sleep 2
+    bluetoothctl connect $BT_MAC
+    sleep 2
+    bluetoothctl trust $BT_MAC
+    sleep 1
+    bluetoothctl scan off
+
+    echo "Bluetooth headphones connected!"
+}
+
+function myhead_disconnect() {
+    BT_MAC="36:48:13:76:54:0B"
+
+    bluetoothctl disconnect $BT_MAC
+    sleep 1
+    echo "Bluetooth headphones disconnected!"
+}
+
+
+# Call the function as needed
+# myhead_connect   # To connect
+# myhead_disconnect  # To disconnect
+
