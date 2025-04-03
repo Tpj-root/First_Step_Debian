@@ -1284,7 +1284,7 @@ function twoStepVerification() {
     # First confirmation prompt
     echo -e "Do you really want to continue?  $(colored_yes_no): "
     read -r choice1
-    if [[ "$choice1" != "yes" ]]; then
+    if [[ ! "$choice1" =~ ^(yes|y|YES|Y)$ ]]; then
         echo "Aborted."
         return 1  # Return 1 to indicate failure
     fi
@@ -2439,3 +2439,71 @@ function myhead_disconnect() {
 # myhead_connect   # To connect
 # myhead_disconnect  # To disconnect
 
+
+find_duplicates() {
+    declare -A file_hashes
+    while IFS= read -r -d '' file; do
+        md5=$(md5sum "$file" | awk '{print $1}')
+        file_hashes["$md5"]+="$file"$'\n'
+    done < <(find . -type f -print0)
+
+    for hash in "${!file_hashes[@]}"; do
+        files=(${file_hashes["$hash"]})
+        if [[ ${#files[@]} -gt 1 ]]; then
+            echo "Duplicate files found for MD5: $hash"
+            printf '%s\n' "${file_hashes["$hash"]}"
+            echo "--------------------------------"
+        fi
+    done
+}
+
+#find_duplicates
+
+
+# This function is dangerous as it changes all file locations to modified, so a flag is needed to ask for two-step verification.
+# Function to find and move duplicate files based on their MD5 checksum
+# Add the following features:
+# - Count duplicates
+# - Generate a status report
+# - Implement an undo option
+
+find_and_move_duplicates() {
+
+    twoStepVerification || return  # If aborted, exit the function
+
+    declare -A file_hashes  # Declare an associative array to store file paths by hash
+
+    # Step 1: Scan all files recursively and compute their MD5 hash
+    while IFS= read -r -d '' file; do
+        md5=$(md5sum "$file" | awk '{print $1}')  # Compute MD5 hash of the file
+        file_hashes["$md5"]+="$file"$'\n'  # Append file path to the hash key
+    done < <(find . -type f -print0)  # Use find with -print0 to handle spaces in filenames
+
+    # Step 2: Process each unique hash and identify duplicate files
+    for hash in "${!file_hashes[@]}"; do
+        files=()
+        
+        # Read file list safely into an array
+        while IFS= read -r line; do
+            [[ -n "$line" ]] && files+=("$line")  # Ensure the line is not empty
+        done <<< "${file_hashes["$hash"]}"
+
+        # Step 3: If duplicates exist, move them to a dedicated folder
+        if [[ ${#files[@]} -gt 1 ]]; then
+            folder="./$hash"  # Folder name is the hash value
+            mkdir -p "$folder"  # Create the folder if it doesn't exist
+            echo "Moving duplicates to: $folder"
+
+            for file in "${files[@]}"; do
+                if [[ -f "$file" ]]; then
+                    mv "$file" "$folder/"  # Move the file into the hash-named folder
+                else
+                    echo "Skipping missing file: $file"
+                fi
+            done
+        fi
+    done
+}
+
+# Call the function to execute
+#find_and_move_duplicates
