@@ -2600,3 +2600,54 @@ list_files_by_size() {
 #    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 #    00 00 00 00 00 00 00 00 00 00 00 00 00 FF 00 00
 #    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+
+# Gray code ensures that only one bit changes at a time between consecutive values — 
+# this reduces errors in hardware like rotary encoders.
+# 
+# 
+#  
+#  https://academo.org/demos/logic-gate-simulator/
+binary2gray() {
+  # binary2gray: Convert binary numbers to Gray code.
+  # Usage: binary2gray <bits>
+  # Example: binary2gray 3
+  # This will generate all binary numbers of 3 bits and their corresponding Gray codes.
+
+  if [[ "$1" == "-h" || "$1" == "--help" || -z "$1" ]]; then
+    echo "Usage: binary2gray <bits>"
+    echo "Shortcut : Example"
+    echo "b2g1: binary2gray 3"
+    # use escaped quotes:
+    echo "b2g2: binary2gray 3 | awk -F \"->\" '{print \$2}' | tr -d \" \""
+    #echo "Description: Generates all binary numbers of <bits> length and converts them to Gray code."
+    return
+  fi
+
+  bits=$1
+  max=$((2**bits))
+
+  for ((i=0; i<max; i++)); do
+    # Convert decimal to zero-padded binary
+    bin=$(printf "%0${bits}d" "$(echo "obase=2; $i" | bc)")
+    # Calculate Gray code: binary XOR (binary shifted right by 1)
+    gray_val=$((i ^ (i >> 1)))
+    # Convert decimal Gray to zero-padded binary
+    gray=$(printf "%0${bits}d" "$(echo "obase=2; $gray_val" | bc)")
+    echo "$bin -> $gray"
+  done
+}
+
+function b2g1() {
+    binary2gray 3
+}
+
+function b2g2() {
+    binary2gray 3 | awk -F "->" '{print $2}' | tr -d " "
+}
+
+
+# more command
+# binary2gray 3 | awk -F "->" '{printf "%s\n", $2}'
+# binary2gray 3 | awk -F "->" '{print $2}' | tr -d " "
+#
