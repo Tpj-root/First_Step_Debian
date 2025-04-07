@@ -2507,3 +2507,71 @@ find_and_move_duplicates() {
 
 # Call the function to execute
 #find_and_move_duplicates
+
+
+
+#
+#
+#
+#
+# 
+# Count files by extension
+count_extensions() {
+  find . -type f | sed -n 's/.*\(\.[^./]*\)$/\1/p' | sort | uniq -c | sort -nr
+}
+
+
+# Use it  list_by_extension .txt
+list_by_extension() {
+  # This function lists all files with a given extension (case-insensitive),
+  # searching recursively from the current directory.
+
+  # Remove leading dot from extension if present (e.g., '.txt' becomes 'txt')
+  ext="${1#.}"
+
+  # Use find to locate all files (-type f) with the given extension
+  # -iname makes the match case-insensitive (e.g., .TXT, .txt, .Txt all match)
+  find . -type f -iname "*.${ext}"
+}
+
+
+# list_by_extension .avi
+# list_files_by_size | grep MB | sort
+# list_files_by_size | grep MB | sort | grep -i PDF
+# list_files_by_size | grep -i jpg | grep " MB" | awk '$1+0 > 2'
+
+
+list_files_by_size() {
+  # This function lists all files under the current directory (recursively),
+  # sorted by size (ascending), grouped by their top-level directory.
+  # It displays file sizes in human-readable format (e.g., KB, MB).
+
+  find . -type f -printf "%s %p\n" | sort -n | awk '
+  # Function to convert bytes to human-readable size
+  function human(x) {
+    split("B KB MB GB TB", unit)
+    i = 1
+    while (x >= 1024 && i < 5) {
+      x /= 1024
+      i++
+    }
+    return sprintf("%.1f %s", x, unit[i])
+  }
+
+  {
+    size = $1        # Get file size in bytes
+    $1 = ""          # Remove the size from the line
+    sub(/^ /, "", $0)  # Trim leading space
+    split($0, path_parts, "/")  # Split the file path by "/"
+    dir = (length(path_parts) > 1) ? path_parts[2] : "."  # Get top-level dir
+    files[dir] = files[dir] human(size) " " $0 "\n"  # Append file info to group
+  }
+
+  END {
+    for (d in files) {
+      print "Directory: " d
+      printf "%s", files[d]
+      print ""
+    }
+  }'
+}
