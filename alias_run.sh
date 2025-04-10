@@ -346,6 +346,35 @@ function hw() {
 # sudo apt install neofetch
 
 
+mystl()
+{
+    if ! command -v fstl &> /dev/null; then
+        echo "fstl is not installed. Installing fstl..."
+        sudo apt install -y fstl
+        if ! command -v fstl &> /dev/null; then
+            echo "Failed to install fstl. Please install it manually and try again."
+            exit 1
+        fi
+    fi
+
+    fstl $1
+}
+
+
+myscreencast()
+{
+    if ! command -v vokoscreenNG &> /dev/null; then
+        echo "vokoscreenNG is not installed. Installing vokoscreenNG..."
+        sudo apt install -y vokoscreen-ng
+        if ! command -v fstl &> /dev/null; then
+            echo "Failed to install vokoscreenNG. Please install it manually and try again."
+            exit 1
+        fi
+    fi
+    vokoscreenNG
+}
+
+
 
 
 
@@ -546,7 +575,7 @@ alias k8000='sudo kill -9 $(lsof -t -i:8000)'
 
 
 # Bash function to modify /etc/resolv.conf and replace its content with the given nameservers
-function modify_resolv_conf() {
+function modify_resolv_conf_0() {
     sudo bash -c 'cat > /etc/resolv.conf <<EOF
 nameserver 8.8.8.8
 nameserver 8.8.4.4
@@ -556,7 +585,43 @@ EOF'
     echo "Updated /etc/resolv.conf successfully."
 }
 
-alias dnsupdate='modify_resolv_conf'
+function modify_resolv_conf_1() {
+    sudo bash -c 'cat > /etc/resolv.conf <<EOF
+nameserver 1.1.1.1
+nameserver 1.0.0.1
+EOF'
+    echo "Updated /etc/resolv.conf successfully."
+}
+
+function modify_resolv_conf_2() {
+    sudo bash -c 'cat > /etc/resolv.conf <<EOF
+nameserver 208.67.222.222
+nameserver 208.67.220.220
+EOF'
+    echo "Updated /etc/resolv.conf successfully."
+}
+
+function modify_resolv_conf_3() {
+    sudo bash -c 'cat > /etc/resolv.conf <<EOF
+nameserver 218.248.112.225
+nameserver 218.248.112.193
+EOF'
+    echo "Updated /etc/resolv.conf successfully."
+}
+
+
+
+
+
+
+
+
+alias dnsupdate_Google='modify_resolv_conf_0'
+alias dnsupdate_Cloudflare='modify_resolv_conf_1'
+alias dnsupdate_OpenDNS='modify_resolv_conf_2'
+alias dnsupdate_BSNL='modify_resolv_conf_3'
+
+
 
 # If you want to modify /etc/resolv.conf while keeping the old lines as a backup, use this function
 #modify_resolv_conf() {
@@ -2651,3 +2716,20 @@ function b2g2() {
 # binary2gray 3 | awk -F "->" '{printf "%s\n", $2}'
 # binary2gray 3 | awk -F "->" '{print $2}' | tr -d " "
 #
+
+
+
+# FIXME
+kicad_online_view() {
+  if pgrep -x "firefox" > /dev/null; then
+    # Firefox is already running, open a new tab
+    xdotool search --onlyvisible --class "Firefox" windowactivate --sync key ctrl+t
+    xdotool type "https://kicanvas.org/"
+    xdotool key Return
+  else
+    # Firefox is not running, open a new window with the URL
+    firefox https://kicanvas.org/
+  fi
+}
+
+
