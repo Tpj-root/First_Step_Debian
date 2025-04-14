@@ -2733,3 +2733,45 @@ kicad_online_view() {
 }
 
 
+
+
+# railway_to_normal "18:45"  # Outputs: 06:45 PM
+railway_to_normal() {
+    date -d "$1" +"%I:%M %p"
+}
+
+
+# search_words function
+#
+# This function searches recursively through the current directory and its subdirectories 
+# for a given search string (word or phrase). It uses `grep` to perform the search.
+# 
+# Usage:
+#   search_words "your_search_string"
+#
+# Arguments:
+#   $1 - The search string to find. You must enclose the string in quotes if it contains spaces.
+#
+# Example:
+#   search_words "Added drilling 13/5/2010"
+#
+# Output:
+#   This function will print all lines containing the search string along with the filenames.
+#   Any errors related to unreadable files will be suppressed.
+#
+# Notes:
+#   - This function uses `grep -r` to perform a recursive search.
+#   - `2>/dev/null` is used to suppress error messages, such as those for unreadable files.
+#
+# Author: [Tpj-root]
+# Date: [12-04-2025]
+
+search_words() {
+  # Recursively search for the string provided as the first argument in the current directory
+  # and all its subdirectories. Suppresses error messages.
+  grep -r "$1" ./* 2>/dev/null
+}
+
+
+
+
