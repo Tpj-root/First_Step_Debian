@@ -2775,3 +2775,125 @@ search_words() {
 
 
 
+# --------------------------------------------
+# Function: qr_Decoder
+# Description:
+#   Decodes a QR code from an image file using `zbarimg`.
+#   Automatically installs `zbar-tools` if it's missing.
+#
+# Usage:
+#   qr_Decoder <image_file>
+#
+# Parameters:
+#   <image_file> - Path to the image containing the QR code.
+#
+# Returns:
+#   Prints the decoded QR code content.
+#
+# Notes:
+#   - Requires sudo permission to install packages if missing.
+#   - Accepts only local file paths.
+#   - zbar-tools is for scanning/reading QR codes, not generating
+#
+# Example:
+#   qr_Decoder my_qr.png
+# --------------------------------------------
+
+function qr_Decoder() {
+    # Check if zbarimg is installed
+    if ! command -v zbarimg &> /dev/null; then
+        echo "zbar-tools is not installed. Installing zbar-tools..."
+        sudo apt install -y zbar-tools
+        # Recheck after installation
+        if ! command -v zbarimg &> /dev/null; then
+            echo "Failed to install zbar-tools. Please install it manually and try again."
+            echo "Manual command: sudo apt-get install zbar-tools"
+            return 1
+        fi
+    fi
+
+    # Check if an image file is provided
+    if [ -z "$1" ]; then
+        echo "Usage: qr_Decoder <image_file>"
+        return 1
+    fi
+
+    # Check if the image file exists
+    if [ ! -f "$1" ]; then
+        echo "Error: File '$1' not found."
+        return 1
+    fi
+
+    # Decode and print the QR code content
+    zbarimg --raw -q "$1"
+}
+
+
+
+# Decode QR Code from Webcam
+# zbarcam
+# https://manpages.debian.org/unstable/zbar-tools/zbarimg.1.en.html
+
+
+# Function: gen_hex_filename
+# Purpose : Generate a random 6-digit hexadecimal string
+# Returns : A string like "3FA2B7" (uppercase), suitable for use as a filename
+# Usage   : filename=$(gen_hex_filename)
+
+function gen_hex_filename() {
+    # Generate a random number using $RANDOM * $RANDOM
+    # Then take modulo 0xFFFFFF (16777215) to ensure it fits in 6 hex digits
+    local rand_value=$((RANDOM * RANDOM % 0xFFFFFF))
+
+    # Print the number in 6-digit uppercase hexadecimal format with leading zeros
+    printf "%06X" "$rand_value"
+}
+
+
+
+
+function qr_Encoder() {
+    # Check if qrencode is installed
+    if ! command -v qrencode &> /dev/null; then
+        echo "qrencode is not installed. Installing..."
+        sudo apt install -y qrencode
+        if ! command -v qrencode &> /dev/null; then
+            echo "Failed to install qrencode. Please install it manually."
+            return 1
+        fi
+    fi
+
+    # Check if input is provided
+    if [ -z "$1" ]; then
+        echo "Usage: qr_Encoder <input_url_or_text>"
+        return 1
+    fi
+
+
+    local filename="$(gen_hex_filename).png"
+    # Generate QR in terminal and save as image
+    qrencode -t ANSIUTF8 "$1"
+
+    # qrencode -o tiny.png -s 1 "your text"
+    # Use -s 1 for the smallest size (each QR module = 1 pixel).
+    # qrencode -o huge.png -s 10 "your text"
+    # This will create a larger and higher resolution QR code. 
+    qrencode -o "$filename" -s 10 "$1"
+    echo "QR code saved as $filename"
+}
+
+# alias
+# 
+
+#alias qr_D='qr_Decoder'
+#alias qr_E='qr_Encoder'
+
+
+# My Own alias start from my keywords
+alias sab_qr_D='qr_Decoder'
+alias sab_qr_E='qr_Encoder'
+
+#alias sab_='echo "Hello_iam_sab"'
+
+
+
