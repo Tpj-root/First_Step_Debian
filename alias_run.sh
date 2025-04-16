@@ -326,7 +326,7 @@ alias all_into_txt='for file in *; do mv "$file" "${file%}.txt"; done'
 
 ##################
 ### xdotool
-function hw() {
+function hw1() {
     clear
     sleep 0.5
     xdotool key ctrl+l  # Alternative to clear screen
@@ -335,6 +335,19 @@ function hw() {
     xdotool type "Hello World"
     #xdotool key Return  # Press Enter after typing
 }
+
+
+
+function hw2() {
+    sleep 5
+    for i in {1..2}; do
+        xdotool type "Hello"
+        xdotool key Return
+        sleep 0.1
+    done
+}
+
+
 
 
 ##################
@@ -2878,7 +2891,8 @@ function qr_Encoder() {
     # Use -s 1 for the smallest size (each QR module = 1 pixel).
     # qrencode -o huge.png -s 10 "your text"
     # This will create a larger and higher resolution QR code. 
-    qrencode -o "$filename" -s 10 "$1"
+    #qrencode -o "$filename" -s 10 "$1"
+    qrencode -o "$filename" "$1"
     echo "QR code saved as $filename"
 }
 
@@ -2894,6 +2908,21 @@ alias sab_qr_D='qr_Decoder'
 alias sab_qr_E='qr_Encoder'
 
 #alias sab_='echo "Hello_iam_sab"'
+
+
+
+
+
+# How to store the diffrent file_( channel)
+# Record the audio
+# ffmpeg -f pulse -i alsa_input.usb-USB_2.0_USB_Audio_Device_08613544166500-00.mono-fallback        -f pulse -i alsa_output.usb-USB_2.0_USB_Audio_Device_08613544166500-00.analog-stereo.monitor        -filter_complex amix=inputs=2:duration=longest output_2.mp3
+
+# MY audio
+# ffmpeg -f pulse -i default -f pulse -i alsa_output.pci-0000_00_1b.0.analog-stereo.monitor -filter_complex amix=inputs=2:duration=longest output.mp3
+
+# Tele Audio only
+# ffmpeg -f pulse -i alsa_output.usb-USB_2.0_USB_Audio_Device_08613544166500-00.analog-stereo.monitor output_telegram_only.mp3
+
 
 
 
