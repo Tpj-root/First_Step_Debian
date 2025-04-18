@@ -1826,7 +1826,11 @@ function myanydesk() {
     # Set variables
     local dir="$HOME/Desktop/RUN_TIME"
     local file="$dir/anydesk_6.4.2-1_amd64.deb"
+
+    # 
+    local url="https://download.anydesk.com/linux/anydesk_7.0.0-1_amd64.deb"
     local url="https://download.anydesk.com/linux/anydesk_6.4.2-1_amd64.deb"
+ 
 
     # Ensure the directory exists
     mkdir -p "$dir"
