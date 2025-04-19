@@ -1572,7 +1572,7 @@ function arduino-cli() {
 # https://www.freecad.org/
 # https://github.com/KiCad/kicad-docker/pkgs/container/kicad
 # https://hub.docker.com/r/kicad/kicad
-
+# https://github.com/CyberCircuits/kicad-appimage
 
 
 # Function to check and run kicad AppImage
@@ -1613,6 +1613,8 @@ function mykicad() {
 
 # Execute the function
 #mykicad
+
+alias kicad='$HOME/Desktop/RUN_TIME/KiCad-8.0.9.glibc2.29-x86_64.3d.AppImage'
 
 
 
