@@ -2932,3 +2932,53 @@ alias sab_qr_E='qr_Encoder'
 
 
 
+
+
+
+
+# git_tag_help
+
+function git_help() {
+
+    echo "git tag -a v0.1 -m \"Release version 0.1\""
+    echo "git push origin v0.1"
+    echo "all in one push"
+    echo "git push --tags"
+    echo ""
+
+
+}
+
+
+
+download_flickr_image() {
+  local url="$1"
+  local html image_url
+  html=$(curl -s "$url")
+  image_url=$(echo "$html" | grep -oP 'https://live\.staticflickr\.com/[0-9]+/[0-9]+_[a-z0-9]+_b\.jpg' | head -n1)
+  if [[ -n "$image_url" ]]; then
+    echo "Downloading: $image_url"
+    curl -O "$image_url"
+  else
+    echo "Image URL not found."
+  fi
+}
+
+# https://www.flickr.com/photos/osr/albums/72157663504344334/with/25838333416
+# https://www.flickr.com/photos/osr/46222592501
+#   <meta property="og:image" content="https://live.staticflickr.com/8571/15401767363_83ff1c34d2_z.jpg"  data-dynamic="true">
+download_flickr_image1() {
+    local flickr_url="$1"
+    local page_html
+    page_html=$(curl -sL "$flickr_url")
+    
+    local image_url
+    image_url=$(echo "$page_html" | grep -oP 'https://live\.staticflickr\.com/[^"]+\.jpg' | head -n1)
+    
+    if [[ -n "$image_url" ]]; then
+        echo "Downloading: $image_url"
+        wget "$image_url"
+    else
+        echo "Image URL not found."
+    fi
+}
