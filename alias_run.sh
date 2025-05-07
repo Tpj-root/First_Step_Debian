@@ -884,7 +884,7 @@ function G_itclone() {
 }
 
 
-
+# git_help
 alias gits='git status'
 alias gitlog='git log'
 alias gitd='git diff'
