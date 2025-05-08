@@ -290,6 +290,7 @@ function set_edit_alias() {
 # Call the function to set the alias when the shell starts
 set_edit_alias
 
+alias myedit2='subl $HOME/.bashrc'
 
 
 # daily notes 
