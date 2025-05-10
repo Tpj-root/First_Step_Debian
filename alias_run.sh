@@ -339,12 +339,12 @@ function hw1() {
 
 
 
-function hw2() {
+function scam_alert_20() {
     sleep 5
-    for i in {1..2}; do
-        xdotool type "Hello"
+    for i in {1..20}; do
+        xdotool type "scam alert!"
         xdotool key Return
-        sleep 0.1
+        sleep 0.2
     done
 }
 
@@ -1962,6 +1962,125 @@ alias m='mkdir build && cd build && cmake .. && make'
 alias rmm='cd .. && rm -rf build'
 #alias db='rm -rf build'
 #alias make_back='make > /dev/null 2>&1 &'
+
+
+cmake_start() {
+    project_name=$(basename "$PWD")
+    cpp_files=($(find . -type f \( -name "*.cpp" -o -name "*.c" \)))
+    h_dirs=($(find . -type f -name "*.h" -exec dirname {} \; | sort -u))
+
+    {
+        echo "# Auto-generated CMakeLists.txt"
+        echo "cmake_minimum_required(VERSION 3.10)"
+        echo "project(${project_name} VERSION 1.0)"
+        echo ""
+        echo "set(CMAKE_CXX_STANDARD 17)"
+        echo "set(CMAKE_CXX_STANDARD_REQUIRED True)"
+        echo ""
+        echo "# === Source Files ==="
+        echo "set(SRC_FILES"
+        for file in "${cpp_files[@]}"; do
+            echo "    ${file#./}"
+        done
+        echo ")"
+        echo ""
+        echo "# === Executable Target ==="
+        echo "add_executable(${project_name}_exec \${SRC_FILES})"
+        echo ""
+        echo "# === Include Directories ==="
+        echo "target_include_directories(${project_name}_exec PRIVATE"
+        echo "    \${CMAKE_CURRENT_SOURCE_DIR}"
+        for dir in "${h_dirs[@]}"; do
+            echo "    \${CMAKE_CURRENT_SOURCE_DIR}/${dir#./}"
+        done
+        echo ")"
+        echo ""
+        echo "# === Optional: Compiler Warnings ==="
+        echo "# Enable common compiler warnings (useful for development)"
+        echo "# target_compile_options(main_exec PRIVATE -Wall -Wextra -pedantic)"
+        echo ""
+        echo "# === Link Libraries ==="
+        echo "# - To add more libraries, use additional \`target_link_libraries()\` calls."
+        echo "# - To make this reusable: copy this as a template and change project name, source files, and paths."
+        echo "# - For better structure, keep external paths in variables or use Find modules."
+        echo "# target_link_libraries(${project_name}_exec PRIVATE /home/cnc/Desktop/BUILD_2/raylib/build/raylib/libraylib.a)"
+        echo ""
+                echo "# Include directories for header files"
+        echo "# We are adding two directories here, one from the source folder and one from a third-party library"
+        echo "# target_include_directories(my_tetris_game PRIVATE ${CMAKE_SOURCE_DIR}/include)"
+        echo "# target_include_directories(my_tetris_game PRIVATE ${CMAKE_SOURCE_DIR}/thirdparty/some_library/include)"
+        echo ""
+        echo "# Link libraries to the executable"
+        echo "# Here, we're linking a static library (raylib) to the project"
+        echo "# target_link_libraries(my_tetris_game PRIVATE ${CMAKE_SOURCE_DIR}/libs/raylib.a)"
+        echo ""
+        echo "# Custom command to copy a file after the build process"
+        echo "# add_custom_command("
+        echo "#     TARGET my_tetris_game POST_BUILD"
+        echo "#     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Sounds/music.mp3 ${CMAKE_BINARY_DIR}/build/Sounds/music.mp3"
+        echo "# )"
+        echo ""
+        echo "# Create a custom target that will copy files automatically during the build"
+        echo "# add_custom_target(copy_files ALL"
+        echo "#     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Sounds/music.mp3 ${CMAKE_BINARY_DIR}/build/Sounds/music.mp3"
+        echo "# )"
+        echo ""
+        echo "# Add other build configurations or post-build actions as needed"
+        echo "# add_custom_command("
+        echo "#     TARGET my_tetris_game POST_BUILD"
+        echo "#     COMMAND ${CMAKE_COMMAND} -E echo \"Build completed successfully!\""
+        echo "# )"
+        echo ""
+        echo "# Set the installation directory for the project"
+        echo "# The default install directory is /usr/local, but you can change it"
+        echo "# set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)"
+        echo ""
+        echo "# Optionally, you can install the executable and/or libraries"
+        echo "# install(TARGETS my_tetris_game DESTINATION ${CMAKE_BINARY_DIR}/install/bin)"
+        echo ""
+        echo "# Optionally, install headers"
+        echo "# install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION ${CMAKE_BINARY_DIR}/install/include)"
+        echo ""
+        echo "# Check and print the compiler being used (useful for debugging)"
+        echo "# if(MSVC)"
+        echo "#     message(\"Using Visual Studio Compiler\")"
+        echo "# elseif(CMAKE_COMPILER_IS_GNUCXX)"
+        echo "#     message(\"Using GCC Compiler\")"
+        echo "# endif()"
+        echo ""
+        echo "# Find packages for external dependencies"
+        echo "# This looks for OpenGL, for example"
+        echo "# find_package(OpenGL REQUIRED)"
+        echo ""
+        echo "# Link the found OpenGL package to the target"
+        echo "# target_link_libraries(my_tetris_game PRIVATE OpenGL::GL)"
+        echo ""
+        echo "# Check for other dependencies or external libraries"
+        echo "# find_library(RAYLIB_LIBRARY raylib PATHS /path/to/raylib)"
+        echo "# target_link_libraries(my_tetris_game PRIVATE ${RAYLIB_LIBRARY})"
+        echo ""
+        echo "# If you want to enable tests, you can use this:"
+        echo "# enable_testing()"
+        echo ""
+        echo "# Create a simple test (example: test linking)"
+        echo "# add_test(NAME TestHello COMMAND my_tetris_game)"
+        echo ""
+        echo "# Handle versioning"
+        echo "# Automatically makes the version accessible through the ${PROJECT_VERSION} variable"
+        echo "# project(MyTetrisGame VERSION 1.0 LANGUAGES CXX)"
+        echo ""
+        echo "# Show some project info at configuration time"
+        echo "# message(\"Project Name: ${PROJECT_NAME}\")"
+        echo "# message(\"Project Version: ${PROJECT_VERSION}\")"
+        echo "# message(\"C++ Standard: ${CMAKE_CXX_STANDARD}\")"
+        echo "# message(\"Build type: ${CMAKE_BUILD_TYPE}\")"
+        echo ""
+    } > CMakeLists.txt
+
+    echo "CMakeLists.txt generated successfully."
+}
+
+
 
 
 
