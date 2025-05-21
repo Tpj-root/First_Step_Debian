@@ -3102,3 +3102,21 @@ download_flickr_image1() {
         echo "Image URL not found."
     fi
 }
+
+
+
+
+
+# 
+
+
+## xxd - make a hexdump or do the reverse.
+
+## -g
+
+xxd16() {
+  xxd -g 2 -c 16 "$1"
+}
+
+
+
