@@ -2376,6 +2376,10 @@ index_array[19]="wmctrl" # wmctrl - interact with a EWMH/NetWM compatible X Wind
 # xdotool getactivewindow windowmove 100 100 windowsize 800 600
 index_array[20]="xdotool" # wmctrl - interact with a EWMH/NetWM compatible X Window Manager.
 
+#############
+index_array[21]="apt-file" # apt-file command searches available packages for a specific file or files. 
+                           # The packages do not need to be installed to perform the search.
+
 
 ### 
 basic_software=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)     # crunch, transmission
@@ -3107,16 +3111,150 @@ download_flickr_image1() {
 
 
 
-# 
-
-
-## xxd - make a hexdump or do the reverse.
-
-## -g
-
+## # 
+## ## xxd - make a hexdump or do the reverse.
+## 
+## ## -g
+## 
+## given pin value : CD E3 8F 62 59 60
+## 
+## CD --> offset --> 0x110 + 13 = 0x11D (or 285 in decimal)
+## E3 --> offset --> 0x170 + 12
+## 8F --> offset --> 0x190 + 5
+## 62 --> offset --> 0x110 + 10 or 0x0d0 + 0 
+## 59 --> offset --> 0x120 + 1
+## 60 --> offset --> 0x170 + 13
+## 
+## 
+## TEST_1
+## xxd -s 0x11D -l 1 sablogantest.bin --- > 0000011d: cd          
+## 
+## 
+## Math : 
+## printf "0x%x\n" $((0x110 + 13))
+## 
+## # To print decimal instead, use:
+## printf "%d\n" $((0x110 + 13))
+## 
+## 
+## 
+## 
 xxd16() {
   xxd -g 2 -c 16 "$1"
 }
 
 
+startline() {
+  for ((i=0; i<30; i++)); do
+    echo -n "*"
+  done
+  echo
+}
 
+
+
+#
+logan_bin_reader() {
+  local file=$1
+  local offsets=(
+    "0x110+13"
+    "0x170+12"
+    "0x190+5"
+    "0x110+10"
+    "0x120+1"
+    "0x170+13"
+  )
+  local bytes=()
+
+  for off in "${offsets[@]}"; do
+    local base=$(( $(echo $off | cut -d'+' -f1) ))
+    local add=$(( $(echo $off | cut -d'+' -f2) ))
+    local pos=$(( base + add ))
+
+    local byte=$(xxd -s $pos -l 1 -p "$file" | tr '[:lower:]' '[:upper:]')
+    bytes+=("$byte")
+  done
+  startline
+  echo "Renault Logan EEPROM Bin Reader"
+  echo "CHIP NO :"
+  echo "File size : 512 bytes "
+  startline
+  echo "${bytes[*]}"
+  echo "${bytes[*]}" | tr -d ' '
+  startline
+}
+
+
+
+
+my_hash_sums() {
+  local file="$1"
+  local max_size=$((10 * 1024 * 1024)) # 10MB
+
+  if [ ! -f "$file" ]; then
+    echo "File not found: $file"
+    return 1
+  fi
+
+  local size
+  size=$(stat -c%s "$file")
+
+  if [ "$size" -gt "$max_size" ]; then
+    echo "File size is too large (>10MB): $file"
+    return 1
+  fi
+
+  echo "File: $file"
+  echo "Size: $size bytes"
+  echo "MD5:       $(md5sum "$file" | awk '{print $1}')"
+  echo "SHA1:      $(sha1sum "$file" | awk '{print $1}')"
+  echo "SHA224:    $(sha224sum "$file" | awk '{print $1}')"
+  echo "SHA256:    $(sha256sum "$file" | awk '{print $1}')"
+  echo "SHA384:    $(sha384sum "$file" | awk '{print $1}')"
+  echo "SHA512:    $(sha512sum "$file" | awk '{print $1}')"
+}
+
+
+
+
+# ┌───────────────────────────────────────────────────┐
+# │ Function: boxfunction                             │
+# │ Description: Draws a box around input text        │
+# │ Usage: boxfunction "your message here"            │
+# │ Output:                                           │
+# │ ┌───────────────┐                                 │
+# │ │ Hello World   │                                 │
+# │ └───────────────┘                                 │
+# └───────────────────────────────────────────────────┘
+
+boxfunction() {
+  local text="$*"                     # Join all arguments as a single string
+  local len=${#text}                 # Get string length
+  local border                       # Horizontal line based on length
+
+  border=$(printf '─%.0s' $(seq 1 $len))  # Repeat '─' to match text width
+
+  echo "┌─${border}─┐"              # Top border
+  echo "│ ${text} │"               # Text line
+  echo "└─${border}─┘"              # Bottom border
+}
+
+
+color_boxfunction() {
+  local text="$*"
+  local len=${#text}
+  local border=$(printf '─%.0s' $(seq 1 $len))
+
+  # Default color: Yellow (33). You can override it.
+  local color_code="${COLOR:-33}"
+
+  # ANSI color start and reset
+  local start="\e[1;${color_code}m"
+  local reset="\e[0m"
+
+
+  echo -e "${start}┌─${border}─┐${reset}"
+  echo -e "${start}│ ${text} │${reset}"
+  echo -e "${start}└─${border}─┘${reset}"
+
+}
