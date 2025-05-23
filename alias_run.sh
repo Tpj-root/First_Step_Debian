@@ -3161,7 +3161,7 @@ logan_bin_reader() {
     "0x170+12"
     "0x190+5"
     "0x110+10"
-    "0x120+1"
+    "0x190+2"
     "0x170+13"
   )
   local bytes=()
@@ -3258,3 +3258,46 @@ color_boxfunction() {
   echo -e "${start}└─${border}─┘${reset}"
 
 }
+
+## 
+## ### ✅ **Conventional Commit Types**
+## 
+## | Type       | Purpose                                     | Example Commit Message                      |
+## | ---------- | ------------------------------------------- | ------------------------------------------- |
+## | `feat`     | New feature                                 | `feat: add user login functionality`        |
+## | `fix`      | Bug fix                                     | `fix: resolve crash on null user input`     |
+## | `chore`    | Maintenance tasks (no production change)    | `chore: update dependencies`                |
+## | `docs`     | Documentation only                          | `docs: add API usage examples`              |
+## | `style`    | Code formatting (no logic change)           | `style: fix indentation in main.py`         |
+## | `refactor` | Code change without changing behavior       | `refactor: optimize loop performance`       |
+## | `test`     | Adding or fixing tests                      | `test: add unit tests for auth module`      |
+## | `perf`     | Performance improvement                     | `perf: improve response time for dashboard` |
+## | `build`    | Build system or external dependency changes | `build: update Dockerfile to use alpine`    |
+## | `ci`       | Continuous integration config changes       | `ci: update GitHub Actions node version`    |
+## | `revert`   | Reverts a previous commit                   | `revert: revert login page redesign`        |
+## 
+## ---
+## 
+## Use this format:
+## 
+## ```
+## <type>: <short summary>
+## ```
+## 
+## Optionally:
+## 
+## ```
+## <type>(scope): <summary>
+## ```
+## 
+## Example:
+## 
+## ```bash
+## git commit -m "feat(cli): add support for config file"
+## ```
+## 
+
+
+
+# tamil fm
+alias tamil_fm='vlc https://tamilkaterumbufm-prabak78.radioca.st/stream'
