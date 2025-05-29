@@ -934,6 +934,35 @@ fi
 }
 
 
+template_gitignore() {
+cat <<EOL > .gitignore
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environment
+venv/
+env/
+
+# IDE files
+.vscode/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+EOL
+
+echo ".gitignore created."
+}
+
+# Call the function
+#template_gitignore
+
+
+
+
 
 #
 # This will check if the key is added. If not,
@@ -3301,3 +3330,22 @@ color_boxfunction() {
 
 # tamil fm
 alias tamil_fm='vlc https://tamilkaterumbufm-prabak78.radioca.st/stream'
+
+
+
+
+
+
+### CPP _HELP
+###
+###
+
+list_sorted_headers() {
+  grep -rohE '#include\s+[<"].+[>"]' . --include=\*.{cpp,hpp} | sort -u | \
+  awk '/<.*>/{print > "/tmp/angle_headers"} /".*"/{print > "/tmp/quote_headers"}'
+  sort /tmp/angle_headers
+  sort /tmp/quote_headers
+  rm /tmp/angle_headers /tmp/quote_headers
+}
+
+
