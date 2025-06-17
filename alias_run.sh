@@ -327,6 +327,7 @@ alias all_into_txt='for file in *; do mv "$file" "${file%}.txt"; done'
 
 ##################
 ### xdotool
+### autotype
 function hw1() {
     clear
     sleep 0.5
@@ -339,14 +340,25 @@ function hw1() {
 
 
 
-function scam_alert_20() {
+function scam_alert_1000() {
     sleep 5
-    for i in {1..20}; do
+    for i in {1..1000}; do
         xdotool type "scam alert!"
         xdotool key Return
         sleep 0.2
     done
 }
+
+
+function priya10() {
+    sleep 5
+    for i in {1..10}; do
+        xdotool type "hello priya!"
+        xdotool key Return
+        sleep 0.2
+    done
+}
+
 
 
 
@@ -890,7 +902,7 @@ alias gits='git status'
 alias gitlog='git log'
 alias gitd='git diff'
 alias gg='gitgo'
-alias gitsubdownload='git submodule update --init --recursive'
+alias gitsubmoduledownload='git submodule update --init --recursive'
 alias gitwho='git remote get-url origin'
 alias gitrestore='git restore -- .'
 alias gitundo='git reset'
@@ -3349,3 +3361,47 @@ list_sorted_headers() {
 }
 
 
+
+
+
+extract_commits() {
+  git_repo="https://github.com/iforce2d/scv"
+  working_dir="scv_temp"
+  mkdir -p "$working_dir"
+  cd "$working_dir" || exit
+
+  git clone "$git_repo" repo
+  cd repo || exit
+
+  commits=(
+    8ab5f5ae542f608ef90c86eb62729cb67dbc20b2
+    76d102cc324da814c9a75bec81a6baf9ce3d1996
+    0cdd5ecd63235d16a6081cff9d7a7441a3aa66b2
+    00c356c92d5ada41b9eb37a7445652994525d226
+    83a891fc6c1f1826ebfef88d3046461e7c32f934
+    8a1375b00a415228832dfb0e6e0b9dd3ba74b547
+    28886926beb15b9a6b7637214b1cc07305c4cdb7
+    97e64143fef8be499307fbbb55b899118a94a824
+    d71169d964f2aeff3cc8f6a7414a4c2c6106e4b4
+    827c1ebdd1f078cc960f928f391afa39bdd35450
+    d30bbfd261b5535483407f327caad12348157ff2
+    478314d16d6dcfac621e8f508a2b3852248e75af
+    ae2e8343e6dcbb1dcbd255695120c82b657f3111
+    04a6a602d8219e552a4bac73bea0976e19921cfd
+    1adba70607026b90fd1e3f0db9634c8c23d10730
+    2aa39f4993aef1858347e393cd56c788aec45770
+    c52bb1cb1889c415465d93f0f77a52135487c3d5
+    0ab205c6fe888a9e7000ae98017c750ecd8c8420
+    8e56c93a180588d54b6403bb570316d39b52e8a0
+  )
+
+  for hash in "${commits[@]}"; do
+    echo "Checking out $hash..."
+    git checkout "$hash" --quiet
+    dest_dir="../commit_$hash"
+    mkdir -p "$dest_dir"
+    git ls-files | xargs -I{} cp --parents {} "$dest_dir"
+  done
+
+  echo "Done. All commits copied."
+}
