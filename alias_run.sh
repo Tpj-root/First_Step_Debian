@@ -36,6 +36,7 @@
 version="1.0"
 #echo "Script Name: ${BASH_SOURCE[0]}"
 
+alias date="date '+%d-%m-%Y %H:%M:%S' | tr ' ' '_'"
 
 ## Enabled for only one time for insatinng basicsoftwares
 ## Enabled or Disable
@@ -348,6 +349,17 @@ function scam_alert_1000() {
         sleep 0.2
     done
 }
+
+
+function scam_alert_500() {
+    sleep 5
+    for i in {1..500}; do
+        xdotool type "scam alert!"
+        xdotool key Return
+        sleep 0.2
+    done
+}
+
 
 
 function priya10() {
@@ -3404,4 +3416,191 @@ extract_commits() {
   done
 
   echo "Done. All commits copied."
+}
+
+
+
+
+
+# simple bash function that takes your three inputs—URL pattern, start, end
+# and downloads each .jpg in that range using wget
+
+# download_range: Download .jpg files from URL pattern replacing '*' with numbers in a range
+download_range() {
+  local url_pattern="$1"   # e.g. https://slifty.com/.../*.jpg
+  local start="$2"         # starting number, e.g. 1
+  local end="$3"           # ending number, e.g. 16
+  local i
+
+  # Check inputs
+  if [[ -z "$url_pattern" || -z "$start" || -z "$end" ]]; then
+    echo "Usage: download_range <url_pattern> <start> <end>"
+    echo "e.g. download_range \"https://slifty.com/.../*.jpg\" 1 16"
+    return 1
+  fi
+
+  echo "Downloading files from ${url_pattern/\*/$start}.jpg to /*/$end.jpg …"
+
+  # Loop with seq, zero-padded if needed
+  for i in $(seq "$start" "$end"); do
+    url="${url_pattern/\*/$i}.jpg"
+    echo "→ Fetching $url"
+    wget -c -q "$url" -O "$(basename "$url")" && \
+      echo "   ✔ saved as $(basename "$url")" || \
+      echo "   ⚠ failed: $url"
+  done
+
+  echo "All done!"
+}
+
+
+#### 🛠️ Breakdown of Commands
+#
+#* `local url_pattern="$1"`: captures the URL pattern with `*`.
+#* `seq "$start" "$end"`: generates numbers from start to end. ([phoenixnap.com][1], [superuser.com][2], [reddit.com][3])
+#* `"${url_pattern/\*/$i}.jpg"`: replaces `*` with the iteration number.
+#* `wget -c -q "$url"`: continues partially downloaded files and runs quietly (only errors).
+#* `-O "$(basename "$url")"`: saves the file with just its base name.
+#* `&& … || …`: prints success (✔) or failure (⚠).
+#
+#
+#
+#**What it does:**
+#
+#* Downloads files numbered 1.jpg, 2.jpg, … up to 16.jpg.
+#* Continues interrupted downloads (`-c`), suppresses extra output (`-q`).
+#* Displays a success or failure message per file.
+#---
+#
+#
+#
+#### ✅ Optional Enhancements
+#
+#* **Zero-padded numbers**: If your files are named `01.jpg`–`16.jpg`, update the loop:
+#
+#  ```bash
+#  for i in $(seq -w "$start" "$end"); do
+#  ```
+#* **Parallel downloads**:
+#
+#  ```bash
+#  seq "$start" "$end" | xargs -n1 -P4 -I{} wget -c -q "${url_pattern/\*/{}}.jpg"
+#  ```
+#
+#  *(Downloads 4 files at once)* ([w3schools.com][4])
+
+
+
+# join_range: horizontally concatenates numbered .jpg files in a range into one output image
+join_range() {
+  local start="$1"
+  local end="$2"
+  local output="${3:-joined.jpg}"
+  local files=()
+
+  # Input validation
+  if [[ -z "$start" || -z "$end" ]]; then
+    echo "Usage: join_range <start> <end> [output_filename]"
+    echo "Example: join_range 1 16 combined.jpg"
+    return 1
+  fi
+
+  # Build list of files
+  for i in $(seq "$start" "$end"); do
+    files+=("${i}.jpg")
+  done
+
+  # Check files exist
+  missing=()
+  for f in "${files[@]}"; do
+    [[ -f "$f" ]] || missing+=("$f")
+  done
+  if (( ${#missing[@]} )); then
+    echo "Error: Missing files: ${missing[*]}"
+    return 1
+  fi
+
+  # Concatenate horizontally
+  echo "Joining ${#files[@]} files from ${start}.jpg to ${end}.jpg into '$output'..."
+  convert "${files[@]}" +append "$output"
+
+  if (( $? == 0 )); then
+    echo "✅ Created: $output"
+  else
+    echo "❌ Failed to create: $output"
+    return 1
+  fi
+}
+
+
+
+# join_images: join numbered images with prefix, optionally resized, either horizontally or vertically
+# Usage: join_images <prefix> <start> <end> <orientation[h|v]> [output_filename]
+join_images() {
+  local prefix="$1"
+  local start="$2"
+  local end="$3"
+  local orient="$4"
+  local output="${5:-${prefix}_joined.jpg}"
+  local tmpdir=$(mktemp -d)
+  local files=()
+
+  if [[ -z "$prefix" || -z "$start" || -z "$end" || ! "$orient" =~ ^[hv]$ ]]; then
+    echo "Usage: join_images <prefix> <start> <end> <h|v> [output_filename]"
+    echo " e.g. join_images A 0 5 h combinedA.jpg"
+    echo "     joins A_0.jpg … A_5.jpg side‑by‑side"
+    return 1
+  fi
+
+  # Resize each image (max 2000px) and collect in temp dir
+  for i in $(seq "$start" "$end"); do
+    local f="${prefix}_${i}.jpg"
+    if [[ ! -f "$f" ]]; then
+      echo "❌ Missing file: $f"; rm -rf "$tmpdir"; return 1
+    fi
+    local tf="${tmpdir}/${prefix}_${i}.jpg"
+    convert "$f" -resize 2000x2000\> "$tf"
+    files+=("$tf")
+  done
+
+  # Choose append direction
+  local mode="h"
+  [[ "$orient" == "h" ]] && mode="+append" || mode="-append"
+  
+  echo "🔗 Joining ${#files[@]} files in ${orient^^} mode into '$output' ..."
+  convert "${files[@]}" $mode "$output" \
+    && echo "✅ Created '$output'" \
+    || { echo "❌ Failed to create '$output'"; rm -rf "$tmpdir"; return 1; }
+
+  rm -rf "$tmpdir"
+}
+
+
+# stack_vertical_many: stacks multiple images vertically into one output file
+# Usage: stack_vertical_many <output.jpg> <input1.jpg> <input2.jpg> [<input3.jpg> ...]
+stack_vertical_many() {
+  local output="$1"
+  shift
+  local inputs=("$@")
+
+  # Validate inputs
+  if [[ -z "$output" || ${#inputs[@]} -lt 2 ]]; then
+    echo "Usage: stack_vertical_many <output> <input1> <input2> [<input3> ...]"
+    echo "Example: stack_vertical_many final.jpg A_joined.jpg B_joined.jpg"
+    return 1
+  fi
+
+  # Ensure all input files exist
+  for img in "${inputs[@]}"; do
+    if [[ ! -f "$img" ]]; then
+      echo "❌ Missing input file: $img"
+      return 1
+    fi
+  done
+
+  # Perform vertical stacking
+  echo "🔽 Stacking ${#inputs[@]} images vertically into '$output'..."
+  convert "${inputs[@]}" -append "$output" \
+    && echo "✅ Created '$output'" \
+    || { echo "❌ Failed to create '$output'"; return 1; }
 }
