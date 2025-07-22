@@ -360,6 +360,16 @@ function scam_alert_500() {
     done
 }
 
+function scam_alert_10() {
+    sleep 5
+    for i in {1..10}; do
+        xdotool type "scam alert!"
+        xdotool key Return
+        sleep 0.2
+    done
+}
+
+
 
 
 function priya10() {
@@ -730,6 +740,7 @@ alias pyhttp='python3 -m http.server 8000'
 #
 alias miniconda_activate='source $HOME/miniconda3/bin/activate'
 alias miniconda_deactivate='conda deactivate'
+alias pyenv='miniconda_activate'
 function check_new_packages() {
     comm -13 <(sort $HOME/Desktop/MY_GIT/First_Step_Debian/installed_packages.txt) <(pip list | sort)
 }
