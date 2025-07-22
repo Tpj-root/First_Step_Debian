@@ -2782,6 +2782,42 @@ find_and_move_duplicates() {
 
 
 
+
+
+find_duplicates_dir() {
+  main_dir="$1"
+  check_dir="$2"
+
+  echo "Scanning for duplicates between:"
+  echo "  Main:  $main_dir"
+  echo "  Check: $check_dir"
+  echo
+
+  find "$main_dir" -type f -exec md5sum {} + | sort > /tmp/main_hashes.txt
+  find "$check_dir" -type f -exec md5sum {} + | sort > /tmp/check_hashes.txt
+
+  echo "Duplicate files in $check_dir:"
+  join -j1 /tmp/main_hashes.txt /tmp/check_hashes.txt | awk '{for(i=NF;i>1;i--) if($i ~ /^\//) {print $i; break}}'
+}
+
+
+
+#  
+#  Output:
+#  
+#  It will print only the file paths from the second directory (check_dir) that are duplicates. Example:
+#  
+#  /home/cnc/Downloads/PCI-SIG/file1.pdf
+#  /home/cnc/Downloads/PCI-SIG/specs/old/file2.txt
+#  
+#  Optional: Delete duplicates (after reviewing)
+#  
+#  find_duplicates_dir /main/path /check/path > dupes.txt
+#  cat dupes.txt | xargs -d '\n' rm -i
+
+
+
+
 #
 #
 #
