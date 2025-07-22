@@ -3615,3 +3615,15 @@ stack_vertical_many() {
     && echo "✅ Created '$output'" \
     || { echo "❌ Failed to create '$output'"; return 1; }
 }
+
+
+# To scan only the current directory (not subfolders), change find . to find . -maxdepth 1:
+convert_all_images() {
+  find . -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) | while read -r img; do
+    out="${img%.*}.png"
+    convert "$img" "$out"
+    echo "Converted: $img -> $out"
+  done
+}
+
+
