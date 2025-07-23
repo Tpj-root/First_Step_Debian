@@ -3663,3 +3663,94 @@ convert_all_images() {
 }
 
 
+
+
+# Example
+# copy_data .jpg /home/user/pics/
+# 
+#
+copy_data() {
+    # Store the first argument as the file pattern (e.g., ".png" or ".txt")
+    local pattern="$1"
+
+    # Store the second argument as the target directory to copy files into
+    local target_dir="$2"
+
+    # Check if either argument is missing (pattern or destination)
+    if [[ -z "$pattern" || -z "$target_dir" ]]; then
+        # Print usage message if inputs are missing
+        echo "Usage: copy_data <pattern> <destination_dir>"
+        return 1  # Exit function with error
+    fi
+
+    # Create the destination directory if it doesn't exist
+    # -p makes parent directories if needed, and does nothing if already exists
+    mkdir -p "$target_dir"
+
+    # Search recursively from current directory (.)
+    # -type f       → only regular files (not directories)
+    # -iname        → case-insensitive match of filenames (e.g., .PNG, .png)
+    # "*$pattern"   → wildcard match; matches any filename ending with pattern
+    # -exec cp -v   → copy each found file to target directory
+    # {}            → placeholder for each found file
+    # \;            → ends the -exec command
+    find . -type f -iname "*${pattern}" -exec cp -v {} "$target_dir" \;
+}
+
+#
+#
+# copy_data .mp3 /home/user/music/
+copy_data_dup() {
+    # Store the first input argument as the pattern (e.g., ".png")
+    local pattern="$1"
+
+    # Store the second input argument as the target directory to copy files into
+    local target_dir="$2"
+
+    # Check if both pattern and destination path are provided
+    if [[ -z "$pattern" || -z "$target_dir" ]]; then
+        echo "Usage: copy_data <pattern> <destination_dir>"
+        return 1  # Exit function with error code
+    fi
+
+    # Create the destination folder if it doesn't exist
+    mkdir -p "$target_dir"
+
+    # Find all files (case-insensitive match) in current and subdirectories that match the pattern
+    find . -type f -iname "*${pattern}" | while read -r src_file; do
+
+        # Get just the filename from the full path (e.g., "photo.png")
+        filename=$(basename "$src_file")
+
+        # Build the full destination file path (e.g., "/target/path/photo.png")
+        dest_file="$target_dir/$filename"
+
+        # Check if a file with the same name already exists in the destination
+        if [[ -f "$dest_file" ]]; then
+            # If it exists, calculate MD5 hash of both source and destination files
+            src_md5=$(md5sum "$src_file" | awk '{print $1}')
+            dest_md5=$(md5sum "$dest_file" | awk '{print $1}')
+
+            # Compare the checksums
+            if [[ "$src_md5" == "$dest_md5" ]]; then
+                # If both files are identical, skip copying
+                echo "SKIP: $filename (identical file exists)"
+                continue
+            else
+                # If contents are different, generate a new filename with a random 5-digit hex
+                rand_hex=$(printf "%05x" $((RANDOM * RANDOM)))
+
+                # Separate the filename and extension and append the hex
+                # Example: "photo.png" → "photo_ab123.png"
+                new_filename="${filename%.*}_${rand_hex}.${filename##*.}"
+
+                # Copy the file using the new name to avoid overwrite
+                cp -v "$src_file" "$target_dir/$new_filename"
+            fi
+        else
+            # If no file exists in destination with that name, copy directly
+            cp -v "$src_file" "$dest_file"
+        fi
+
+    done
+}
