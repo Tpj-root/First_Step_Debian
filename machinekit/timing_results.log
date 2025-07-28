@@ -1,0 +1,65 @@
+🔁 Run #1
+🔁 Available clock sources:
+tsc hpet acpi_pm 
+
+🧪 Testing with clocksource: tsc
+✅ Switched to: tsc
+⏱️ Elapsed time with tsc: 1002 ms
+----------------------------------------
+🧪 Testing with clocksource: hpet
+✅ Switched to: hpet
+⏱️ Elapsed time with hpet: 1001 ms
+----------------------------------------
+
+🔁 Run #2
+🔁 Available clock sources:
+tsc hpet acpi_pm 
+
+🧪 Testing with clocksource: tsc
+✅ Switched to: tsc
+⏱️ Elapsed time with tsc: 1001 ms
+----------------------------------------
+🧪 Testing with clocksource: hpet
+✅ Switched to: hpet
+⏱️ Elapsed time with hpet: 1003 ms
+----------------------------------------
+
+🔁 Run #3
+🔁 Available clock sources:
+tsc hpet acpi_pm 
+
+🧪 Testing with clocksource: tsc
+✅ Switched to: tsc
+⏱️ Elapsed time with tsc: 1002 ms
+----------------------------------------
+🧪 Testing with clocksource: hpet
+✅ Switched to: hpet
+⏱️ Elapsed time with hpet: 1002 ms
+----------------------------------------
+
+🔁 Run #4
+🔁 Available clock sources:
+tsc hpet acpi_pm 
+
+🧪 Testing with clocksource: tsc
+✅ Switched to: tsc
+⏱️ Elapsed time with tsc: 1001 ms
+----------------------------------------
+🧪 Testing with clocksource: hpet
+✅ Switched to: hpet
+⏱️ Elapsed time with hpet: 1002 ms
+----------------------------------------
+
+🔁 Run #5
+🔁 Available clock sources:
+tsc hpet acpi_pm 
+
+🧪 Testing with clocksource: tsc
+✅ Switched to: tsc
+⏱️ Elapsed time with tsc: 1003 ms
+----------------------------------------
+🧪 Testing with clocksource: hpet
+✅ Switched to: hpet
+⏱️ Elapsed time with hpet: 1002 ms
+----------------------------------------
+

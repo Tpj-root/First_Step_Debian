@@ -31,6 +31,212 @@
 # https://www.linuxfromscratch.org/blfs/view/svn/index.html
 
 
+
+# To check your Debian version:
+# tellme_whoami
+#
+#
+#
+# lsb_release -a
+
+function tellme_whoami() {
+    echo "-------------------------------------------"
+
+    cat /etc/os-release
+
+    echo "-------------------------------------------"
+
+
+    # echo `uname -a`
+    # printf "%s\n" "$(uname -a)"
+
+    info=$(uname -a)
+    echo $info
+
+    echo "-------------------------------------------"
+
+}
+
+
+check_kernel_info() {
+    echo "🔍 Checking full kernel info using uname -a:"
+    echo "-------------------------------------------"
+    uname -a
+    echo
+
+    echo "📦 Extracting only the kernel version (uname -r):"
+    echo "-------------------------------------------------"
+    uname -r
+    echo
+
+    echo "📄 Reading kernel version from /proc/version:"
+    echo "--------------------------------------------"
+    cat /proc/version
+    echo
+
+    echo "🔧 Checking if PREEMPT_RT is enabled in kernel config:"
+    echo "------------------------------------------------------"
+    # This checks for real-time preemption configuration
+    if [ -f /boot/config-$(uname -r) ]; then
+        grep PREEMPT /boot/config-$(uname -r)
+    elif [ -f /proc/config.gz ]; then
+        zcat /proc/config.gz | grep PREEMPT
+    else
+        echo "Kernel config not found at expected locations."
+    fi
+    echo
+
+    echo "📜 Checking dmesg logs for preempt messages:"
+    echo "-------------------------------------------"
+    dmesg | grep -i preempt | head -n 10
+    echo
+
+    echo "🖥️ Optional: Using hostnamectl to show kernel line:"
+    echo "--------------------------------------------------"
+    hostnamectl | grep Kernel
+}
+
+
+#
+# Tune Hardware Clock Source
+#
+#
+# Check available timers:
+# cat /sys/devices/system/clocksource/clocksource0/available_clocksource
+#
+
+##  cnc@debian:~$ cat /sys/devices/system/clocksource/clocksource0/available_clocksource
+##  tsc hpet acpi_pm 
+
+
+
+
+
+## ✅ Your system supports 3 clock sources:
+## 
+## ```
+## tsc     → Time Stamp Counter (fastest, CPU-based)
+## hpet    → High Precision Event Timer (stable, good for RT)
+## acpi_pm → Power Management timer (slowest, fallback)
+## ```
+## 
+## ### 🔍 To see which one is currently in use:
+## 
+## ```bash
+## cat /sys/devices/system/clocksource/clocksource0/current_clocksource
+## ```
+## 
+## ### ⚙️ To switch to `hpet` (often better for real-time):
+## 
+## ```bash
+## echo hpet | sudo tee /sys/devices/system/clocksource/clocksource0/current_clocksource
+## ```
+## 
+## > Use `hpet` if you're doing CNC work and want better timing stability.
+## > Use `tsc` if you want maximum speed (but less stable on multi-core/variable CPU).
+## 
+
+
+
+
+##   ✅ Your system is currently using: `**tsc**` (Time Stamp Counter)
+##   
+##   ### ℹ️ What it means:
+##   
+##   * **Fastest** clock source (very low overhead)
+##   * **Good for performance**, but…
+##   * Can be **less stable** on multi-core CPUs, power-saving CPUs, or under thermal throttling
+##   * Not ideal for **precise real-time CNC timing**
+##   
+##   ---
+##   
+##   ### 🔧 Recommended for CNC:
+##   
+##   Switch to **`hpet`** (High Precision Event Timer), more stable and accurate.
+##   
+##   ### 🔁 Switch to `hpet` (temporary until reboot):
+##   
+##   ```bash
+##   echo hpet | sudo tee /sys/devices/system/clocksource/clocksource0/current_clocksource
+##   ```
+##   
+##   ### 🔁 Make it permanent (GRUB):
+##   
+##   1. Edit GRUB:
+##   
+##   ```bash
+##   sudo nano /etc/default/grub
+##   ```
+##   
+##   2. Add to `GRUB_CMDLINE_LINUX_DEFAULT`:
+##   
+##   ```text
+##   clocksource=hpet
+##   ```
+##   
+##   3. Update GRUB:
+##   
+##   ```bash
+##   sudo update-grub
+##   ```
+##   
+##   4. Reboot:
+##   
+##   ```bash
+##   sudo reboot
+##   ```
+##   
+##   Then confirm again:
+##   
+##   ```bash
+##   cat /sys/devices/system/clocksource/clocksource0/current_clocksource
+##   ```
+## 
+
+## 
+## 
+## 
+## 
+## ---
+## 
+## ### 🔧 **Run HPET (manually):**
+## 
+## ```bash
+## echo hpet | sudo tee /sys/devices/system/clocksource/clocksource0/current_clocksource
+## ```
+## 
+## > This changes the clock source to HPET **immediately** (but not permanent).
+## 
+## ---
+## 
+## ### 📌 **RT Kernel vs HPET**
+## 
+## * `**HPET**` = **hardware timer**, helps with **precise timekeeping**
+## * `**RT kernel**` = changes how the **Linux scheduler behaves**
+## 
+##   * **Gives real-time priority**, predictable latency
+## 
+## ---
+## 
+## ### ✅ Summary:
+## 
+## | Feature       | HPET           | RT Kernel             |
+## | ------------- | -------------- | --------------------- |
+## | Role          | Timer hardware | Kernel scheduler      |
+## | Boost latency | ✅ Yes (some)   | ✅✅ Yes (full control) |
+## | CNC friendly  | ✅              | ✅✅ (best)             |
+## | Needed for RT | Often used     | Required for full RT  |
+## 
+## 👉 **Best setup for CNC**:
+## **RT Kernel + HPET clocksource**
+## 
+## Want help installing RT kernel on Debian?
+
+
+
+
+
+
 ###    **simple and clear rule set** to help you write your own Bash functions — **cleanly, reusable, and understandable**.
 ###    
 ###    ---
