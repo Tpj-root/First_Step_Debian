@@ -1351,6 +1351,37 @@ fi
 }
 
 
+
+function git_tag_help() {
+    echo "🔖 Existing tags:"
+    git tag
+
+    echo
+    echo
+    read -p "Enter new git tag version (e.g., v1.0): " tag_version
+    echo "Version 1.0: motion plotting complete"
+    read -p "Enter tag message: " tag_message
+
+    echo
+    echo "Creating annotated tag..."
+    git tag -a "$tag_version" -m "$tag_message"
+
+    echo
+    echo "✅ Tag created. Current tags:"
+    git tag
+
+    echo
+    echo "Pushing tags to remote..."
+    git push origin --tags
+
+    echo "🚀 Done!"
+}
+
+
+
+
+
+
 template_gitignore() {
 cat <<EOL > .gitignore
 # Byte-compiled / optimized / DLL files
@@ -4385,4 +4416,121 @@ copy_data_dup() {
 #  START_000FILE
 #  END_000FILE
 # 
+###################
+
+
+
+
+
+######################
+#
+#  Github Readme edit helps
+#
+######################  
+#
+#  START_001GITHUB_README
+#  END_001GITHUB_README
+# 
+######################  
+
+function github_help () {
+cat <<EOF
+
+EOF
+}
+
+
+## # Project Name
+## 
+## Short description of your project.
+## 
+## ## Features
+## - Feature 1
+## - Feature 2
+## 
+## ## Installation
+## Run the following in your terminal:
+## 
+##     git clone https://github.com/your-username/your-repo.git
+##     cd your-repo
+## 
+## ### ✅ 3. Add an image
+## 
+## Use this syntax:
+## 
+## ### ```markdown
+## ### ![Alt text](image_url)
+## 
+## ![Logo](https://github.com/your-username/your-repo/raw/main/images/logo.png)
+## 
+## 
+##  Or for a local image in repo:
+## ![Screenshot](images/screenshot.png)
+
+
+
+
 ###################  
+#
+#  START_001GITHUB_README
+#  END_001GITHUB_README
+# 
+###################  
+
+
+
+
+######################
+#
+#  Basic_tools
+#
+######################  
+
+
+
+### 00001
+
+# https://github.com/pdfcpu/pdfcpu/releases
+# `pdfcpu_0.10.1_Linux_x86_64` is the precompiled binary for Linux (64-bit) of **[pdfcpu](https://github.com/pdfcpu/pdfcpu)** — a PDF processing tool written in Go.
+# 
+# You can use it to:
+# 
+# * Merge, split, rotate, trim PDFs
+# * Add/remove watermarks
+# * Encrypt/decrypt PDFs
+# * Extract images, fonts, etc.
+# 
+# ### Example usage:
+# 
+# ```bash
+# ./pdfcpu_0.10.1_Linux_x86_64 merge output.pdf file1.pdf file2.pdf
+# ```
+# 
+# Make sure to give it execute permission:
+# 
+# ```bash
+# chmod +x pdfcpu_0.10.1_Linux_x86_64
+# ```
+
+
+
+function nice_view_plan_0() {
+
+    seq 1 100 | column | awk '{
+      for (i = 1; i <= NF; i++) {
+        if (i == 3)
+          printf "\033[1;31m%s\033[0m\t", $i;  # red
+        else
+          printf "%s\t", $i;
+      }
+      print "";
+    }'
+
+}
+
+
+function nice_view_plan_1() {
+    seq 1 20 | paste - - -
+
+}
+
