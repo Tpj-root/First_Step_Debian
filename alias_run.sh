@@ -4467,6 +4467,13 @@ EOF
 ##  Or for a local image in repo:
 ## ![Screenshot](images/screenshot.png)
 
+## Use HTML inside your Markdown to place images side by side on GitHub:
+## <p float="left">
+##   <img src="image/group_cb_brackets.jpg" width="200"/>
+##   <img src="image/Group_of_Blank.jpg" width="200"/>
+##   <img src="image/Group_of_cutouts.jpg" width="200"/>
+## </p>
+##   
 
 
 
@@ -4534,3 +4541,88 @@ function nice_view_plan_1() {
 
 }
 
+
+
+itype2() {
+  echo "$*" | trans -b -s en -t ta --no-auto
+}
+
+
+
+itype() {
+  input="$*"
+  while IFS='=' read -r key value; do
+    input=$(echo "$input" | sed "s/$key/$value/g")
+  done < ~/Desktop/MY_GIT/Decode_MyLife_WhoAmI/tanglish_map.txt
+  echo "$input"
+}
+
+
+
+
+rm() {
+  # Check if the user is trying to remove the root directory or using --no-preserve-root
+  if [[ "$*" == *"--no-preserve-root"* || "$*" == *" /"* || "$*" == "/"* ]]; then
+    # Warn the user and block the operation
+    echo "⚠️ Dangerous 'rm' command blocked for safety!"
+    return 1  # Exit the function with an error code
+  else
+    # If the command is safe, run the actual rm command with the given arguments
+    command rm "$@"  # 'command' ensures we call the real /bin/rm, not this function again
+  fi
+}
+
+
+
+
+rename_spaces_to_underscores() {
+  #
+  # This function renames all files in the current directory
+  # by replacing spaces (" ") and hyphens ("-") with underscores ("_").
+  #
+
+  for file in *; do
+    [ -f "$file" ] || continue
+
+    #
+    # Replace all spaces and hyphens with underscores
+    #
+    newname="${file//[ -]/_}"
+
+    #
+    # Only rename if the name changed
+    #
+    if [[ "$file" != "$newname" ]]; then
+      mv -- "$file" "$newname"
+      echo "Renamed: '$file' -> '$newname'"
+    fi
+  done
+}
+
+rename_remove_trailing_underscores() {
+  #
+  # This function removes trailing underscores before file extensions
+  # Example: Group_of_cutouts_.jpg → Group_of_cutouts.jpg
+  #
+
+  for file in *; do
+    [ -f "$file" ] || continue
+
+    #
+    # Use parameter expansion with regex via 'mv'
+    # to remove trailing underscore before extension
+    #
+    newname="$(echo "$file" | sed -E 's/_(\.[a-zA-Z0-9]+)$/\1/')"
+
+    #
+    # Only rename if changed
+    #
+    if [[ "$file" != "$newname" ]]; then
+      mv -- "$file" "$newname"
+      echo "Cleaned: '$file' -> '$newname'"
+    fi
+  done
+}
+
+
+alias rename_files='rename_spaces_to_underscores && rename_remove_trailing_underscores'
