@@ -4003,12 +4003,21 @@ stack_vertical_many() {
 
 # To scan only the current directory (not subfolders), change find . to find . -maxdepth 1:
 convert_all_images() {
-  find . -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) | while read -r img; do
+  # Find all image files in current directory (no subdirs), matching jpg, jpeg, png, or webp
+  find . -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) |
+  while read -r img; do
+    # Get output file name by replacing extension with .png
     out="${img%.*}.png"
+    
+    # Use ImageMagick's 'convert' to convert the image to PNG
     convert "$img" "$out"
-    echo "Converted: $img -> $out"
+    
+    # Print conversion status
+    echo "✅ Converted: $img -> $out"
   done
 }
+
+
 
 ######################
 #
@@ -4560,18 +4569,18 @@ itype() {
 
 
 
-rm() {
-  # Check if the user is trying to remove the root directory or using --no-preserve-root
-  if [[ "$*" == *"--no-preserve-root"* || "$*" == *" /"* || "$*" == "/"* ]]; then
-    # Warn the user and block the operation
-    echo "⚠️ Dangerous 'rm' command blocked for safety!"
-    return 1  # Exit the function with an error code
-  else
-    # If the command is safe, run the actual rm command with the given arguments
-    command rm "$@"  # 'command' ensures we call the real /bin/rm, not this function again
-  fi
-}
-
+## rm() {
+##   # Check if the user is trying to remove the root directory or using --no-preserve-root
+##   if [[ "$*" == *"--no-preserve-root"* || "$*" == *" /"* || "$*" == "/"* ]]; then
+##     # Warn the user and block the operation
+##     echo "⚠️ Dangerous 'rm' command blocked for safety!"
+##     return 1  # Exit the function with an error code
+##   else
+##     # If the command is safe, run the actual rm command with the given arguments
+##     command rm "$@"  # 'command' ensures we call the real /bin/rm, not this function again
+##   fi
+## }
+## 
 
 
 
@@ -4626,3 +4635,260 @@ rename_remove_trailing_underscores() {
 
 
 alias rename_files='rename_spaces_to_underscores && rename_remove_trailing_underscores'
+
+
+
+
+reduce_quality() {
+  # Usage: reduce_quality input.jpg output.jpg 50
+  # This function reduces the quality of a JPEG image.
+  #
+  # Arguments:
+  #   $1 = input image filename
+  #   $2 = output image filename
+  #   $3 = quality (1–100, where 100 is best quality and 1 is highly compressed)
+  #
+  # Requirements:
+  #   - ImageMagick must be installed (use `sudo apt install imagemagick`)
+  #
+  # Example:
+  #   reduce_quality original.jpg reduced.jpg 40
+  #   => This will compress original.jpg to 40% quality and save as reduced.jpg
+
+  if [[ $# -ne 3 ]]; then
+    echo "❌ Error: Need 3 arguments — input.jpg output.jpg quality(1-100)"
+    return 1
+  fi
+
+  local input="$1"
+  local output="$2"
+  local quality="$3"
+
+  # Check if input file exists
+  if [[ ! -f "$input" ]]; then
+    echo "❌ Error: Input file '$input' not found!"
+    return 1
+  fi
+
+  # Check if quality is a number between 1 and 100
+  if ! [[ "$quality" =~ ^[0-9]+$ ]] || (( quality < 1 || quality > 100 )); then
+    echo "❌ Error: Quality must be a number from 1 to 100"
+    return 1
+  fi
+
+  # Actual image compression command
+  convert "$input" -quality "$quality" "$output"
+
+  # Feedback
+  if [[ $? -eq 0 ]]; then
+    echo "✅ Image '$input' compressed to quality $quality% as '$output'"
+  else
+    echo "❌ Failed to compress image"
+    return 1
+  fi
+}
+
+
+
+reduce_to_size() {
+  # Usage: reduce_to_size input.jpg output.jpg target_size_kb
+  #
+  # Description:
+  #   Compresses the image by reducing quality until it's <= target size (in KB)
+  #
+  # Requirements:
+  #   - ImageMagick (`convert`)
+  #   - `stat` (standard in Linux)
+  #
+  # Arguments:
+  #   $1 = input image file
+  #   $2 = output image file
+  #   $3 = target size in KB (e.g. 200 for 200KB)
+  #
+  # Example:
+  #   reduce_to_size pic.jpg small.jpg 200
+  #
+  # Notes:
+  #   - This works best on JPEG images.
+  #   - The size may not match exactly; it tries best with quality steps.
+
+  if [[ $# -ne 3 ]]; then
+    echo "❌ Usage: reduce_to_size input.jpg output.jpg target_size_kb"
+    return 1
+  fi
+
+  local input="$1"
+  local output="$2"
+  local target_kb="$3"
+
+  if [[ ! -f "$input" ]]; then
+    echo "❌ Error: Input file '$input' does not exist."
+    return 1
+  fi
+
+  if ! [[ "$target_kb" =~ ^[0-9]+$ ]]; then
+    echo "❌ Error: Target size must be a number in KB"
+    return 1
+  fi
+
+  local quality=90
+  local temp_out="__temp_compress.jpg"
+
+  # Try reducing quality in steps until file is under target
+  while (( quality >= 10 )); do
+    convert "$input" -quality "$quality" "$temp_out"
+    local size_kb=$(du -k "$temp_out" | cut -f1)
+
+    if (( size_kb <= target_kb )); then
+      mv "$temp_out" "$output"
+      echo "✅ Compressed to ~$size_kb KB with quality=$quality → $output"
+      return 0
+    fi
+
+    ((quality -= 5))  # decrease quality
+  done
+
+  echo "⚠️ Could not reduce to ${target_kb}KB. Lowest tried: quality=$quality"
+  rm -f "$temp_out"
+  return 1
+}
+
+
+
+
+join_images_side_by_side() {
+  # Usage: join_images_side_by_side img1.jpg img2.jpg output.jpg
+  #
+  # Description:
+  #   Combines two images side by side (horizontally)
+  #
+  # Requirements:
+  #   - ImageMagick (`convert`)
+  #
+  # Arguments:
+  #   $1 = first input image
+  #   $2 = second input image
+  #   $3 = output image filename
+  #
+  # Example:
+  #   join_images_side_by_side left.jpg right.jpg joined.jpg
+  #
+  # Notes:
+  #   - If heights of images are different, the smaller one is padded
+  #   - Output format is based on the extension of $3 (e.g., .jpg, .png)
+
+  if [[ $# -ne 2 ]]; then
+    echo "❌ Usage: join_images_side_by_side img1.jpg img2.jpg output.jpg"
+    return 1
+  fi
+
+  local img1="$1"
+  local img2="$2"
+  local output="Final_result"
+
+  if [[ ! -f "$img1" || ! -f "$img2" ]]; then
+    echo "❌ Error: One or both input files not found."
+    return 1
+  fi
+
+  # Join images horizontally (side by side)
+  convert "$img1" "$img2" +append "$output"
+
+  if [[ $? -eq 0 ]]; then
+    echo "✅ Images joined side by side → $output"
+  else
+    echo "❌ Failed to join images."
+    return 1
+  fi
+}
+
+
+
+#
+# https://www.scribd.com/
+#
+
+change_pdf_hash_batch() {
+  local infile="$1"
+
+  # Check if input file exists
+  if [[ ! -f "$infile" ]]; then
+    echo "❌ File not found: $infile"
+    return 1
+  fi
+
+  # Loop to create 5 output files
+  for i in {1..5}; do
+
+    # Generate a random filename like: pdf_x8kd3p2z.pdf
+    local randname="pdf_$(tr -dc a-z0-9 </dev/urandom | head -c 8).pdf"
+
+    # Copy original file to new random file
+    cp "$infile" "$randname"
+
+    # Append harmless random comment to change hash
+    echo -e "\n% RandomHash: $RANDOM-$RANDOM-$RANDOM" >> "$randname"
+
+    # Confirm created file
+    echo "✅ Created: $randname"
+  done
+}
+
+
+
+
+
+
+rename_files_nicely() {
+  # Loop through all files in the current directory
+  for file in *; do
+    # Skip if not a regular file
+    [[ -f "$file" ]] || continue
+
+    # Extract filename without extension
+    name="${file%.*}"
+
+    # Extract file extension (includes the last dot)
+    ext="${file##*.}"
+
+    # Replace spaces, dashes, and dots inside the name
+    new_name="${name// /_}"        # Replace spaces with _
+    new_name="${new_name//-/_}"    # Replace - with _
+    new_name="${new_name//./_}"    # Replace . (dots) with _
+
+    # Remove multiple underscores by collapsing __ into _
+    while [[ "$new_name" == *"__"* ]]; do
+      new_name="${new_name//__/_}"
+    done
+
+    # Combine cleaned name with original extension
+    new_file="${new_name}.${ext}"
+
+    # Rename the file if the new name is different
+    if [[ "$file" != "$new_file" ]]; then
+      mv -v -- "$file" "$new_file"
+    fi
+  done
+}
+
+
+
+generate_img_tags() {
+  # Start a <p> tag with float="left" to align images side by side (if rendered in HTML)
+  echo '<p float="left">'
+
+  # Loop through all .png and .jpg files in the current directory
+  for file in *.png *.jpg; do
+    # Skip if the pattern didn't match any file
+    [[ -f "$file" ]] || continue
+
+    # Print an <img> HTML tag pointing to the image inside "MechanicalParts" folder
+    # The "src" attribute uses the file name
+    # The width is set to 200 pixels for uniform preview
+    echo "  <img src=\"MechanicalParts/${file}\" width=\"200\"/>"
+  done
+
+  # Close the paragraph tag
+  echo '</p>'
+}
+
