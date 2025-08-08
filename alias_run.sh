@@ -1003,6 +1003,21 @@ alias wifipass='cd /etc/NetworkManager/system-connections'
 ## forcefully kill any process using port 8000
 alias k8000='sudo kill -9 $(lsof -t -i:8000)'
 
+kill_port() {
+  port=${1:-8000}
+  pid=$(lsof -ti tcp:$port)
+  if [ -n "$pid" ]; then
+    echo "Killing process on port $port (PID: $pid)"
+    kill -9 $pid
+  else
+    echo "No process found on port $port"
+  fi
+}
+
+
+
+
+
 
 # Bash function to modify /etc/resolv.conf and replace its content with the given nameservers
 function modify_resolv_conf_0() {
@@ -4891,4 +4906,65 @@ generate_img_tags() {
   # Close the paragraph tag
   echo '</p>'
 }
+
+
+
+
+download_all_from_url() {
+  # Step 1: Store the first argument as the URL
+  url="$1"
+
+  # Step 2: Check if the URL is empty; if so, print usage and exit the function
+  [ -z "$url" ] && { 
+    echo "Usage: download_all_from_url <url>" 
+    return 1 
+  }
+
+  # Step 3: Fetch the webpage content and extract href values (file links)
+  # - curl -s: silently fetch the page
+  # - grep -oP: extract only matched parts using Perl regex (-P)
+  #   - '(?<=href=")[^"]+': match anything after href=" and before next "
+  # - grep -vE: exclude items that start with ?, /, or #
+  files=$(curl -s "$url" | grep -oP '(?<=href=")[^"]+' | grep -vE '^(\?|\/|#)' )
+
+  # Step 4: Loop through each extracted filename
+  for file in $files; do
+    echo "Downloading $file..."
+
+    # Step 5: Download the file using curl -O
+    # - ${url%/}: removes trailing slash if present
+    # - $file: appends the filename to the URL
+    curl -O "${url%/}/$file"
+  done
+}
+
+
+
+download_all_from_url_recursive() {
+  local url="${1%/}"   # remove trailing slash
+  local dest="${2:-.}" # optional second arg: destination folder
+
+  [ -z "$url" ] && { echo "Usage: download_all_from_url_recursive <url> [dest_folder]"; return 1; }
+
+  echo "Fetching: $url"
+  mkdir -p "$dest"
+
+  local items=$(curl -s "$url/" | grep -oP '(?<=href=")[^"]+' | grep -vE '^(\?|#|/)' )
+
+  for item in $items; do
+    # Skip parent dir
+    [ "$item" = "../" ] && continue
+
+    if [[ "$item" == */ ]]; then
+      # Directory: recurse into it
+      download_all_from_url_recursive "$url/$item" "$dest/$item"
+    else
+      # File: download it
+      echo "Downloading: $item -> $dest/$item"
+      curl -s -o "$dest/$item" "$url/$item"
+    fi
+  done
+}
+
+
 
