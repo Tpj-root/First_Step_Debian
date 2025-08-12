@@ -35,8 +35,8 @@
 # To check your Debian version:
 # tellme_whoami
 #
-#
-#
+# sudo apt install neofetch
+# neofetch
 # lsb_release -a
 
 function tellme_whoami() {
@@ -5213,6 +5213,18 @@ check_and_fix_json() {
     else
         echo "💡 Install jsonlint for auto-fixing: npm install -g jsonlint"
     fi
+}
+
+
+
+
+# Function to display folders sorted by size (largest first)
+show_folders_by_size() {
+    # Explanation:
+    # du -sh -- *  : Calculate disk usage for each item in current dir
+    # grep -E '/$' : Filter only directories
+    # sort -hr     : Sort by human-readable sizes in reverse (largest first)
+    du -sh -- * 2>/dev/null | sort -hr
 }
 
 
