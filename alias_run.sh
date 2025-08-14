@@ -55,6 +55,8 @@ function tellme_whoami() {
 
     echo "-------------------------------------------"
 
+
+    neofetch
 }
 
 
