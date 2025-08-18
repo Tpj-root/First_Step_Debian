@@ -995,7 +995,7 @@ function oc() {
 #########
 alias netrestart='sudo systemctl restart NetworkManager'
 alias findip='nmcli -p'
-alias ip='nmcli -p'
+#alias ip='nmcli -p'
 #alias ip='ip addr show'
 #alias iptables='/usr/sbin/iptables'
 # arduino UDP ip address
