@@ -5230,3 +5230,45 @@ show_folders_by_size() {
 }
 
 
+
+########################################
+# CPP HELP
+#
+#
+#
+#
+#
+#
+#
+#
+# Bash function: scan_headers
+# -----------------------------------------
+# This function will:
+# 1. Recursively search the current directory and all subdirectories.
+# 2. Read all files (safely handling spaces in filenames).
+# 3. Extract only the lines that contain C/C++ style header includes:
+#       - System headers like:   #include <...>
+#       - User headers like:     #include "..."
+# 4. Print them out cleanly (duplicates removed).
+# 5. Explanation of each step is written inside comments below.
+
+cpp_scan_headers() {
+    # Step 1: Use `find` to locate all regular files from current dir (.)
+    # `-type f` ensures only files, not directories.
+    # `-print0` prints filenames with a null delimiter (safe for spaces).
+    find . -type f -print0 |
+
+    # Step 2: Use `xargs -0` to read filenames null-delimited and pass to grep.
+    # `-0` matches the `-print0` above.
+    # `grep -h` hides filenames in output, `-E` enables extended regex.
+    # Regex matches both <...> and "..." includes.
+    xargs -0 grep -h -E '^[[:space:]]*#include[[:space:]]*[<"].*[">]' |
+
+    # Step 3: Sort the results and remove duplicates with `sort -u`.
+    sort -u
+}
+
+
+
+
+#########################################
