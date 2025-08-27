@@ -4055,6 +4055,9 @@ convert_all_images() {
 files_count_extensions() {
   find . -type f | sed -n 's/.*\(\.[^./]*\)$/\1/p' | sort | uniq -c | sort -nr
 }
+
+alias package_analyzer_files_count_extensions='files_count_extensions'
+
 #
 ######################
 
