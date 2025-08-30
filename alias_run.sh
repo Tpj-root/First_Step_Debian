@@ -99,6 +99,23 @@ check_kernel_info() {
 }
 
 
+#####################
+#
+# Audio_help
+#
+######################
+
+alias audio_help='pavucontrol'
+
+
+
+
+
+######################
+
+
+
+
 #
 # Tune Hardware Clock Source
 #
