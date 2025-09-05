@@ -3527,7 +3527,7 @@ alias sab_qr_E='qr_Encoder'
 
 # How to store the diffrent file_( channel)
 # Record the audio
-# ffmpeg -f pulse -i alsa_input.usb-USB_2.0_USB_Audio_Device_08613544166500-00.mono-fallback        -f pulse -i alsa_output.usb-USB_2.0_USB_Audio_Device_08613544166500-00.analog-stereo.monitor        -filter_complex amix=inputs=2:duration=longest output_2.mp3
+# ffmpeg -f pulse -i alsa_input.usb-USB_2.0_USB_Audio_Device_08613544166500-00.mono-fallback -f pulse -i alsa_output.usb-USB_2.0_USB_Audio_Device_08613544166500-00.analog-stereo.monitor        -filter_complex amix=inputs=2:duration=longest output_2.mp3
 
 # MY audio
 # ffmpeg -f pulse -i default -f pulse -i alsa_output.pci-0000_00_1b.0.analog-stereo.monitor -filter_complex amix=inputs=2:duration=longest output.mp3
