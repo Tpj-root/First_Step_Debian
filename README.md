@@ -229,6 +229,41 @@ sudo ln -s /usr/bin/python3 /usr/bin/python
 **step_9 :**
 
 
+```
+Most likely Firefox on your Debian is missing the necessary **fonts** for Tamil and other scripts. To fix:
+
+**Install language fonts** (Tamil, Hindi, etc.):
+```
+
+
+```bash
+sudo apt update
+sudo apt install fonts-lohit-taml fonts-noto-cjk fonts-noto-extra fonts-noto-ui-core
+```
+
+```
+`fonts-lohit-taml` → Tamil
+`fonts-noto-*` → Many other languages
+
+**Restart Firefox** after installing fonts.
+
+If it still doesn’t display correctly, enable **complex text layout** in Firefox:
+
+* Go to `about:config` → search `gfx.font_rendering` → make sure `gfx.font_rendering.graphite.enabled` is `true`.
+
+After this, Tamil and most other languages should render properly.
+
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
