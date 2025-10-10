@@ -191,6 +191,14 @@ Check SSH Key Permissions
 #chmod 600 $HOME/Desktop/IM_FILES/id_rsa
 
 
+
+Test SSH:
+
+ssh -T git@github.com
+
+Even if you configured SSH, Git only uses SSH keys with SSH URLs
+HTTPS will always ask for username/password unless you set up a credential helper.
+Change remote to SSH:
 git remote set-url origin git@github.com:Tpj-root/First_Step_Debian.git
 
 
