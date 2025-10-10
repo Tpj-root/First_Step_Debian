@@ -189,6 +189,11 @@ Check SSH Key Permissions
 #Check SSH Key Permissions:
 #Ensure that your SSH key has the correct permissions.
 #chmod 600 $HOME/Desktop/IM_FILES/id_rsa
+
+
+git remote set-url origin git@github.com:Tpj-root/First_Step_Debian.git
+
+
 ```
 
 
