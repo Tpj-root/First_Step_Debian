@@ -1015,7 +1015,8 @@ alias findip='nmcli -p'
 #alias ip='nmcli -p'
 #alias ip='ip addr show'
 #alias iptables='/usr/sbin/iptables'
-# arduino UDP ip address
+# arduino UDP ip 
+alias ip='ip a'
 alias ip2='sudo ip addr add 192.168.96.55/24 dev ens2'
 # wifi password list
 alias wifipass='cd /etc/NetworkManager/system-connections'
@@ -1591,9 +1592,24 @@ function giturl_convert_to_raw() {
 
 function trackerscopy() {
     local url="$1"
+
+    # Check for curl
+    if ! command -v curl >/dev/null 2>&1; then
+        echo "curl not found. Installing..."
+        sudo apt update -y && sudo apt install -y curl || { echo "Failed to install curl."; return 1; }
+    fi
+
+    # Check for xclip
+    if ! command -v xclip >/dev/null 2>&1; then
+        echo "xclip not found. Installing..."
+        sudo apt install -y xclip || { echo "Failed to install xclip."; return 1; }
+    fi
+
+    # Fetch and copy trackers
     curl -s "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt" | xclip -selection clipboard
-    echo "Now ready to paste wherever you want."
+    echo "✅ Trackers copied to clipboard. You can paste now!"
 }
+
 
 # Example usage
 #copy_raw_to_clipboard "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt"
