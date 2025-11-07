@@ -773,19 +773,6 @@ function scam_alert_10() {
 
 
 
-function priya10() {
-    sleep 5
-    for i in {1..10}; do
-        xdotool type "hello priya!"
-        xdotool key Return
-        sleep 0.2
-    done
-}
-
-
-
-
-
 ##################
 #
 # Software list
@@ -2055,7 +2042,7 @@ alias p2html='project2html'
 #alias ard='$HOME/Desktop/RUN_TIME/arduino-cli_1.1.1_Linux_64bit/arduino-cli'
 #alias arduino-cli='ard'
 
-function arduino-cli() {
+function arduino-cli_Install_fun() {
     # Define the file path
     local dir="$HOME/Desktop/RUN_TIME"
     local archive="$dir/arduino-cli_1.2.0_Linux_64bit.tar.gz"
@@ -2485,10 +2472,35 @@ function tele() {
 #
 # cmake build
 #
-alias m='mkdir build && cd build && cmake .. && make'
+build_cmake() {
+    if [ -d build ]; then
+        read -p "‘build’ exists. Remove it and rebuild? (y/n): " ans
+        if [ "$ans" = "y" ]; then
+            rm -rf build
+        else
+            echo "Cancelled."
+            return
+        fi
+    fi
+    mkdir build && cd build && cmake .. && make
+}
+
+
+alias m='build_cmake'
 alias rmm='cd .. && rm -rf build'
 #alias db='rm -rf build'
 #alias make_back='make > /dev/null 2>&1 &'
+
+
+
+
+
+
+
+
+
+
+
 
 
 cmake_start() {
@@ -5308,3 +5320,17 @@ cpp_scan_headers() {
 
 
 #########################################
+
+
+# Use this simple bash function with ImageMagick (convert):
+
+resize_img_240_320() {
+  convert "$1" -resize 240x320 "$2"
+}
+
+
+
+resize_img_128_128() {
+  convert "$1" -resize 128x128 "$2"
+}
+
