@@ -5334,3 +5334,33 @@ resize_img_128_128() {
   convert "$1" -resize 128x128 "$2"
 }
 
+
+
+
+
+#IMAGE
+
+join_images_vertically() {
+    if [ $# -lt 3 ]; then
+        echo "Usage: join_images_vertically image1 image2 output"
+        return 1
+    fi
+
+    img1="$1"
+    img2="$2"
+    output="$3"
+
+    # Resize second image to the width of the first image
+    width=$(identify -format "%w" "$img1")
+    convert "$img2" -resize ${width}x "$img2.resized.png"
+
+    # Join vertically
+    convert "$img1" "$img2.resized.png" -append "$output"
+
+    # Clean up
+    rm "$img2.resized.png"
+
+    echo "Images joined into $output"
+}
+
+
