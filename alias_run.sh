@@ -5364,3 +5364,154 @@ join_images_vertically() {
 }
 
 
+
+
+#pico help
+## picotool
+## 
+## ```
+## sudo apt install cmake gcc g++ git libusb-1.0-0-dev build-essential
+## git clone https://github.com/raspberrypi/picotool.git
+## mkdir build
+## cd build
+## cmake ..
+## make -j4
+## 
+## 
+## ```
+
+install_picotool() {
+    echo "-----------------------------------------------"
+    echo "⚙️ Installing Raspberry Pi Picotool"
+    echo "-----------------------------------------------"
+
+    # Step 1: Make sure base folder exists
+    echo "Creating workspace at ~/Desktop/RUN_TIME ..."
+    mkdir -p ~/Desktop/RUN_TIME
+    cd ~/Desktop/RUN_TIME || { echo "❌ Failed to access ~/Desktop/RUN_TIME"; return 1; }
+
+    # Step 2: Install required packages
+    echo
+    echo "Installing required dependencies..."
+    sudo apt update
+    sudo apt install -y cmake gcc g++ git libusb-1.0-0-dev build-essential
+
+    # Step 3: Clone the picotool repo
+    echo
+    if [ ! -d "picotool" ]; then
+        echo "Cloning picotool from GitHub..."
+        git clone https://github.com/raspberrypi/picotool.git
+    else
+        echo "picotool directory already exists — pulling latest changes..."
+        cd picotool && git pull && cd ..
+    fi
+
+    # Step 4: Build picotool
+    echo
+    echo "Building picotool..."
+    cd picotool || { echo "❌ Missing picotool folder"; return 1; }
+    mkdir -p build
+    cd build
+    cmake ..
+    make -j"$(nproc)"
+    echo
+    echo "✅ picotool built successfully!"
+
+    # Step 5: Add alias to .bashrc
+    echo
+    echo "Adding picotool alias to ~/.bashrc ..."
+    ALIAS_CMD="alias picotool='~/Desktop/RUN_TIME/picotool/build/picotool'"
+    if ! grep -Fxq "$ALIAS_CMD" ~/.bashrc; then
+        echo "$ALIAS_CMD" >> ~/.bashrc
+        echo "✅ Alias added successfully."
+    else
+        echo "ℹ️ Alias already exists in .bashrc."
+    fi
+
+    # Step 6: Reload bashrc
+    echo
+    echo "Reloading shell configuration..."
+    source ~/.bashrc
+
+    echo
+    echo "-----------------------------------------------"
+    echo "✅ picotool installation complete!"
+    echo "You can now run: picotool info"
+    echo "-----------------------------------------------"
+}
+
+
+
+# alias picotool='~/Desktop/RUN_TIME/picotool/build/picotool'
+
+
+
+
+function pico_help() {
+
+	echo "usb id check"
+	echo "sudo lsusb -s ${bus}:${dev} -v | less"
+	echo "lsusb -s 5:13 -v"
+
+
+}
+
+
+usbview() {
+    echo "==== USB Device List ===="
+    lsusb | nl
+    echo
+    read -p "Enter device number to inspect: " num
+    bus=$(lsusb | sed -n "${num}p" | awk '{print $2}')
+    dev=$(lsusb | sed -n "${num}p" | awk '{print $4}' | tr -d ':')
+    echo
+    echo "==== Detailed Info for Bus $bus Device $dev ===="
+    echo
+    lsusb -s ${bus}:${dev} -v | less
+}
+
+
+
+fix_pico_permission() {
+    echo "-----------------------------------------------"
+    echo "🔧 Raspberry Pi Pico USB Permission Fix Utility"
+    echo "-----------------------------------------------"
+    echo
+    echo "Step 1: Creating a new udev rule file..."
+    echo "  → Location: /etc/udev/rules.d/99-pico.rules"
+    echo "  → Purpose : Allows normal users (non-root) to access"
+    echo "              Raspberry Pi Pico devices via USB (idVendor=2e8a)"
+    echo
+    # Create the rule file
+    echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="2e8a", MODE="0666"' | sudo tee /etc/udev/rules.d/99-pico.rules >/dev/null
+
+    echo "Step 2: Reloading udev rule configuration..."
+    echo "  → This makes the new rule active without rebooting."
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
+    echo
+
+    echo "Step 3: Explanation"
+    echo "  - SUBSYSTEM==\"usb\"   → Applies the rule only to USB devices."
+    echo "  - ATTRS{idVendor}==\"2e8a\" → Matches Raspberry Pi Pico boards."
+    echo "  - MODE=\"0666\"       → Grants read/write access for all users."
+    echo
+    echo "  ✅ After this, you can use picotool and other USB tools"
+    echo "     without needing 'sudo'."
+    echo
+
+    echo "Step 4: Final Step"
+    echo "  → Please unplug and replug your Pico board so the new"
+    echo "    permissions apply immediately."
+    echo
+    echo "Then test using:"
+    echo "    picotool info"
+    echo
+    echo "-----------------------------------------------"
+    echo "✅ Permission setup complete!"
+    echo "-----------------------------------------------"
+}
+
+
+
+
