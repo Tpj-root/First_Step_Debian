@@ -5515,3 +5515,51 @@ fix_pico_permission() {
 
 
 
+bash_template() {
+    if [ -z "$1" ]; then
+        echo "Usage: bash_template <filename.sh>"
+        return 1
+    fi
+
+    file="$1"
+
+    if [ -e "$file" ]; then
+        echo "Error: '$file' already exists."
+        return 1
+    fi
+
+    script_date=$(date +"%Y-%m-%d")
+
+    cat > "$file" << EOF
+#!/bin/bash
+
+# Script Name: $file
+# Description: A brief description of what the script does.
+# Author: Your Name
+# Date: $script_date
+
+# --- Global Variables (Optional) ---
+# EXAMPLE_VAR="Hello World"
+
+# --- Functions ---
+
+function greet_user() {
+  local name="\$1"
+  echo "Hello, \$name!"
+}
+
+# --- Main Program ---
+
+if [[ -z "\$1" ]]; then
+  echo "Usage: \$0 <name>"
+  exit 1
+fi
+
+greet_user "\$1"
+
+exit 0
+EOF
+
+    chmod +x "$file"
+    echo "Created: $file"
+}
