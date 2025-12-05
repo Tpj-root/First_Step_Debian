@@ -770,6 +770,50 @@ function scam_alert_10() {
     done
 }
 
+scam_alert_5() {
+    sleep 5
+    for ((i=1; i<=10; i++)); do
+        xdotool type "scam alert!"
+        xdotool key Return
+        sleep 0.2
+    done
+}
+
+
+
+
+scam_alert() {
+    local count="$1"
+    local delay="$2"
+    local msg="$3"
+
+    # usage text
+    local usage="Usage: scam_alert <count> <delay> <message>"
+
+    # validate args
+    if [ -z "$count" ] || [ -z "$delay" ] || [ -z "$msg" ]; then
+        echo "$usage"
+        echo "scam_alert 50 0.1 \"warning!\""
+        return 1
+    fi
+
+    # check xdotool
+    if ! command -v xdotool >/dev/null 2>&1; then
+        echo "Error: xdotool not installed."
+        echo "Install: sudo apt install xdotool"
+        echo "$usage"
+        return 1
+    fi
+
+    sleep 5
+
+    for ((i=1; i<=count; i++)); do
+        xdotool type "$msg"
+        xdotool key Return
+        sleep "$delay"
+    done
+}
+
 
 
 
@@ -2628,6 +2672,8 @@ cmake_start() {
 # Trickster Arts Hackers
 # FIX bug alias into function
 # git clone https://github.com/Tpj-root/3.0.git
+# sudo gem install bundler
+# sudo bundle install
 #alias game='cd $HOME/Desktop/MY_GIT/3.0 && ruby sandbox.rb -c stone'
 
 function game(){
@@ -5563,3 +5609,20 @@ EOF
     chmod +x "$file"
     echo "Created: $file"
 }
+
+
+
+
+scan_all_ip() {
+    base=$(echo "$1" | awk -F. '{print $1"."$2"."$3}')
+    for i in $(seq 1 255); do
+        ip="$base.$i"
+        ping -c 1 -W 1 "$ip" > /dev/null
+        if [ $? -eq 0 ]; then
+            echo "[ACTIVE] $ip"
+        fi
+    done
+    echo "Scan completed."
+}
+
+
