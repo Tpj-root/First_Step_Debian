@@ -1510,6 +1510,67 @@ function git_tag_help() {
 
 
 
+alias git_log_count='git rev-list --count HEAD'
+
+
+
+show_help() {
+    case "$1" in
+        gitlog)
+            echo "$git_log_count_help"
+            ;;
+        *)
+            echo "Usage:"
+            echo "  show_help gitlog     - Git log commit count help"
+            ;;
+    esac
+}
+
+# === TAB completion ===
+_show_help_complete() {
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    COMPREPLY=( $(compgen -W "gitlog" -- "$cur") )
+    #     COMPREPLY=( $(compgen -W "gitlog dockerhelp sshhelp" -- "$cur") )
+}
+complete -F _show_help_complete show_help
+
+
+git_log_count_help="
+
+1) Total commits in repo
+git rev-list --count HEAD
+
+2) Commits by you
+git rev-list --count --author=\"your name\" HEAD
+
+3) Count in a branch
+git rev-list --count branchname
+
+4) Count between two tags/commits
+git rev-list --count tag1..tag2
+"
+
+git_log_count_help2() {
+cat << 'EOF'
+1) Total commits in repo
+git rev-list --count HEAD
+
+2) Commits by you
+git rev-list --count --author="your name" HEAD
+
+3) Count in a branch
+git rev-list --count branchname
+
+4) Count between two tags/commits
+git rev-list --count tag1..tag2
+EOF
+}
+
+
+# show_help "$git_log_count_help"
+
+
+
 
 
 template_gitignore() {
@@ -1538,8 +1599,103 @@ echo ".gitignore created."
 # Call the function
 #template_gitignore
 
+git_export_first_commits() {
 
+    # ---------------------------------------------
+    # Read function arguments: starting & ending index
+    # Example: export_first_commits 1 10
+    # ---------------------------------------------
+    start=$1
+    end=$2
 
+    # ---------------------------------------------
+    # If missing arguments → show usage message
+    # ---------------------------------------------
+    if [ -z "$start" ] || [ -z "$end" ]; then
+        echo "Usage: export_first_commits <start> <end>"
+        return 1
+    fi
+
+    # ---------------------------------------------
+    # Create output folder 'gitLog' if not exist,
+    # then enter into it.
+    # ---------------------------------------------
+    mkdir -p gitLog
+    cd gitLog || exit
+
+    # ---------------------------------------------
+    # Get ALL commit hashes in correct order
+    # 'rev-list --reverse' → oldest to newest
+    # This outputs something like:
+    #   aaaa111
+    #   bbbb222
+    #   cccc333
+    # ---------------------------------------------
+    all_commits=$(git -C .. rev-list --reverse HEAD)
+
+    # ---------------------------------------------
+    # Loop from <start> to <end>
+    # Example: seq 1 10 → 1 2 3 ... 10
+    # ---------------------------------------------
+    for n in $(seq $start $end); do
+
+        # ---------------------------------------------
+        # Extract the Nth commit from the list
+        # sed -n "Np" → print line N
+        # ---------------------------------------------
+        c=$(echo "$all_commits" | sed -n "${n}p")
+
+        # ---------------------------------------------
+        # If commit does NOT exist (index out of range)
+        # show warning and continue
+        # ---------------------------------------------
+        if [ -z "$c" ]; then
+            echo "No commit at position $n"
+            continue
+        fi
+
+        # ---------------------------------------------
+        # Folder name for this commit
+        # git_1, git_2, git_3, ...
+        # ---------------------------------------------
+        folder="git_$n"
+        mkdir -p "$folder"
+
+        # ---------------------------------------------
+        # Export the snapshot of that commit
+        # git archive → creates tar of repo at commit C
+        # tar -x → extract files into folder
+        # Does NOT change working directory
+        # ---------------------------------------------
+        git -C .. archive "$c" | tar -x -C "$folder"
+
+        # ---------------------------------------------
+        # Save the commit hash inside the folder
+        # ---------------------------------------------
+        echo "$c" > "$folder/.commit_hash"
+
+        # ---------------------------------------------
+        # Save human-readable commit info:
+        #   short-hash, date, author, message
+        # ---------------------------------------------
+        git -C .. show -s --format="%h %cd %an %s" "$c" > "$folder/.commit_info"
+
+        # ---------------------------------------------
+        # Print progress message
+        # ---------------------------------------------
+        echo "exported commit $n ($c) → $folder"
+    done
+
+    # ---------------------------------------------
+    # Go back to original directory
+    # ---------------------------------------------
+    cd ..
+
+    # ---------------------------------------------
+    # Final message
+    # ---------------------------------------------
+    echo "Done."
+}
 
 
 #
@@ -1684,11 +1840,8 @@ function giturl_convert_to_raw() {
 ## Example usage
 #copy_raw_to_clipboard "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt"
 
-trackerscopy() {
-    local URL="https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt"
-
     # Local trackers stored inside the function
-    local LOCAL_TRACKERS="
+    LOCAL_TRACKERS="
 http://0123456789nonexistent.com:80/announce
 http://0d.kebhana.mx:443/announce
 http://1337.abcvg.info:80/announce
@@ -1818,7 +1971,20 @@ udp://tracker.tryhackx.org:6969/announce
 udp://tracker.tvunderground.org.ru:3218/announce
 udp://tracker-udp.gbitt.info:80/announce
 udp://udp.tracker.projectk.org:23333/announce
+udp://bt1.archive.org:6969/announce
+udp://denis.stalker.upeer.me:6969/announce
+udp://open.demonii.si:1337/announce
+udp://tracker.openbittorrent.com:80/announce
+udp://tracker.open-internet.nl:6969/announce
+udp://ipv4.tracker.harry.lu:80/announce
+udp://ipv6.tracker.harry.lu:80/announce
+udp://opentor.org:2710/announce
+udp://open.tracker.cl:1337/announce
 "
+
+trackerscopy() {
+    local URL="https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt"
+
 
     # Ensure curl exists
     if ! command -v curl >/dev/null 2>&1; then
@@ -1855,7 +2021,7 @@ udp://udp.tracker.projectk.org:23333/announce
     DUPLICATES=$(printf "%s\n" "$LOCAL" | sort | uniq -d)
     if [ -n "$DUPLICATES" ]; then
         echo "⚠ Duplicate URLs found in local trackers:"
-        printf "%s\n" "$DUPLICATES"
+        printf "%s\n\n" $DUPLICATES
     fi
 
     # Merge and remove duplicates
@@ -1875,7 +2041,7 @@ udp://udp.tracker.projectk.org:23333/announce
     NEW_COUNT=$(printf "%s\n" "$NEW_URLS" | sed '/^\s*$/d' | wc -l)
     
     # Copy merged list to clipboard
-    printf "%s\n" "$MERGED" | $CLIP
+    printf "%s\n\n" $MERGED | $CLIP
     
     # Print summary
     echo "✔ Trackers merged and copied to clipboard!"
@@ -1884,8 +2050,59 @@ udp://udp.tracker.projectk.org:23333/announce
     echo "New URLs from online: $NEW_COUNT"
     echo "Total trackers after merge: $TOTAL"
     echo "New URLs added from online:"
-    printf "%s\n" "$NEW_URLS" | sed '/^\s*$/d'
+    printf "%s\n\n" $NEW_URLS
 }
+
+
+
+
+trackers_merge() {
+    # Check if filename is provided
+    if [ -z "$1" ]; then
+        echo "Usage: merge_trackers <filename.txt>"
+        return 1
+    fi
+
+    local FILE="$1"
+
+    # Check if file exists
+    if [ ! -f "$FILE" ]; then
+        echo "File not found: $FILE"
+        return 1
+    fi
+
+    # Clean the local list
+    local CLEAN_LOCAL
+    CLEAN_LOCAL=$(printf "%s\n" "$LOCAL_TRACKERS" | grep -E "^(udp|http|https)://.+" | sed 's/\r$//' | sort -u)
+
+    # Clean the file list
+    local CLEAN_FILE
+    CLEAN_FILE=$(grep -E "^(udp|http|https)://.+" "$FILE" | sed 's/\r$//' | sort -u)
+
+    # Merge local + file and remove duplicates
+    local MERGED
+    MERGED=$(printf "%s\n%s\n" "$CLEAN_LOCAL" "$CLEAN_FILE" | sort -u)
+
+    # Find new URLs only in the file (not in local)
+    local NEW_URLS
+    NEW_URLS=$(comm -23 <(printf "%s\n" "$CLEAN_FILE") <(printf "%s\n" "$CLEAN_LOCAL"))
+
+    # Print results
+    echo "✔ Merged unique trackers:"
+    # printf "%s\n\n" $MERGED
+
+    if [ -n "$NEW_URLS" ]; then
+        echo "✔ New URLs from input file (not in local):"
+        printf "%s\n\n" $NEW_URLS
+    else
+        echo "No new URLs found in the input file."
+    fi
+}
+
+
+
+
+
 
 
 
