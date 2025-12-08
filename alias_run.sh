@@ -869,7 +869,71 @@ alias mouse_fix='sudo bash $HOME/Desktop/MY_GIT/First_Step_Debian/reset_mouse.sh
 alias 4='mouse_fix'
 ### OPENGL bug
 alias fixbug='LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 '
+alias fixbug2='QT_QPA_PLATFORM=xcb LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 '
 alias f='fixbug'
+alias f2='fixbug2'
+
+
+#################
+# Minimum that works: 3.0 or 3.3
+# QT_QPA_PLATFORM=xcb
+# 
+# 
+# Qt switches to GLX backend.
+# Your system probably loads old GLX software renderer without GL 3.3 → 3D preview missing.
+# 
+# 
+# Why it freezes on Wayland
+# 
+# On Wayland:
+# 
+# Qt uses QEGLPlatformContext
+# 
+# With software OpenGL, EGL tries to create GL context → fails or becomes extremely slow
+# 
+# Qt6 SVG renderer is slow under software EGL → app hangs
+# 
+# So SVG + Wayland + soft-GL = freeze.
+# 
+# 
+# Install llvmpipe:
+# 
+# sudo apt install mesa-opencl-icd mesa-vulkan-drivers
+# sudo apt install mesa-utils
+# 
+# Check renderer:
+# glxinfo | grep -i render
+# 
+# 
+# Then run:
+# 
+# QT_QPA_PLATFORM=xcb \
+# LIBGL_ALWAYS_SOFTWARE=1 \
+# MESA_GL_VERSION_OVERRIDE=3.3 \
+# MESA_GLSL_VERSION_OVERRIDE=330 \
+# ./nwss-cnc
+# 
+# 
+# This gives you:
+# 
+# SVG import works (Qt SVG is stable on XCB)
+# 
+# 3D preview works (llvmpipe provides OpenGL 3.3)
+# 
+# No freezing (Wayland EGL path avoids software correctly)
+# 
+# 
+# 
+# Your GPU cannot support modern OpenGL:
+# 
+# Intel Q45 = OpenGL 2.1 max
+# 
+# NWSS-CNC 3D preview = needs OpenGL 3.3
+# 
+# Solution: run everything in software (llvmpipe) and use X11 (xcb).
+#################
+
+
 ################
 alias poweroff='systemctl poweroff'
 alias lsal='ls -al'
@@ -1620,26 +1684,211 @@ function giturl_convert_to_raw() {
 ## Example usage
 #copy_raw_to_clipboard "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt"
 
+trackerscopy() {
+    local URL="https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt"
 
-function trackerscopy() {
-    local url="$1"
+    # Local trackers stored inside the function
+    local LOCAL_TRACKERS="
+http://0123456789nonexistent.com:80/announce
+http://0d.kebhana.mx:443/announce
+http://1337.abcvg.info:80/announce
+http://aboutbeautifulgallopinghorsesinthegreenpasture.online:80/announce
+http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce
+http://bt1.xxxxbt.cc:6969/announce
+http://bt.poletracker.org:2710/announce
+http://bt.rer.lol:2710/announce
+http://buny.uk:6969/announce
+http://bvarf.tracker.sh:2086/announce
+http://extracker.dahrkael.net:6969/announce
+http://home.yxgz.club:6969/announce
+http://open.acgtracker.com:1096/announce
+http://open.trackerlist.xyz:80/announce
+http://p4p.arenabg.com:1337/announce
+http://retracker.spark-rostov.ru:80/announce
+https://bt.bontal.net:443/announce
+http://seeders-paradise.org:80/announce
+http://servandroidkino.ru:80/announce
+http://share.hkg-fansub.info:80/announce.php
+http://shubt.net:2710/announce
+https://shahidrazi.online:443/announce
+https://t.213891.xyz:443/announce
+https://torrent.tracker.durukanbal.com:443/announce
+https://tracker.alaskantf.com:443/announce
+https://tracker.bt4g.com:443/announce
+https://tracker.cutie.dating:443/announce
+https://tracker.ghostchu-services.top:443/announce
+https://tracker.leechshield.link:443/announce
+https://tracker.moeblog.cn:443/announce
+https://tracker.pmman.tech:443/announce
+https://tracker.uraniumhexafluori.de:443/announce
+https://tracker.zhuqiy.com:443/announce
+https://tr.zukizuki.org:443/announce
+http://torrent.hificode.in:6969/announce
+http://t.overflow.biz:6969/announce
+http://tracker.23794.top:6969/announce
+http://tracker2.dler.org:80/announce
+http://tracker810.xyz:11450/announce
+http://tracker.bittor.pw:1337/announce
+http://tracker.bt4g.com:2095/announce
+http://tracker.bt-hash.com:80/announce
+http://tracker.bz:80/announce
+http://tracker.corpscorp.online:80/announce
+http://tracker.cutie.dating:80/announce
+http://tracker.darkness.services:6969/announce
+http://tracker.dhitechnical.com:6969/announce
+http://tracker.dler.org:6969/announce
+http://tracker.dmcomic.org:2710/announce
+http://tracker.ghostchu-services.top:80/announce
+http://tracker.ipv6tracker.org:80/announce
+http://tracker.lintk.me:2710/announce
+http://tracker.moxing.party:6969/announce
+http://tracker.mywaifu.best:6969/announce
+http://tracker.opentrackr.org:1337/announce
+http://tracker.qu.ax:6969/announce
+http://tracker.renfei.net:8080/announce
+http://tracker.sbsub.com:2710/announce
+http://tracker.tritan.gg:8080/announce
+http://tracker.vanitycore.co:6969/announce
+http://tracker.waaa.moe:6969/announce
+http://tracker.wepzone.net:6969/announce
+http://tracker.xiaoduola.xyz:6969/announce
+http://tracker.zhuqiy.com:80/announce
+http://tr.kxmp.cf:80/announce
+http://wepzone.net:6969/announce
+http://www.genesis-sp.org:2710/announce
+http://www.torrentsnipe.info:2701/announce
+udp://47.ip-51-68-199.eu:6969/announce
+udp://6ahddutb1ucc3cp.ru:6969/announce
+udp://9.rarbg.me:2780/announce
+udp://9.rarbg.to:2710/announce
+udp://9.rarbg.to:2730/announce
+udp://9.rarbg.to:2920/announce
+udp://bandito.byterunner.io:6969/announce
+udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce
+udp://bt.bontal.net:6969/announce
+udp://bt.rer.lol:6969/announce
+udp://concen.org:6969/announce
+udp://d40969.acod.regrucolo.ru:6969/announce
+udp://discord.heihachi.pw:6969/announce
+udp://exodus.desync.com:6969/announce
+udp://explodie.org:6969/announce
+udp://ipv4announce.sktorrent.eu:6969/announce
+udp://martin-gebhardt.eu:25/announce
+udp://ns-1.x-fins.com:6969/announce
+udp://open.demonii.com:1337/announce
+udp://open.demonoid.ch:6969/announce
+udp://open.dstud.io:6969/announce
+udp://open.stealth.si:80/announce
+udp://opentracker.i2p.rocks:6969/announce
+udp://opentracker.io:6969/announce
+udp://p4p.arenabg.com:1337/announce
+udp://retracker01-msk-virt.corbina.net:80/announce
+udp://retracker.lanta.me:2710/announce
+udp://run.publictracker.xyz:6969/announce
+udp://torrentclub.online:54123/announce
+udp://t.overflow.biz:6969/announce
+udp://tr4ck3r.duckdns.org:6969/announce
+udp://tracker.0x7c0.com:6969/announce
+udp://tracker.1h.is:1337/announce
+udp://tracker1.myporn.club:9337/announce
+udp://tracker2.dler.org:80/announce
+udp://tracker.bittor.pw:1337/announce
+udp://tracker.cloudbase.store:1333/announce
+udp://tracker.coppersurfer.tk:6969/announce
+udp://tracker.cyberia.is:6969/announce
+udp://tracker.dler.org:6969/announce
+udp://tracker.ducks.party:1984/announce
+udp://tracker.fnix.net:6969/announce
+udp://tracker.gmi.gd:6969/announce
+udp://tracker.hifimarket.in:2710/announce
+udp://tracker.internetwarriors.net:1337/announce
+udp://tracker.leechers-paradise.org:6969/announce
+udp://tracker.openbittorrent.com:6969/announce
+udp://tracker.opentrackr.org:1337
+udp://tracker.opentrackr.org:1337/announce
+udp://tracker.pirateparty.gr:6969/announce
+udp://tracker.plx.im:6969/announce
+udp://tracker.qu.ax:6969/announce
+udp://tracker.t-1.org:6969/announce
+udp://tracker.therarbg.to:6969/announce
+udp://tracker.tiny-vps.com:6969/announce
+udp://tracker.torrent.eu.org:451/announce
+udp://tracker.torrust-demo.com:6969/announce
+udp://tracker.tryhackx.org:6969/announce
+udp://tracker.tvunderground.org.ru:3218/announce
+udp://tracker-udp.gbitt.info:80/announce
+udp://udp.tracker.projectk.org:23333/announce
+"
 
-    # Check for curl
+    # Ensure curl exists
     if ! command -v curl >/dev/null 2>&1; then
-        echo "curl not found. Installing..."
-        sudo apt update -y && sudo apt install -y curl || { echo "Failed to install curl."; return 1; }
+        sudo apt update -y && sudo apt install -y curl || return 1
     fi
 
-    # Check for xclip
-    if ! command -v xclip >/dev/null 2>&1; then
-        echo "xclip not found. Installing..."
-        sudo apt install -y xclip || { echo "Failed to install xclip."; return 1; }
+    # Detect Wayland or X11
+    if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+        if ! command -v wl-copy >/dev/null 2>&1; then
+            sudo apt install -y wl-clipboard || return 1
+        fi
+        CLIP="wl-copy"
+    else
+        if ! command -v xclip >/dev/null 2>&1; then
+            sudo apt install -y xclip || return 1
+        fi
+        CLIP="xclip -selection clipboard"
     fi
 
-    # Fetch and copy trackers
-    curl -s "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt" | xclip -selection clipboard
-    echo "✅ Trackers copied to clipboard. You can paste now!"
+    # Prepare local & online trackers
+    local LOCAL
+    LOCAL=$(printf "%s\n" "$LOCAL_TRACKERS" | grep -E "^(udp|http|https)://.+" | sed 's/\r$//')
+
+    local ONLINE
+    ONLINE=$(curl -fsSL "$URL" | grep -E "^(udp|http|https)://.+" | sed 's/\r$//')
+
+    # Count local & online
+    local COUNT_LOCAL COUNT_ONLINE
+    COUNT_LOCAL=$(printf "%s\n" "$LOCAL" | wc -l)
+    COUNT_ONLINE=$(printf "%s\n" "$ONLINE" | wc -l)
+
+    # Detect duplicates in local trackers
+    local DUPLICATES
+    DUPLICATES=$(printf "%s\n" "$LOCAL" | sort | uniq -d)
+    if [ -n "$DUPLICATES" ]; then
+        echo "⚠ Duplicate URLs found in local trackers:"
+        printf "%s\n" "$DUPLICATES"
+    fi
+
+    # Merge and remove duplicates
+    local MERGED
+    MERGED=$( { printf "%s\n" "$LOCAL"; printf "%s\n" "$ONLINE"; } | grep -E "^(udp|http|https)://.+" | sed 's/\r$//' | sort -u )
+    
+    local TOTAL
+    TOTAL=$(printf "%s\n" "$MERGED" | wc -l)
+    
+    # Get new URLs from online (not in local)
+    local NEW_URLS
+    NEW_URLS=$(comm -23 \
+      <(printf "%s\n" "$ONLINE" | grep -E "^(udp|http|https)://.+" | sed 's/\r$//' | sort) \
+      <(printf "%s\n" "$LOCAL"  | grep -E "^(udp|http|https)://.+" | sed 's/\r$//' | sort))
+    
+    local NEW_COUNT
+    NEW_COUNT=$(printf "%s\n" "$NEW_URLS" | sed '/^\s*$/d' | wc -l)
+    
+    # Copy merged list to clipboard
+    printf "%s\n" "$MERGED" | $CLIP
+    
+    # Print summary
+    echo "✔ Trackers merged and copied to clipboard!"
+    echo "Local trackers:  $COUNT_LOCAL"
+    echo "Online trackers: $COUNT_ONLINE"
+    echo "New URLs from online: $NEW_COUNT"
+    echo "Total trackers after merge: $TOTAL"
+    echo "New URLs added from online:"
+    printf "%s\n" "$NEW_URLS" | sed '/^\s*$/d'
 }
+
+
+
 
 
 # Example usage
@@ -5626,3 +5875,38 @@ scan_all_ip() {
 }
 
 
+
+## 
+## 
+## **Debian commands to remove unwanted packages** (short and direct):
+## 
+## **1. Remove a package (keep config):**
+## 
+## ```bash
+## sudo apt remove package-name
+## ```
+## 
+## **2. Remove a package + config files:**
+## 
+## ```bash
+## sudo apt purge package-name
+## ```
+## 
+## **3. Remove unused dependencies:**
+## 
+## ```bash
+## sudo apt autoremove
+## ```
+## 
+## **4. Search installed packages:**
+## 
+## ```bash
+## dpkg -l | grep name
+## ```
+## 
+## **5. Completely clean APT cache:**
+## 
+## ```bash
+## sudo apt clean
+## ```
+## 
