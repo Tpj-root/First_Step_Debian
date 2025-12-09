@@ -1697,6 +1697,14 @@ git_export_first_commits() {
     echo "Done."
 }
 
+# all Git submodule URLs
+function git_subModule_URLs(){
+	git config --file .gitmodules --get-regexp url
+	git submodule
+
+}
+
+
 
 #
 # This will check if the key is added. If not,
@@ -6127,3 +6135,185 @@ scan_all_ip() {
 ## sudo apt clean
 ## ```
 ## 
+
+add_Header() {
+    local header="$1"
+    local target="$2"
+
+    if [[ -z "$header" || -z "$target" ]]; then
+        echo "Usage: add_Header \"<header>\" <file-or-directory>"
+        return 1
+    fi
+
+    if [[ -f "$target" ]]; then
+        # Single file
+        _add_to_file "$header" "$target"
+    elif [[ -d "$target" ]]; then
+        # Directory: recursively find .h and .cpp
+        find "$target" -type f \( -name "*.h" -o -name "*.cpp" \) | while read file; do
+            _add_to_file "$header" "$file"
+        done
+    else
+        echo "Target not found: $target"
+        return 1
+    fi
+}
+
+# Internal helper to add header to one file
+_add_to_file() {
+    local header="$1"
+    local file="$2"
+
+    # Skip if header already exists
+    if grep -Fxq "$header" "$file"; then
+        echo "Header already present in $file"
+        return
+    fi
+
+    # Find first #include line
+    local line_num
+    line_num=$(grep -n '^#include' "$file" | head -n 1 | cut -d: -f1)
+
+    if [[ -z "$line_num" ]]; then
+        # No #include found, add at top
+        sed -i "1i$header" "$file"
+    else
+        # Insert above first #include
+        sed -i "${line_num}i$header" "$file"
+    fi
+
+    echo "Added header to $file"
+}
+
+
+add_Header_ByName() {
+    local header="$1"
+    local filename="$2"
+
+    if [[ -z "$header" || -z "$filename" ]]; then
+        echo "Usage: add_Header_ByName \"<header>\" <filename>"
+        return 1
+    fi
+
+    # Search recursively for the file
+    local file_path
+    file_path=$(find . -type f -name "$filename" | head -n 1)
+
+    if [[ -z "$file_path" ]]; then
+        echo "File not found: $filename"
+        return 1
+    fi
+
+    # Skip if header already exists
+    if grep -Fxq "$header" "$file_path"; then
+        echo "Header already present in $file_path"
+        return 0
+    fi
+
+    # Find first #include line
+    local line_num
+    line_num=$(grep -n '^#include' "$file_path" | head -n1 | cut -d: -f1)
+
+    if [[ -z "$line_num" ]]; then
+        # No #include found, add at top
+        sed -i "1i$header" "$file_path"
+    else
+        # Insert above first #include
+        sed -i "${line_num}i$header" "$file_path"
+    fi
+
+    echo "Added header to $file_path"
+}
+
+
+
+
+
+function help_add_header() {
+	add_Header_ByName '#include <cstdint>' svg_parser.h
+	add_Header_ByName '#include <cstdint>' utils.h
+}
+
+
+# Function: find_apt_package
+# Purpose: Search apt packages using a main keyword and optional filter.
+# Usage:
+#   find_apt_package <search-keyword> [filter-keyword]
+# Example:
+#   find_apt_package qt6 serialport
+#   find_apt_package python3 dev
+
+find_apt_package() {
+    local search="$1"
+    local filter="$2"
+
+    if [[ -z "$search" ]]; then
+        echo "Usage: find_apt_package <search-keyword> [filter-keyword]"
+        return 1
+    fi
+
+    echo "Searching for packages with keyword: '$search'"
+
+    # Run apt search
+    local results
+    results=$(apt search "$search" 2>/dev/null)
+
+    # Apply optional filter
+    if [[ -n "$filter" ]]; then
+        results=$(echo "$results" | grep -i "$filter")
+        echo "Filtering results with keyword: '$filter'"
+    fi
+
+    echo "-------------------------------------------------------"
+
+    # Print nicely
+    echo "$results" | while read -r line; do
+        # Skip empty lines or lines starting with "Sorting..."
+        [[ -z "$line" || "$line" =~ ^Sorting ]] && continue
+
+        local pkg_name
+        local pkg_desc
+        pkg_name=$(echo "$line" | awk -F/ '{print $1}')
+        pkg_desc=$(echo "$line" | awk -F' - ' '{print $2}')
+
+        # Installed status
+        local installed
+        dpkg -s "$pkg_name" &>/dev/null && installed="[installed]" || installed="[not installed]"
+
+        printf "%-30s %s %s\n" "$pkg_name" "$installed" "$pkg_desc"
+    done
+
+    echo "-------------------------------------------------------"
+    echo "Use 'sudo apt install <package-name>' to install a package."
+}
+
+
+
+Gen_hash2magnet_URL() {
+    # This function builds a magnet URL from a given torrent hash.
+    # Usage: make_magnet <HASH>
+    #
+    # 1. "$1" is the first argument — the torrent hash.
+    # 2. We store it in a variable for clarity.
+    # 3. Then we append common UDP trackers.
+    # 4. echo prints the final magnet link.
+# https://hardrisk.github.io/magnet/
+    local HASH="$1"
+
+    # Base magnet structure: xt = exact topic, btih = BitTorrent info hash
+    local BASE="magnet:?xt=urn:btih:${HASH}&dn="
+
+    # Trackers list (URL-encoded)
+    local TRACKERS="
+&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80
+&tr=udp%3A%2F%2Fopentor.org%3A2710
+&tr=udp%3A%2F%2Ftracker.ccc.de%3A80
+&tr=udp%3A%2F%2Ftracker.blackunicorn.xyz%3A6969
+&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969
+&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969
+"
+
+    # Print full magnet link
+    echo "${BASE}${TRACKERS}"
+}
+
