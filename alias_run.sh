@@ -1263,6 +1263,7 @@ alias mini_check='check_new_packages'
 ############
 
 alias tex='pdflatex'
+alias tex2='pdflatex -interaction=nonstopmode '
 
 
 
@@ -1918,6 +1919,7 @@ http://tr.kxmp.cf:80/announce
 http://wepzone.net:6969/announce
 http://www.genesis-sp.org:2710/announce
 http://www.torrentsnipe.info:2701/announce
+udp://p4p.arenabg.ch:1337/announce
 udp://47.ip-51-68-199.eu:6969/announce
 udp://6ahddutb1ucc3cp.ru:6969/announce
 udp://9.rarbg.me:2780/announce
@@ -1988,6 +1990,52 @@ udp://ipv4.tracker.harry.lu:80/announce
 udp://ipv6.tracker.harry.lu:80/announce
 udp://opentor.org:2710/announce
 udp://open.tracker.cl:1337/announce
+http://bt.okmp3.ru:2710/announce
+http://ipv4.rer.lol:2710/announce
+https://retracker.x2k.ru:443/announce
+https://tr2.trkb.ru:443/announce
+https://tracker.aburaya.live:443/announce
+https://tracker.gcrenwp.top:443/announce
+https://tracker.yemekyedim.com:443/announce
+https://tr.nyacat.pw:443/announce
+http://tracker1.itzmx.com:8080/announce
+http://tracker.vraphim.com:6969/announce
+udp://evan.im:6969/announce
+udp://tr3.ysagin.top:2715/announce
+udp://tracker.breizh.pm:6969/announce
+udp://tracker.dler.com:6969/announce
+udp://tracker.srv00.com:6969/announce
+udp://ttk2.nbaonlineservice.com:6969/announce
+udp://wepzone.net:6969/announce
+udp://www.torrent.eu.org:451/announce
+http://open.tracker.cl:1337/announce
+http://tr.nyacat.pw:80/announce
+udp://leet-tracker.moe:1337/announce
+udp://tracker.filemail.com:6969/announce
+udp://tracker.flatuslifir.is:6969/announce
+udp://tracker.theoks.net:6969/announce
+udp://tracker.zupix.online:6969/announce
+udp://open.demonii.com:1337
+udp://tracker.coppersurfer.tk:6969
+udp://tracker.istole.it:80
+udp://tracker.leechers-paradise.org:6969
+udp://tracker.openbittorrent.com:80
+udp://tracker.pomf.se:80
+udp://tracker.publicbt.com:80
+http://10.rarbg.com/announce
+http://exodus.1337x.org/announce
+http://free.btr.kz:8888/announce
+http://genesis.1337x.org:1337/announce
+http://inferno.demonoid.me:3391/announce
+http://nemesis.1337x.org/announce
+http://nyaatorrents.info:3277/announce
+http://pow7.com/announce
+http://sombarato.org:6969/announce
+http://tracker.ilibr.org:6969/announce
+http://tracker.ilibr.org/announce
+http://tracker.thepiratebay.org/announce
+http://tracker.yify-torrents.com/announce
+udp://tracker.ccc.de:80
 "
 
 trackerscopy() {
@@ -6317,3 +6365,67 @@ Gen_hash2magnet_URL() {
     echo "${BASE}${TRACKERS}"
 }
 
+
+
+open_sab_terminal() {
+    gnome-terminal --window-with-profile="sab" -- bash -c 'echo "Hello, this is the sab profile!"; exec bash'
+}
+
+
+
+
+
+# Function: download_urls
+# Usage: download_urls input_file.txt
+# Description:
+#   Reads a text file containing URLs (one per line)
+#   Downloads each file using wget
+#   Stores them in the current directory
+
+download_urls() {
+    # $1 is the first argument to the function (input file)
+    local input_file="$1"
+
+    # Check if input file exists
+    if [[ ! -f "$input_file" ]]; then
+        echo "Error: File '$input_file' not found!"
+        return 1
+    fi
+
+    # Read the file line by line
+    while IFS= read -r url; do
+        # Skip empty lines
+        [[ -z "$url" ]] && continue
+
+        # Download the file using wget
+        # -c : continue partially downloaded files
+        # -q : quiet mode (optional, remove if you want progress)
+        # -P ./downloads : optional, download to 'downloads' folder
+        echo "Downloading: $url"
+        wget -c "$url" -P ./downloads
+    done < "$input_file"
+
+    echo "All downloads finished!"
+}
+
+# Example usage:
+# download_urls pdf_links.txt
+
+
+
+# Generate 2D spiral points (x y)
+# args: points step
+spiral_points() {
+  local n=${1:-100}     # number of points
+  local step=${2:-0.1}  # radius growth
+  for ((i=0; i<n; i++)); do
+    r=$(awk "BEGIN{print $i*$step}")
+    a=$(awk "BEGIN{print $i*0.3}")   # angle step (radians)
+    x=$(awk "BEGIN{print $r*cos($a)}")
+    y=$(awk "BEGIN{print $r*sin($a)}")
+    printf "%.5f %.5f\n" "$x" "$y"
+  done
+}
+
+# usage:
+# spiral_points 200 0.05
