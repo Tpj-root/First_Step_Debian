@@ -2036,6 +2036,22 @@ http://tracker.ilibr.org/announce
 http://tracker.thepiratebay.org/announce
 http://tracker.yify-torrents.com/announce
 udp://tracker.ccc.de:80
+udp://isk.richardsw.club:6969/announce
+udp://tracker.dump.cl:6969/announce
+udp://tracker.ololosh.space:6969/announce
+http://lucke.fenesisu.moe:6969/announce
+https://tracker.moeking.me:443/announce
+https://tracker.qingwa.pro:443/announce
+http://tr.highstar.shop:80/announce
+udp://ns575949.ip-51-222-82.net:6969/announce
+udp://tracker1.t-1.org:6969/announce
+udp://tracker3.t-1.org:6969/announce
+udp://tracker.opentorrent.top:6969/announce
+udp://tracker.playground.ru:6969/announce
+udp://tracker.skynetcloud.site:6969/announce
+udp://tracker.startwork.cv:1337/announce
+http://tracker.skyts.net:6969/announce
+udp://utracker.ghostchu-services.top:6969/announce
 "
 
 trackerscopy() {
@@ -6429,3 +6445,55 @@ spiral_points() {
 
 # usage:
 # spiral_points 200 0.05
+
+
+
+png2jpg() {
+  convert "$1" "${1%.png}.jpg"
+}
+
+
+jpgs_to_pdf () {
+
+  # Enable nullglob (avoid *.JPG errors)
+  shopt -s nullglob
+
+  echo "🔍 Scanning for JPG/JPEG files..."
+  FILES=( *.jpg *.JPG *.jpeg *.JPEG )
+
+  if [ ${#FILES[@]} -eq 0 ]; then
+    echo "❌ No JPG/JPEG files found"
+    shopt -u nullglob
+    return 1
+  fi
+
+  echo "📸 Found ${#FILES[@]} image(s)"
+
+  # Temporary directory
+  TMP_DIR="/tmp/jpg_pdf_tmp"
+  echo "📂 Creating temp directory: $TMP_DIR"
+  mkdir -p "$TMP_DIR"
+
+  # Compress images
+  COUNT=1
+  for img in "${FILES[@]}"; do
+    echo "⚙️  [$COUNT/${#FILES[@]}] Compressing: $img"
+    convert "$img" \
+      -resize 2000x2000\> \
+      -strip \
+      -quality 75 \
+      "$TMP_DIR/$img"
+    ((COUNT++))
+  done
+
+  echo "📄 Creating PDF..."
+  convert -density 150 "$TMP_DIR"/* output.pdf
+
+  echo "🧹 Cleaning up temp files..."
+  rm -rf "$TMP_DIR"
+
+  # Restore shell behavior
+  shopt -u nullglob
+
+  echo "✅ Done! Output file: output.pdf"
+}
