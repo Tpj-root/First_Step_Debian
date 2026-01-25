@@ -2052,6 +2052,29 @@ udp://tracker.skynetcloud.site:6969/announce
 udp://tracker.startwork.cv:1337/announce
 http://tracker.skyts.net:6969/announce
 udp://utracker.ghostchu-services.top:6969/announce
+http://95.107.48.115:80/announce
+http://open.acgnxtracker.com:80/announce
+https://1337.abcvg.info:443/announce
+https://opentracker.i2p.rocks:443/announce
+https://tracker.nanoha.org:443/announce
+https://tracker.sloppyta.co:443/announce
+http://t.acg.rip:6699/announce
+http://t.nyaatracker.com:80/announce
+http://tracker.files.fm:6969/announce
+http://tracker.openbittorrent.com:80/announce
+http://vps02.net.orel.ru:80/announce
+udp://208.83.20.20:6969/announce
+udp://37.235.174.46:2710/announce
+udp://75.127.14.224:2710/announce
+udp://9.rarbg.com:2810/announce
+udp://fe.dealclub.de:6969/announce
+udp://movies.zsw.ca:6969/announce
+udp://public.tracker.vraphim.com:6969/announce
+udp://retracker.lanta-net.ru:2710/announce
+udp://tracker.0x.tf:6969/announce
+udp://tracker.moeking.me:6969/announce
+udp://tracker.pomf.se:80/announce
+udp://tracker.swateam.org.uk:2710/announce
 "
 
 trackerscopy() {
@@ -2324,8 +2347,7 @@ alias fire='$HOME/Desktop/RUN_TIME/firefox/firefox'
 #
 # find the .torrent files
 alias whereisT='cd $HOME/.config/transmission/torrents/'
-
-
+alias torrentLocation=whereisT
 
 
 
