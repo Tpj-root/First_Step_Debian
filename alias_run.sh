@@ -1176,10 +1176,18 @@ EOF'
 
 
 
-alias dnsupdate_Google='modify_resolv_conf_0'
-alias dnsupdate_Cloudflare='modify_resolv_conf_1'
-alias dnsupdate_OpenDNS='modify_resolv_conf_2'
-alias dnsupdate_BSNL='modify_resolv_conf_3'
+# alias dnsupdate_Google='modify_resolv_conf_0'
+# alias dnsupdate_Cloudflare='modify_resolv_conf_1'
+# alias dnsupdate_OpenDNS='modify_resolv_conf_2'
+# alias dnsupdate_BSNL='modify_resolv_conf_3'
+
+
+alias dnsGoogle='modify_resolv_conf_0'
+alias dnsCloudflare='modify_resolv_conf_1'
+alias dnsOpenDNS='modify_resolv_conf_2'
+alias dnsBSNL='modify_resolv_conf_3'
+
+
 
 
 
@@ -6519,3 +6527,177 @@ jpgs_to_pdf () {
 
   echo "✅ Done! Output file: output.pdf"
 }
+
+
+
+# =========================
+# Bash Redirection Study Notes
+# =========================
+
+# 1. Redirect standard output (stdout) to a file
+#    - Stdout is "normal" output of commands (print statements, logs)
+#    - Example:
+#      command > API_OUT      # overwrite file
+#      command >> API_OUT     # append to file
+
+# 2. Redirect standard error (stderr) to a file
+#    - Stderr is for errors or warnings (like HTTP errors, warnings, etc.)
+#    - Example:
+#      command 2> ERROR_OUT   # overwrite file
+#      command 2>> ERROR_OUT  # append to file
+
+# 3. Redirect both stdout and stderr to the same file
+#    - Use '2>&1' to merge stderr into stdout
+#    - Example:
+#      command >> API_OUT 2>&1    # append both stdout and stderr to API_OUT
+
+# 4. Redirect stdout and stderr to separate files
+#    - Keep logs and errors separate
+#    - Example:
+#      command >> API_OUT 2>> ERROR_OUT
+#      # stdout -> API_OUT
+#      # stderr -> ERROR_OUT
+
+# 5. Notes:
+#    - '1' is the file descriptor for stdout
+#    - '2' is the file descriptor for stderr
+#    - Order matters: '2>&1' must come after the stdout redirection
+#    - '>' overwrites, '>>' appends
+
+
+
+
+
+
+
+# CPP HELP
+#
+#
+# g++ -std=gnu++17 -I. -c EyeDrawer.cpp -o EyeDrawer.o
+buildOneCPPFile() {
+    # First argument: source .cpp file (example: EyeDrawer.cpp)
+    local src="$1"
+
+    # Convert source filename to object filename
+    # EyeDrawer.cpp -> EyeDrawer.o
+    local obj="${src%.cpp}.o"
+
+    # Compile only (-c) without linking
+    # -std=gnu++17 : use C++17 standard
+    # -I.          : include current directory for headers
+    # -Wall        : enable common warnings
+    # -Wextra      : enable extra warnings
+    # -o           : output object file
+    # g++ -std=gnu++17 -I. -Wall -Wextra -c "$src" -o "$obj" \
+    g++ -DPC_BUILD -std=gnu++17 -I. -Wall -Wextra -c "$src" -o "$obj" \
+        && echo "Built $obj" \
+        || echo "Build failed: $src"  # Print failure message
+
+    echo "Built $obj Also removed *.o " \
+    rm *.o
+
+}
+
+
+
+##
+# Bash function: creates C++ header and source files
+# Usage:
+#   cpp_headerandcpp_creator Tokenizer
+#
+# This will create:
+#   Tokenizer.h
+#   Tokenizer.cpp
+
+cpp_headerandcpp_creator() {
+
+    # --------- INPUT CHECK ----------
+    # $1 is the first argument passed to the function
+    # If no argument is given, stop and show usage
+    if [ -z "$1" ]; then
+        echo "Error: Class name required"
+        echo "Usage: cpp_headerandcpp_creator ClassName"
+        return 1
+    fi
+
+    # --------- VARIABLES ----------
+    CLASS_NAME="$1"
+    HEADER_FILE="${CLASS_NAME}.h"
+    SOURCE_FILE="${CLASS_NAME}.cpp"
+
+    # Create include guard name (uppercase + _H)
+    # Example: Tokenizer -> TOKENIZER_H
+    GUARD_NAME="$(echo "${CLASS_NAME}_H" | tr 'a-z' 'A-Z')"
+
+    # --------- CREATE HEADER FILE ----------
+    cat > "$HEADER_FILE" <<EOF
+#ifndef $GUARD_NAME
+#define $GUARD_NAME
+
+/*
+    Header file: $HEADER_FILE
+
+    Purpose:
+    - Declares the $CLASS_NAME class
+    - Used to define class structure, methods, and members
+
+    Why include guards?
+    - Prevents multiple inclusion errors
+    - Ensures this file is included only once per compilation
+*/
+
+class $CLASS_NAME {
+public:
+    // Constructor
+    $CLASS_NAME();
+
+    // Destructor
+    ~$CLASS_NAME();
+
+    // Public member function example
+    void exampleMethod();
+
+private:
+    // Private data members go here
+};
+
+#endif // $GUARD_NAME
+EOF
+
+    # --------- CREATE SOURCE FILE ----------
+    cat > "$SOURCE_FILE" <<EOF
+/*
+    Source file: $SOURCE_FILE
+
+    Purpose:
+    - Implements the methods declared in $HEADER_FILE
+*/
+
+#include "$HEADER_FILE"
+#include <iostream>
+
+// Constructor implementation
+$CLASS_NAME::$CLASS_NAME() {
+    // Initialization code goes here
+}
+
+// Destructor implementation
+$CLASS_NAME::~$CLASS_NAME() {
+    // Cleanup code goes here
+}
+
+// Example method implementation
+void $CLASS_NAME::exampleMethod() {
+    std::cout << "$CLASS_NAME example method called" << std::endl;
+}
+EOF
+
+    # --------- SUCCESS MESSAGE ----------
+    echo "Created files:"
+    echo "  $HEADER_FILE"
+    echo "  $SOURCE_FILE"
+}
+
+
+
+alias hcpp='cpp_headerandcpp_creator'
