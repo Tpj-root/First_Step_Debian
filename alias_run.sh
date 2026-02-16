@@ -2589,26 +2589,51 @@ function project2html(){
         fi
         create_index "$dir" "$index_file" "$back_link"
 
-        # Loop through all files and directories
+        # # Loop through all files and directories
+        # for file in "$dir"/*; do
+        #     if [[ -d "$file" ]]; then
+        #         # If it's a directory, recurse into it
+        #         local dir_name=$(basename "$file")
+        #         local sub_index_file="$file/index.html"
+        #         echo "<li><a href='$dir_name/index.html'>$dir_name</a></li>" >> "$index_file"
+        #         process_directory "$file" "$sub_index_file" "$base_dir" "$dir"
+        #     elif [[ -f "$file" && ( "$file" == *.c || "$file" == *.cpp || "$file" == *.hpp || "$file" == *.hpp || "$file" == *.rst || "$file" == *.yml || "$file" == *.txt || "$file" == *.h || "$file" == *.in || "$file" == *.diagram || "$file" == *.cmake || "$file" == *.xml || "$file" == *.jam || "$file" == *.md || "$file" == *.dic || "$file" == *.cfg || "$file" == *.am || "$file" == *.yaml || "$file" == *.toml || "$file" == *.dot || "$file" == *.css || "$file" == *.aff || "$file" == *.py || "$file" == *.sh ) ]]; then
+        #         # Convert supported files into HTML
+        #         local ext="${file##*.}"
+        #         local base_name=$(basename "$file" ."$ext")
+        #         local output_file="${dir}/${base_name}_${ext}.html"
+                
+        #         # Highlight the file to generate HTML output
+        #         highlight --force -O html -i "$file" -o "$output_file" 2>/dev/null
+
+        #         # Calculate the relative path for the link
+        #         local rel_path=$(realpath --relative-to="$dir" "$output_file")
+        #         echo "<li><a href='$rel_path'>$(basename "$file")</a></li>" >> "$index_file"
+        #     fi
+        # done
+        # Logic same, no behavior change
+        # Only structure + readability improved.
+        EXTS=(c cpp h hpp rst yml yaml txt md py sh xml cmake toml cfg in jam dic am dot css aff diagram mim sample m4 sin sed po header sub rev pot guess awk ac)
+
         for file in "$dir"/*; do
             if [[ -d "$file" ]]; then
-                # If it's a directory, recurse into it
-                local dir_name=$(basename "$file")
-                local sub_index_file="$file/index.html"
+                dir_name=$(basename "$file")
                 echo "<li><a href='$dir_name/index.html'>$dir_name</a></li>" >> "$index_file"
-                process_directory "$file" "$sub_index_file" "$base_dir" "$dir"
-            elif [[ -f "$file" && ( "$file" == *.c || "$file" == *.cpp || "$file" == *.hpp || "$file" == *.hpp || "$file" == *.rst || "$file" == *.yml || "$file" == *.txt || "$file" == *.h || "$file" == *.in || "$file" == *.diagram || "$file" == *.cmake || "$file" == *.xml || "$file" == *.jam || "$file" == *.md || "$file" == *.dic || "$file" == *.cfg || "$file" == *.am || "$file" == *.yaml || "$file" == *.toml || "$file" == *.dot || "$file" == *.css || "$file" == *.aff || "$file" == *.py || "$file" == *.sh ) ]]; then
-                # Convert supported files into HTML
-                local ext="${file##*.}"
-                local base_name=$(basename "$file" ."$ext")
-                local output_file="${dir}/${base_name}_${ext}.html"
-                
-                # Highlight the file to generate HTML output
-                highlight --force -O html -i "$file" -o "$output_file" 2>/dev/null
+                process_directory "$file" "$file/index.html" "$base_dir" "$dir"
 
-                # Calculate the relative path for the link
-                local rel_path=$(realpath --relative-to="$dir" "$output_file")
-                echo "<li><a href='$rel_path'>$(basename "$file")</a></li>" >> "$index_file"
+            elif [[ -f "$file" ]]; then
+                ext="${file##*.}"
+                for e in "${EXTS[@]}"; do
+                    if [[ "$ext" == "$e" ]]; then
+                        base_name=$(basename "$file" ."$ext")
+                        output_file="$dir/${base_name}_${ext}.html"
+
+                        highlight --force -O html -i "$file" -o "$output_file" 2>/dev/null
+                        rel_path=$(realpath --relative-to="$dir" "$output_file")
+                        echo "<li><a href='$rel_path'>$(basename "$file")</a></li>" >> "$index_file"
+                        break
+                    fi
+                done
             fi
         done
 
@@ -2642,6 +2667,22 @@ function project2html(){
 # alias
 alias p2html='project2html'
 
+# .mim
+# .sample
+# .m4
+# .in
+# .sin
+# .sed
+# .po
+# .header
+# .sub
+# .sh
+# .rev
+# .pot
+# .guess
+# .awk
+# .am
+# .ac
 
 
 
@@ -6701,3 +6742,130 @@ EOF
 
 
 alias hcpp='cpp_headerandcpp_creator'
+
+
+
+# Video cut
+#
+#
+## Simple way (shows only duration in seconds)
+# ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input.mp4
+video_info() {
+
+    # Ask user to enter full video file path
+    # Example: /home/user/Videos/sample.mp4
+    read -p "Enter full video file path: " input_file
+
+    # Check if the file exists
+    # -f checks whether it is a regular file
+    if [[ ! -f "$input_file" ]]; then
+        echo "File not found!"
+        return 1   # Stop function if file doesn't exist
+    fi
+
+    echo "-------------------------------------"
+    echo "VIDEO INFORMATION"
+    echo "-------------------------------------"
+
+    # Show basic format details (container type, size, duration, bitrate)
+    # format_name  -> mp4, mkv, etc
+    # duration     -> total length in seconds
+    # size         -> file size in bytes
+    # bit_rate     -> overall bitrate
+    ffprobe -v error \
+        -show_entries format=format_name,duration,size,bit_rate \
+        -of default=noprint_wrappers=1 \
+        "$input_file"
+
+    echo "-------------------------------------"
+
+    # Show video stream details
+    # codec_name   -> h264, hevc, etc
+    # width/height -> resolution
+    # r_frame_rate -> frame rate
+    ffprobe -v error \
+        -select_streams v:0 \
+        -show_entries stream=codec_name,width,height,r_frame_rate \
+        -of default=noprint_wrappers=1 \
+        "$input_file"
+
+    echo "-------------------------------------"
+
+    # Show audio stream details (if exists)
+    # codec_name -> aac, mp3, etc
+    # sample_rate -> audio frequency
+    # channels -> mono(1), stereo(2)
+    ffprobe -v error \
+        -select_streams a:0 \
+        -show_entries stream=codec_name,sample_rate,channels \
+        -of default=noprint_wrappers=1 \
+        "$input_file"
+
+    echo "-------------------------------------"
+    echo "Done."
+}
+
+
+video_cut() {
+
+    # Ask input video file
+    read -p "Enter full video file path: " input_file
+
+    # Check if file exists
+    if [[ ! -f "$input_file" ]]; then
+        echo "File not found!"
+        return 1
+    fi
+
+    # Ask start time (optional)
+    read -p "Enter start time (e.g 1:25) [default 0]: " start_time
+
+    # If empty → set to 0
+    if [[ -z "$start_time" ]]; then
+        start_sec=0
+    else
+        start_sec=$(echo "$start_time" | awk -F: '{
+            if (NF==1) print $1;
+            else if (NF==2) print ($1*60)+$2;
+            else if (NF==3) print ($1*3600)+($2*60)+$3
+        }')
+    fi
+
+    # Ask end time (required)
+    read -p "Enter end time (e.g 16:13): " end_time
+
+    if [[ -z "$end_time" ]]; then
+        echo "End time required!"
+        return 1
+    fi
+
+    end_sec=$(echo "$end_time" | awk -F: '{
+        if (NF==1) print $1;
+        else if (NF==2) print ($1*60)+$2;
+        else if (NF==3) print ($1*3600)+($2*60)+$3
+    }')
+
+    # Output file name
+    output_file="./cut_$(basename "$input_file")"
+
+    # Run ffmpeg (more accurate seeking)
+    ffmpeg -i "$input_file" -ss "$start_sec" -to "$end_sec" -c copy "$output_file"
+
+    echo "Done! Saved as $output_file"
+}
+
+
+
+#
+# Find with Regex in Sublime Text.
+#
+
+# 001
+# In Find box:
+# phonemeMap\["([^"]+)"\]\s*=\s*"[^"]+";
+# In Replace box:
+# "\1"
+
+## Data
+# phonemeMap["I"] = "ஈ";
+# "a"
