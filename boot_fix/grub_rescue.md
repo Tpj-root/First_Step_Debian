@@ -6702,3 +6702,4241 @@ It transforms trust into cryptographic evidence.
 
 ---
 
+### GPT CRC (Partition Table)
+
+* Used in **GPT header + partition entries**
+* Uses **CRC32**
+* Purpose: detect corruption in partition metadata
+* Very small scope (only disk layout info)
+* Cannot detect file-level corruption
+* No self-healing
+
+---
+
+### ext4 Checksums
+
+* Uses checksums mainly for **metadata (journal, inodes, superblock)**
+* Detects corruption inside filesystem structures
+* Does NOT checksum user data by default
+* No automatic repair of corrupted data blocks
+
+---
+
+### Btrfs Checksums
+
+* Checksums **everything** (metadata + file data)
+* Stored separately from data blocks
+* Uses copy-on-write
+* Can **auto-repair** if redundant copy exists (RAID/mirror)
+
+---
+
+### Simple Difference
+
+| Feature         | GPT CRC         | ext4     | Btrfs               |
+| --------------- | --------------- | -------- | ------------------- |
+| Scope           | Partition table | Metadata | Metadata + Data     |
+| Protects files? | ❌               | Partial  | ✅                   |
+| Self-healing?   | ❌               | ❌        | ✅ (with redundancy) |
+| Strength        | Basic integrity | Moderate | Advanced            |
+
+---
+
+Short version:
+
+GPT CRC = protects disk layout
+ext4 = protects filesystem structure
+Btrfs = protects everything (and can fix it)
+
+
+
+## GPT Corruption
+
+GPT = disk layout damage.
+
+* Partition table header corrupted
+* Partition entries damaged
+* OS may not detect partitions
+* Disk appears “unallocated”
+* Filesystem may still be intact inside
+
+Problem is at **disk structure level**.
+
+---
+
+## Filesystem Corruption
+
+Filesystem = data structure inside a partition.
+
+* Inode damage
+* Journal corruption
+* Directory structure broken
+* Files missing or unreadable
+* Partition is detected, but data fails
+
+Problem is at **data organization level**.
+
+---
+
+## Example
+
+GPT broken → system can’t see `/dev/sda1`
+Filesystem broken → `/dev/sda1` exists, but files error
+
+---
+
+## Repair Tools
+
+GPT → `gdisk`, `sgdisk`
+Filesystem → `fsck` (for ext4), `btrfs check` (for Btrfs)
+
+---
+
+### Core Difference
+
+GPT corruption = disk map lost
+Filesystem corruption = data structure lost
+
+Very different layers.
+
+
+
+
+
+## If GPT corruption happens
+
+GPT = partition map.
+
+What happens:
+
+* System may not detect partitions
+* Disk shows as “unallocated”
+* OS may refuse to boot
+* `/dev/sda1` may disappear
+* Data is still physically on disk
+
+Important:
+Files are usually **not erased** — only the map is damaged.
+
+If backup GPT header exists → can restore.
+If fully damaged → need partition recovery tools.
+
+---
+
+## If Filesystem corruption happens
+
+Filesystem = structure inside partition.
+
+What happens:
+
+* Partition is visible
+* Mount may fail
+* Files may disappear
+* “Input/output error”
+* Some files become unreadable
+* System may boot but crash later
+
+Here, the data structure that organizes files is broken.
+
+Sometimes repairable with `fsck` (for ext4)
+Sometimes auto-repair if using Btrfs with redundancy
+
+---
+
+### Simple understanding
+
+GPT corruption → house address lost
+Filesystem corruption → rooms inside house broken
+
+Different layers. Different damage.
+
+
+
+Yes — possible in both cases.
+But method is different.
+
+---
+
+## If GPT is corrupted
+
+Good news:
+Data is usually still there.
+
+You can:
+
+* Rebuild GPT using backup header
+* Use `gdisk` recovery
+* Use TestDisk to rebuild partition table
+
+If partition boundaries are recovered correctly →
+all files return normally.
+
+Success rate: **very high** (if disk not overwritten)
+
+---
+
+## If Filesystem is corrupted
+
+Harder.
+
+You can:
+
+* Run `fsck` (for ext4)
+* Use `btrfs restore` (for Btrfs)
+* Use file carving tools (PhotoRec)
+
+Possible results:
+
+* Some files fully recover
+* Some partially damaged
+* Some lost
+
+Success rate: **depends on damage level**
+
+---
+
+### Important rule
+
+If corruption happens:
+
+1. **Stop using the disk immediately**
+2. Do NOT format
+3. Do NOT install OS
+4. Make a full disk image first
+
+Recovery is very possible —
+if you don’t overwrite data.
+
+
+
+
+
+## How `dd` can destroy GPT
+
+`dd` writes raw bytes directly to disk.
+
+If you run something like:
+
+```
+dd if=image.iso of=/dev/sda
+```
+
+It will:
+
+* Overwrite GPT header (at beginning of disk)
+* Overwrite partition entries
+* Overwrite backup GPT (at end of disk)
+* Destroy partition map instantly
+
+Disk becomes “unallocated”.
+
+One wrong device name = full disk loss.
+
+---
+
+## Why this happens
+
+GPT stores:
+
+* Primary header → start of disk
+* Backup header → end of disk
+
+`dd` writes from sector 0 → so GPT dies first.
+
+No warning. No undo.
+
+---
+
+## How to avoid it
+
+### 1️⃣ Double-check device name
+
+Use:
+
+```
+lsblk
+```
+
+Make sure you target USB (example `/dev/sdb`)
+NOT main disk (`/dev/sda`).
+
+---
+
+### 2️⃣ Never write to a mounted disk
+
+Unmount first:
+
+```
+umount /dev/sdb1
+```
+
+---
+
+### 3️⃣ Use `oflag=sync` and `status=progress`
+
+Safer visibility:
+
+```
+dd if=image.iso of=/dev/sdb bs=4M status=progress oflag=sync
+```
+
+---
+
+### 4️⃣ Consider safer tools
+
+Instead of raw `dd`, use:
+
+* `cp --sparse=always` (for images to files)
+* `ddrescue` (for recovery)
+
+---
+
+### 5️⃣ Backup GPT before risky work
+
+```
+sgdisk --backup=gpt-backup.bin /dev/sda
+```
+
+If destroyed, you can restore.
+
+---
+
+## Core danger
+
+`dd` = disk destroyer
+It does exactly what you tell it.
+Even if it is wrong.
+
+One wrong letter → full disk gone.
+
+
+
+
+## If first 1MB of disk is overwritten
+
+That area contains:
+
+* GPT primary header
+* Partition entries
+* Possibly bootloader (GRUB stage 1)
+
+But usually:
+
+* Backup GPT (at end of disk) still exists
+* Filesystem data still exists
+
+---
+
+## Step 1 — STOP using disk
+
+Do not mount.
+Do not format.
+Do not write anything.
+
+---
+
+## Step 2 — Try GPT rebuild
+
+If using GPT:
+
+```
+gdisk /dev/sdX
+```
+
+It will detect broken primary header
+and offer to use backup GPT.
+
+Then:
+
+* Use recovery menu
+* Write restored GPT back
+
+Very high success rate if only first 1MB damaged.
+
+---
+
+## Step 3 — If both GPT copies damaged
+
+Use TestDisk:
+
+* Scan disk
+* Detect partitions by filesystem signature
+* Recreate partition table
+
+Often works because filesystem starts after first MB.
+
+---
+
+## Step 4 — If partition recovered but won’t mount
+
+Run filesystem repair:
+
+For ext4:
+
+```
+fsck.ext4 /dev/sdX1
+```
+
+For Btrfs:
+
+```
+btrfs check --repair /dev/sdX1
+```
+
+---
+
+## Worst Case
+
+If too much was overwritten:
+
+* Use PhotoRec (file carving)
+* Recover files without filenames
+
+---
+
+### Reality
+
+Overwriting first 1MB is bad —
+but usually recoverable
+because real data starts after that area.
+
+Unless more sectors were written.
+
+
+
+
+Below is a **minimal C example** to compute GPT CRC32
+(same polynomial GPT uses — standard IEEE CRC32).
+
+GPT uses:
+
+* Polynomial: `0xEDB88320`
+* Initial value: `0xFFFFFFFF`
+* Final XOR: `^ 0xFFFFFFFF`
+
+---
+
+## Short C Program
+
+```c
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+uint32_t crc32(const uint8_t *data, size_t length) {
+    uint32_t crc = 0xFFFFFFFF;
+
+    for (size_t i = 0; i < length; i++) {
+        crc ^= data[i];
+        for (int j = 0; j < 8; j++) {
+            if (crc & 1)
+                crc = (crc >> 1) ^ 0xEDB88320;
+            else
+                crc >>= 1;
+        }
+    }
+
+    return crc ^ 0xFFFFFFFF;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Usage: %s <file>\n", argv[0]);
+        return 1;
+    }
+
+    FILE *f = fopen(argv[1], "rb");
+    if (!f) {
+        perror("fopen");
+        return 1;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    rewind(f);
+
+    uint8_t *buffer = malloc(size);
+    fread(buffer, 1, size, f);
+    fclose(f);
+
+    uint32_t result = crc32(buffer, size);
+    printf("CRC32: %08X\n", result);
+
+    free(buffer);
+    return 0;
+}
+```
+
+---
+
+## How GPT Uses This
+
+Before computing CRC:
+
+* Set `HeaderCRC32` field to **0**
+* Compute CRC over header size only (usually 92 bytes)
+* Store result back into header
+
+For partition array:
+
+* Compute CRC over entire partition entry array
+* Store value in GPT header field
+
+---
+
+## Compile
+
+```
+gcc gpt_crc.c -o gpt_crc
+```
+
+---
+
+This is the exact CRC logic GPT relies on.
+
+
+
+## Verify GPT CRC on a real disk (Linux)
+
+### 1️⃣ Automatic check (easiest)
+
+Use `gdisk`:
+
+```
+sudo gdisk -l /dev/sdX
+```
+
+If CRC is wrong, it will show warnings like:
+
+* “CRC mismatch”
+* “Main GPT header is corrupt”
+* “Backup GPT header is corrupt”
+
+It automatically compares:
+
+* Primary header CRC
+* Backup header CRC
+* Partition array CRC
+
+---
+
+### 2️⃣ Using `sgdisk` (direct verify)
+
+```
+sudo sgdisk -v /dev/sdX
+```
+
+This performs full GPT verification.
+
+If healthy, you see:
+
+```
+No problems found.
+```
+
+If damaged, it reports exact CRC failure.
+
+---
+
+### 3️⃣ Manual check (advanced)
+
+Dump GPT header:
+
+```
+sudo dd if=/dev/sdX bs=512 count=1 | hexdump -C
+```
+
+GPT header starts at LBA 1 (not 0), so:
+
+```
+sudo dd if=/dev/sdX bs=512 skip=1 count=1 > gpt_header.bin
+```
+
+Then:
+
+* Zero out CRC field (offset 16–19)
+* Compute CRC32 over header size (usually 92 bytes)
+* Compare with stored CRC
+
+This matches the calculation used earlier.
+
+---
+
+## Tools involved
+
+* `gdisk`
+* `sgdisk`
+* `dd`
+* `hexdump`
+
+All work with standard GPT format.
+
+---
+
+### Quick summary
+
+Fast method → `sgdisk -v /dev/sdX`
+Deep manual method → dump header + compute CRC yourself
+
+
+
+
+
+⚠ Do this **only inside a VM**, never on real disk.
+
+Example using a virtual disk file.
+
+---
+
+## 1️⃣ Create a test disk
+
+```
+dd if=/dev/zero of=test.img bs=1M count=100
+```
+
+Create GPT:
+
+```
+sgdisk -o test.img
+sgdisk -n 1:2048:40959 test.img
+```
+
+Verify:
+
+```
+sgdisk -v test.img
+```
+
+You should see:
+
+```
+No problems found.
+```
+
+---
+
+## 2️⃣ Corrupt the GPT header (first 1 sector of GPT)
+
+GPT primary header is at **LBA 1**.
+
+Overwrite it:
+
+```
+dd if=/dev/zero of=test.img bs=512 seek=1 count=1 conv=notrunc
+```
+
+---
+
+## 3️⃣ Verify again
+
+```
+sgdisk -v test.img
+```
+
+Now you’ll see:
+
+* Main GPT header CRC mismatch
+* Primary header corrupt
+* Backup header still valid
+
+You just caused a real GPT CRC failure.
+
+---
+
+## 4️⃣ Corrupt backup GPT too (optional)
+
+Backup header is at last sector.
+
+Find last sector:
+
+```
+sgdisk -E test.img
+```
+
+Overwrite last sector:
+
+```
+dd if=/dev/zero of=test.img bs=512 seek=<last_sector> count=1 conv=notrunc
+```
+
+Now verification shows:
+
+* Both headers corrupt
+* CRC errors everywhere
+
+---
+
+## What you just observed
+
+GPT protects itself using:
+
+* Primary header CRC
+* Backup header CRC
+* Partition array CRC
+
+When one copy breaks → other saves you.
+When both break → manual recovery needed.
+
+---
+
+### This is exactly how CRC detection works in real disks.
+
+
+
+
+
+⚠ Only inside VM / test image.
+
+---
+
+# 1️⃣ Create Test Disk
+
+```
+dd if=/dev/zero of=test.img bs=1M count=100
+sgdisk -o test.img
+sgdisk -n 1:2048:40959 test.img
+```
+
+Verify:
+
+```
+sgdisk -v test.img
+```
+
+---
+
+# 2️⃣ Destroy BOTH GPT headers
+
+Primary header → LBA 1
+Backup header → last sector
+
+Destroy primary:
+
+```
+dd if=/dev/zero of=test.img bs=512 seek=1 count=1 conv=notrunc
+```
+
+Find last LBA:
+
+```
+sgdisk -E test.img
+```
+
+Destroy backup:
+
+```
+dd if=/dev/zero of=test.img bs=512 seek=<last_LBA> count=1 conv=notrunc
+```
+
+Now:
+
+```
+sgdisk -v test.img
+```
+
+Result:
+
+* Main header corrupt
+* Backup header corrupt
+* No valid GPT found
+
+You now have total GPT failure.
+
+---
+
+# 3️⃣ Manual Reconstruction Method
+
+Even though GPT is gone:
+
+✔ Filesystem data still exists
+✔ Partition content still exists
+✔ Only partition map is missing
+
+---
+
+## Option A — Use TestDisk (semi-manual)
+
+```
+testdisk test.img
+```
+
+* Analyse
+* Quick Search
+* It finds partition by filesystem signature
+* Write new partition table
+
+Very high success rate.
+
+---
+
+## Option B — Fully Manual (Advanced)
+
+If you know original partition start:
+
+Example: partition started at LBA 2048
+
+Recreate GPT:
+
+```
+sgdisk -o test.img
+```
+
+Recreate partition manually:
+
+```
+sgdisk -n 1:2048:40959 test.img
+```
+
+If start/end match original →
+filesystem mounts normally.
+
+---
+
+## How to find original start?
+
+Use filesystem superblock scan.
+
+For ext4:
+
+```
+mke2fs -n test.img
+```
+
+or
+
+```
+grep -oba "EXT4" test.img
+```
+
+Ext4 superblock usually at:
+
+start_LBA + 1024 bytes
+
+You reverse-calculate partition start.
+
+---
+
+# 4️⃣ Worst Case
+
+If partition boundaries unknown:
+
+* Use file carving (PhotoRec)
+* Recover files without names
+
+---
+
+# What You Learned
+
+Even if:
+
+Primary GPT destroyed
+Backup GPT destroyed
+
+Data is still there.
+
+GPT = map
+Filesystem = house
+
+Rebuild map correctly → house returns.
+
+
+
+
+
+⚠ Stop using the disk immediately.
+
+If first **1MB** is fully overwritten:
+
+* Protective MBR → gone
+* Primary GPT header (LBA 1) → gone
+* Partition entries (usually LBAs 2–33) → gone
+* Bootloader (GRUB stage1) → gone
+
+But:
+
+✔ Backup GPT header (last sector) still exists
+✔ Backup partition array (just before last sector) still exists
+✔ Filesystem data still exists
+
+This is usually recoverable.
+
+---
+
+# Method 1 — Automatic Recovery (Best Case)
+
+Run:
+
+```
+sudo gdisk /dev/sdX
+```
+
+You will see warning:
+
+```
+Main GPT header is corrupt
+Backup header is OK
+```
+
+Then:
+
+* Press `r` (recovery menu)
+* Press `b` (use backup GPT)
+* Press `w` (write table)
+
+This recreates primary GPT from backup.
+
+Very high success rate.
+
+---
+
+# Method 2 — Using sgdisk
+
+Sometimes this works directly:
+
+```
+sudo sgdisk -e /dev/sdX
+```
+
+This relocates backup GPT and rebuilds primary.
+
+Then verify:
+
+```
+sudo sgdisk -v /dev/sdX
+```
+
+---
+
+# If Backup Also Damaged
+
+Then GPT cannot self-heal.
+
+You must:
+
+* Use TestDisk to scan
+* Or manually recreate partitions using known start/end
+
+Filesystem signatures help.
+
+For ext4:
+superblock is 1024 bytes after partition start.
+
+---
+
+# Why 1MB overwrite is usually survivable
+
+GPT backup is at **end of disk**.
+First 1MB only destroys primary structures.
+
+So GPT redundancy saves you.
+
+---
+
+### Reality Summary
+
+Overwrite first 1MB → scary but fixable
+Overwrite last sector too → harder
+Overwrite middle of disk → data loss
+
+Always image disk before repair.
+
+
+
+⚠ Read-only analysis only.
+
+---
+
+# 1️⃣ Dump first sectors
+
+GPT layout:
+
+* LBA 0 → Protective MBR
+* LBA 1 → Primary GPT header
+* LBA 2–33 → Partition entries
+
+Dump first 34 sectors:
+
+```
+sudo dd if=/dev/sdX bs=512 count=34 | hexdump -C
+```
+
+Or inspect header only:
+
+```
+sudo dd if=/dev/sdX bs=512 skip=1 count=1 | hexdump -C
+```
+
+---
+
+# 2️⃣ Identify GPT Header
+
+At offset 0 you should see:
+
+```
+45 46 49 20 50 41 52 54
+```
+
+That is ASCII:
+
+```
+"EFI PART"
+```
+
+If missing → header corrupt.
+
+---
+
+# 3️⃣ Important Header Fields (Offsets)
+
+All little-endian.
+
+| Offset | Size | Meaning                   |
+| ------ | ---- | ------------------------- |
+| 0x00   | 8    | Signature ("EFI PART")    |
+| 0x08   | 4    | Revision                  |
+| 0x0C   | 4    | Header size               |
+| 0x10   | 4    | Header CRC32              |
+| 0x18   | 8    | Current LBA               |
+| 0x20   | 8    | Backup LBA                |
+| 0x28   | 8    | First usable LBA          |
+| 0x30   | 8    | Last usable LBA           |
+| 0x48   | 8    | Partition entry start LBA |
+| 0x50   | 4    | Number of entries         |
+| 0x54   | 4    | Entry size                |
+| 0x58   | 4    | Partition array CRC32     |
+
+Example:
+
+```
+00000010  5a 3c 91 27
+```
+
+Reverse byte order → CRC value.
+
+---
+
+# 4️⃣ Check Partition Entries
+
+Dump entries:
+
+```
+sudo dd if=/dev/sdX bs=512 skip=2 count=32 | hexdump -C
+```
+
+Each entry usually 128 bytes.
+
+Inside each entry:
+
+* Partition type GUID (16 bytes)
+* Unique GUID (16 bytes)
+* First LBA (8 bytes)
+* Last LBA (8 bytes)
+* Attributes (8 bytes)
+* Name (UTF-16)
+
+---
+
+# 5️⃣ Compare with Backup GPT
+
+Backup header is at last sector:
+
+```
+sudo blockdev --getsz /dev/sdX
+```
+
+Then:
+
+```
+sudo dd if=/dev/sdX bs=512 skip=<last_sector> count=1 | hexdump -C
+```
+
+Should also contain:
+
+```
+EFI PART
+```
+
+But “Current LBA” and “Backup LBA” are swapped.
+
+---
+
+# What You Learn
+
+With `hexdump` you can:
+
+✔ Detect corruption
+✔ Compare CRC fields
+✔ Find partition start/end manually
+✔ Confirm backup GPT health
+
+GPT is fully transparent —
+just structured binary data.
+
+
+
+## ext4 Checksum Strategy
+
+ext4 uses **CRC32C** (stronger than old CRC32).
+
+It protects:
+
+* Superblock
+* Group descriptors
+* Journal blocks
+* Inodes
+* Directory entries
+
+Important:
+
+* Checksums are seeded with filesystem UUID
+* Metadata corruption is detected reliably
+* User file data is **not checksummed by default**
+
+So ext4 mainly protects **structure**, not file content.
+
+No automatic self-healing (unless journal replay fixes it).
+
+---
+
+## Btrfs Checksum Strategy
+
+Btrfs is much stronger.
+
+It:
+
+* Checksums **every data block**
+* Checksums **all metadata**
+* Stores checksum in a separate tree
+* Uses copy-on-write (never overwrites in place)
+
+Checksum types:
+
+* CRC32C (default)
+* xxHash
+* SHA256
+* BLAKE2 (optional)
+
+When reading a block:
+
+1. Read data
+2. Recalculate checksum
+3. Compare with stored checksum
+
+If mismatch and RAID/mirror exists →
+it auto-repairs using good copy.
+
+---
+
+## Core Difference from GPT
+
+GPT → simple CRC32, only small header
+ext4 → strong metadata protection
+Btrfs → full data integrity + self-healing
+
+---
+
+### Simple View
+
+GPT = detect broken map
+ext4 = detect broken structure
+Btrfs = detect + fix broken data
+
+
+## What Secure Boot Does
+
+Secure Boot uses **digital signatures**, not CRC.
+
+Goal:
+Only trusted bootloaders can run.
+
+---
+
+# How It Works (Step by Step)
+
+### 1️⃣ Firmware contains trusted keys
+
+Stored in UEFI:
+
+* Platform Key (PK)
+* Key Exchange Keys (KEK)
+* Allowed signatures database (db)
+* Revoked database (dbx)
+
+---
+
+### 2️⃣ Bootloader is digitally signed
+
+Example:
+
+* GRUB
+* shim
+
+They are signed using:
+
+* RSA
+* SHA-256 hash
+
+---
+
+### 3️⃣ During boot
+
+UEFI firmware:
+
+1. Hashes bootloader file
+2. Verifies digital signature
+3. Checks signature against trusted keys
+
+If valid → boot continues
+If invalid → boot blocked
+
+---
+
+# Why This Is Stronger Than CRC
+
+CRC:
+
+* Detects random corruption
+* Cannot stop malicious modification
+
+Digital signature:
+
+* Uses private key cryptography
+* Attacker cannot fake signature
+* Protects against malware bootkits
+
+---
+
+# Linux Secure Boot Chain
+
+Typical flow:
+
+UEFI → shim → GRUB → Linux kernel
+
+Kernel modules must also be signed
+or they won’t load under Secure Boot.
+
+---
+
+## Core Difference
+
+GPT CRC → detects disk damage
+Secure Boot → prevents unauthorized code execution
+
+One protects data integrity.
+One protects trust chain.
+
+
+## What ECC RAM Does
+
+ECC = Error-Correcting Code memory.
+
+It protects against **silent bit flips** in RAM.
+
+---
+
+## Why Bit Flips Happen
+
+Causes:
+
+* Cosmic radiation
+* Electrical noise
+* Aging memory cells
+* Voltage instability
+
+Without ECC → data changes silently.
+
+---
+
+## How ECC Works
+
+Normal RAM:
+Stores 64 bits per word.
+
+ECC RAM:
+Stores **64 data bits + extra parity bits**
+(usually 8 extra bits → 72-bit total)
+
+These extra bits store a **Hamming code**.
+
+---
+
+## What It Can Do
+
+### ✔ Detect single-bit errors
+
+### ✔ Correct single-bit errors automatically
+
+### ✔ Detect (but not correct) double-bit errors
+
+When CPU reads memory:
+
+1. ECC logic recalculates code
+2. Compares with stored ECC bits
+3. If 1 bit wrong → fixes it instantly
+4. If 2 bits wrong → system logs error
+
+No crash. No silent corruption.
+
+---
+
+## Why This Matters
+
+Without ECC:
+
+* File in RAM gets 1 flipped bit
+* Written to disk
+* Filesystem checksum now fails
+* Data corrupted permanently
+
+With ECC:
+
+* Bit corrected before write
+* Disk stays safe
+
+---
+
+## Relation to Filesystems
+
+Even strong systems like Btrfs
+cannot detect corruption if RAM flips bit *before* checksum is computed.
+
+ECC protects data **before it reaches disk**.
+
+---
+
+## Simple View
+
+GPT → protects disk map
+Filesystem → protects disk data
+Secure Boot → protects boot code
+ECC RAM → protects live memory
+
+ECC stops corruption at the hardware level.
+
+
+
+In UEFI, each `Boot####` variable
+(e.g. `Boot0001`) is stored in NVRAM as raw binary.
+
+Structure is defined by the `EFI_LOAD_OPTION` format.
+
+---
+
+# Binary Layout (Exact Order)
+
+```
+UINT32  Attributes
+UINT16  FilePathListLength
+CHAR16  Description[]        (UTF-16, null terminated)
+EFI_DEVICE_PATH FilePathList (FilePathListLength bytes)
+UINT8   OptionalData[]       (remaining bytes)
+```
+
+All values are **little-endian**.
+
+---
+
+# Field Details
+
+### 1️⃣ Attributes (4 bytes)
+
+Common flags:
+
+| Bit | Meaning            |
+| --- | ------------------ |
+| 0   | LOAD_OPTION_ACTIVE |
+| 1   | FORCE_RECONNECT    |
+| 3   | HIDDEN             |
+
+Example:
+
+```
+01 00 00 00
+```
+
+= Active boot entry.
+
+---
+
+### 2️⃣ FilePathListLength (2 bytes)
+
+Length of device path section only.
+
+Example:
+
+```
+2A 00
+```
+
+= 0x002A = 42 bytes.
+
+---
+
+### 3️⃣ Description (UTF-16 string)
+
+Example:
+
+```
+55 00 62 00 75 00 6E 00 74 00 75 00 00 00
+```
+
+This spells:
+
+```
+Ubuntu
+```
+
+Each character = 2 bytes.
+
+Ends with `00 00`.
+
+---
+
+### 4️⃣ EFI_DEVICE_PATH
+
+Binary structure describing where bootloader is.
+
+Usually:
+
+* HD() → partition info
+* File() → path like `\EFI\ubuntu\grubx64.efi`
+
+Each device path node:
+
+```
+Type (1 byte)
+SubType (1 byte)
+Length (2 bytes)
+Data (...)
+```
+
+Ends with:
+
+```
+7F FF 04 00
+```
+
+This is END device path node.
+
+---
+
+### 5️⃣ OptionalData
+
+Optional extra parameters.
+
+Often empty.
+
+Can contain kernel command line if used by shim.
+
+Example:
+
+```
+72 6F 6F 74 3D 2F 64 65 76 ...
+```
+
+(ASCII text)
+
+---
+
+# Real World Example
+
+For Linux using:
+
+* GRUB
+* shim
+
+`Boot0001` contains:
+
+* Active flag
+* Description: "ubuntu"
+* Device path → partition GUID + `\EFI\ubuntu\shimx64.efi`
+
+---
+
+# Where It Is Stored
+
+Linux path:
+
+```
+/sys/firmware/efi/efivars/Boot0001-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+```
+
+First 4 bytes of file = variable attributes (not part of EFI_LOAD_OPTION).
+
+After that → raw structure above.
+
+---
+
+## Summary
+
+`Boot####` = structured binary:
+
+Attributes
+Length
+UTF-16 name
+Device path
+Optional data
+
+It is not text.
+It is packed firmware-level binary data.
+
+
+
+In UEFI, a **device path** is a packed binary structure.
+
+It tells firmware exactly *where* a boot file lives.
+
+---
+
+# General Binary Format
+
+Each node:
+
+```
+UINT8   Type
+UINT8   SubType
+UINT16  Length
+UINT8   Data[]
+```
+
+All little-endian.
+
+Multiple nodes are chained together.
+
+End of path is always:
+
+```
+Type = 0x7F
+SubType = 0xFF
+Length = 0x0004
+```
+
+Hex:
+
+```
+7F FF 04 00
+```
+
+---
+
+# Node Types (Common Ones)
+
+### 1️⃣ Hardware Device Path (Type 0x01)
+
+Example: PCI device
+
+---
+
+### 2️⃣ ACPI Device Path (Type 0x02)
+
+---
+
+### 3️⃣ Messaging Device Path (Type 0x03)
+
+Example: SATA, USB
+
+---
+
+### 4️⃣ Media Device Path (Type 0x04)
+
+Most important for boot entries.
+
+Common subtypes:
+
+* 0x01 → Hard Drive (HD)
+* 0x04 → File Path
+
+---
+
+# Example: Hard Drive Node (HD)
+
+Structure:
+
+```
+Type        = 0x04
+SubType     = 0x01
+Length      = 0x002A (42 bytes)
+PartitionNumber (4 bytes)
+PartitionStartLBA (8 bytes)
+PartitionSize (8 bytes)
+PartitionGUID (16 bytes)
+SignatureType (1 byte)
+Signature (variable)
+```
+
+This encodes GPT partition GUID.
+
+---
+
+# Example: File Path Node
+
+Type 0x04
+SubType 0x04
+
+Data = UTF-16 string like:
+
+```
+\EFI\ubuntu\shimx64.efi
+```
+
+Stored as UTF-16 (2 bytes per char).
+
+---
+
+# Real Boot Flow Example
+
+Boot entry for:
+
+* shim
+* GRUB
+
+Device path chain looks like:
+
+PCI → SATA → HD(GPT partition GUID) → File(\EFI\ubuntu\shimx64.efi) → END
+
+Each segment is one structured node.
+
+---
+
+# How It Looks in Hex (Simplified)
+
+```
+04 01 2A 00   ← HD node
+...GUID...
+04 04 XX 00   ← File node
+5C 00 45 00 46 00 49 00 ...
+7F FF 04 00   ← End
+```
+
+---
+
+# Important Properties
+
+✔ Binary, not text
+✔ Self-describing (length field inside each node)
+✔ Can represent any hardware chain
+✔ Fully architecture independent
+
+---
+
+## Simple View
+
+Device path = chain of binary location blocks
+Each block says:
+“Go here → then here → then this file”
+
+
+
+
+When UEFI **NVRAM fills up**, firmware cannot store new variables.
+
+This affects boot entries and Secure Boot keys.
+
+---
+
+## What starts failing
+
+In UEFI systems:
+
+* `efibootmgr` fails with *No space left on device*
+* Cannot create new `Boot####` entries
+* Cannot update BootOrder
+* Secure Boot key updates fail
+* Kernel may log EFI variable write errors
+
+System may still boot —
+but you cannot modify boot settings.
+
+---
+
+## Why it happens
+
+NVRAM is very small:
+
+* Often only 64KB–256KB total
+* Shared by:
+
+  * Boot variables
+  * Secure Boot keys (PK, KEK, db, dbx)
+  * Crash logs
+  * Vendor variables
+
+Some firmware also leaks space over time.
+
+---
+
+## Worst case
+
+If firmware bug occurs:
+
+* Boot entries become corrupted
+* System may refuse to boot
+* Cannot save new variables
+
+Rare, but possible.
+
+---
+
+## How to fix
+
+### 1️⃣ Remove unused boot entries
+
+```
+sudo efibootmgr
+sudo efibootmgr -b 0007 -B
+```
+
+(Delete unnecessary entries.)
+
+---
+
+### 2️⃣ Delete duplicate variables
+
+Check:
+
+```
+ls /sys/firmware/efi/efivars/
+```
+
+Remove unused custom vars carefully.
+
+---
+
+### 3️⃣ Reset firmware to defaults
+
+From BIOS setup → "Restore Defaults"
+
+This often clears NVRAM.
+
+---
+
+### 4️⃣ Clear Secure Boot keys (if safe)
+
+Deletes large key databases.
+
+---
+
+## Important
+
+NVRAM full ≠ disk full.
+
+It is firmware storage only.
+
+---
+
+### Simple view
+
+Disk full → OS problem
+NVRAM full → firmware configuration problem
+
+Usually recoverable by cleaning boot entries.
+
+
+EFI executables (like bootloaders) use the **PE/COFF** format
+— same base format as Windows `.exe`.
+
+Used by UEFI firmware.
+
+---
+
+# High-Level Layout
+
+```
+[ DOS Header ]
+[ PE Signature ]
+[ COFF Header ]
+[ Optional Header ]
+[ Section Table ]
+[ Sections (.text, .data, etc) ]
+```
+
+All little-endian.
+
+---
+
+# 1️⃣ DOS Header (Legacy Stub)
+
+Starts with:
+
+```
+4D 5A
+```
+
+ASCII: `"MZ"`
+
+Contains pointer to PE header (`e_lfanew` offset).
+
+---
+
+# 2️⃣ PE Signature
+
+At offset from DOS header:
+
+```
+50 45 00 00
+```
+
+ASCII: `"PE\0\0"`
+
+---
+
+# 3️⃣ COFF Header
+
+Contains:
+
+* Machine type (x86_64 = 0x8664)
+* Number of sections
+* Timestamp
+* Characteristics flags
+
+Example machine values:
+
+* 0x014C → x86
+* 0x8664 → x86_64
+* 0xAA64 → ARM64
+
+---
+
+# 4️⃣ Optional Header (Important)
+
+Not really optional.
+
+Contains:
+
+* Entry point address
+* Image base
+* Section alignment
+* Size of image
+* Subsystem type
+
+For EFI apps:
+
+```
+Subsystem = 10 (EFI_APPLICATION)
+```
+
+Other values:
+
+* 11 → EFI_BOOT_SERVICE_DRIVER
+* 12 → EFI_RUNTIME_DRIVER
+
+---
+
+# 5️⃣ Section Table
+
+Lists sections like:
+
+* `.text` (code)
+* `.data`
+* `.rdata`
+* `.reloc`
+
+Each entry:
+
+```
+Name (8 bytes)
+VirtualSize
+VirtualAddress
+SizeOfRawData
+PointerToRawData
+Characteristics
+```
+
+---
+
+# 6️⃣ Relocation Section (.reloc)
+
+Very important for EFI.
+
+UEFI loads image at arbitrary address.
+Relocation entries allow fixing absolute addresses.
+
+Without `.reloc`, firmware may refuse to load.
+
+---
+
+# 7️⃣ Digital Signature (Secure Boot)
+
+If Secure Boot enabled:
+
+Signature is stored in:
+
+```
+WIN_CERTIFICATE
+```
+
+Located after image sections.
+
+Firmware:
+
+1. Hashes image (excluding signature block)
+2. Verifies RSA signature
+3. Compares against trusted keys
+
+Used by:
+
+* shim
+* GRUB
+
+---
+
+# How Firmware Loads It
+
+UEFI:
+
+1. Parses PE headers
+2. Allocates memory
+3. Applies relocations
+4. Jumps to EntryPoint
+
+No DOS, no Windows loader involved.
+
+---
+
+## Simple View
+
+PE/COFF = structured executable container
+
+Headers → describe image
+Sections → contain code/data
+Reloc → fix addresses
+Signature → prove trust
+
+It’s a portable binary format adapted for firmware.
+
+
+
+Secure Boot verifies EFI binaries using **public-key cryptography**.
+
+Defined by Secure Boot in UEFI.
+
+---
+
+# Step-by-Step Verification
+
+## 1️⃣ Firmware loads EFI file
+
+Example:
+
+* `\EFI\BOOT\BOOTX64.EFI`
+* shim
+* GRUB
+
+Firmware reads the PE/COFF structure.
+
+---
+
+## 2️⃣ Locate Signature Block
+
+Inside the PE file is a:
+
+```
+WIN_CERTIFICATE
+```
+
+Contains:
+
+* Hash algorithm (usually SHA-256)
+* RSA signature
+* Signer certificate
+
+Signature is stored at end of file.
+
+---
+
+## 3️⃣ Compute Hash
+
+Firmware:
+
+* Hashes entire image
+* Excludes signature region
+* Uses SHA-256 (most common)
+
+Result = calculated digest.
+
+---
+
+## 4️⃣ Verify RSA Signature
+
+Using signer’s public key:
+
+* Decrypt signature
+* Compare decrypted hash with calculated hash
+
+If they match → file not modified.
+
+---
+
+## 5️⃣ Check Trust Database
+
+Firmware compares signer certificate against:
+
+* **db** → allowed keys
+* **dbx** → revoked keys
+
+If key is:
+
+✔ In db → allowed
+❌ In dbx → blocked
+
+---
+
+# Trust Chain Example (Linux)
+
+UEFI → shim → GRUB → kernel
+
+* shim signed by Microsoft key (in db)
+* shim verifies GRUB
+* GRUB verifies kernel
+* Kernel verifies modules
+
+This creates a full chain of trust.
+
+---
+
+# If Verification Fails
+
+Firmware will:
+
+* Refuse to execute
+* Show “Security Violation”
+* Stop boot
+
+---
+
+# Why This Is Strong
+
+CRC = detects random corruption
+Secure Boot = prevents malicious modification
+
+Attacker cannot forge signature
+without private key.
+
+---
+
+## Simple View
+
+1. Hash file
+2. Verify signature
+3. Check trusted key
+4. Execute only if trusted
+
+That is how EFI binary integrity is enforced.
+
+
+UEFI boots from the **EFI System Partition (ESP)**
+which is formatted as FAT32.
+
+If FAT is corrupted → firmware cannot read boot files.
+
+---
+
+## What UEFI Needs
+
+On ESP:
+
+```
+\EFI\BOOT\BOOTX64.EFI
+```
+
+or distro loader like:
+
+* GRUB
+* shim
+
+UEFI has a built-in FAT driver.
+It must read directory + file clusters correctly.
+
+---
+
+# Types of FAT Corruption & Effects
+
+## 1️⃣ Directory Entry Corruption
+
+* File not found
+* “No bootable device”
+* Firmware falls back to next boot entry
+
+---
+
+## 2️⃣ FAT Table Corruption
+
+* Wrong cluster chain
+* Bootloader partially read
+* Secure Boot hash mismatch
+* Boot fails with security error
+
+---
+
+## 3️⃣ Boot Sector Corruption
+
+* Filesystem unreadable
+* ESP appears invalid
+* Firmware cannot parse partition
+
+---
+
+## 4️⃣ Cluster Data Damage
+
+* Bootloader file corrupted
+* Signature verification fails
+* Secure Boot blocks execution
+
+---
+
+# Why It’s Critical
+
+UEFI does NOT understand ext4, btrfs, etc.
+
+It only understands FAT on ESP.
+
+If FAT breaks →
+UEFI cannot even load first-stage bootloader.
+
+---
+
+# Symptoms
+
+* “No bootable device”
+* Boot loops into firmware
+* Secure Boot violation error
+* OS still intact but unreachable
+
+---
+
+# Recovery
+
+1. Boot from live USB
+2. Run:
+
+```
+fsck.vfat /dev/sdX1
+```
+
+3. If ESP badly damaged:
+
+   * Reformat ESP as FAT32
+   * Reinstall bootloader
+
+---
+
+## Important
+
+FAT corruption does NOT damage:
+
+* Your root filesystem
+* Your home files
+
+It only blocks boot path.
+
+---
+
+### Simple View
+
+FAT on ESP = front door
+If door breaks → house still exists
+but you cannot enter.
+
+
+
+Kernel module signing protects the kernel from loading unauthorized code (especially when Secure Boot is enabled).
+
+Attackers try to bypass it in several ways:
+
+---
+
+## 1️⃣ Disable Secure Boot
+
+If attacker gains firmware access:
+
+* Turn off Secure Boot
+* Kernel stops enforcing signature checks
+* Unsigned modules can load
+
+Requires physical or admin access.
+
+---
+
+## 2️⃣ Use a Signed but Vulnerable Bootloader
+
+Exploit a trusted, signed loader (example old GRUB bug):
+
+* Load malicious kernel
+* Bypass signature enforcement
+
+This is called **bootloader downgrade attack**.
+
+---
+
+## 3️⃣ Exploit Kernel Vulnerabilities
+
+If attacker gains root via exploit:
+
+* Patch kernel memory
+* Disable module signature enforcement flag
+* Load unsigned module
+
+Common target:
+`module_sig_enforced` variable in memory.
+
+---
+
+## 4️⃣ Use Signed Malicious Module
+
+If attacker steals a private signing key:
+
+* Sign malicious module legitimately
+* Kernel accepts it
+
+Rare but very dangerous.
+
+---
+
+## 5️⃣ Abuse DKMS / Local Signing
+
+On Linux systems:
+
+* Local Machine Owner Key (MOK) used by shim
+* Attacker enrolls their own key
+* Signs malicious module
+
+Requires admin privileges.
+
+---
+
+## 6️⃣ Direct Kernel Memory Attack
+
+If attacker has:
+
+* DMA access
+* Physical access
+* Hardware attack
+
+They may inject code without loading a module.
+
+---
+
+# Why It’s Hard
+
+When Secure Boot + lockdown mode enabled:
+
+* Kernel refuses unsigned modules
+* Even root cannot bypass easily
+* Signature verified cryptographically
+
+---
+
+## Core Idea
+
+Module signing stops:
+
+✔ Persistent rootkits
+✔ Boot-time kernel malware
+
+Attackers must either:
+
+* Break firmware trust
+* Break kernel security
+* Steal signing keys
+
+Otherwise, bypass is very difficult.
+
+
+
+TPM + Measured Boot does **not block** code.
+It **records hashes** so tampering can be detected later.
+
+Used with Trusted Platform Module and Secure Boot.
+
+---
+
+# Core Idea
+
+Every important boot component is:
+
+1. Hashed (SHA-256 usually)
+2. Hash extended into TPM PCR register
+3. Stored permanently until reboot
+
+This creates a **tamper-evident chain**.
+
+---
+
+# During Boot (Step by Step)
+
+## 1️⃣ Firmware stage
+
+UEFI hashes:
+
+* Firmware code
+* Bootloader (e.g. shim)
+* GRUB
+
+Extends into PCR[0–7].
+
+---
+
+## 2️⃣ Kernel stage
+
+Linux IMA (Integrity Measurement Architecture):
+
+* Hashes kernel image
+* Hashes each loaded kernel module
+* Hashes important files (optional)
+
+Each hash is:
+
+```
+PCR_new = SHA256(PCR_old || new_hash)
+```
+
+This is called a **PCR extend** operation.
+
+PCR cannot be rewritten — only extended.
+
+---
+
+# Where Module Hashes Go
+
+* IMA measures module file before loading
+* Hash recorded in:
+
+  * TPM PCR (usually PCR[10])
+  * IMA measurement log (`/sys/kernel/security/ima/ascii_runtime_measurements`)
+
+TPM stores only cumulative value.
+Log stores individual hashes.
+
+---
+
+# Why This Matters
+
+If attacker:
+
+* Loads malicious module
+* Modifies kernel
+
+PCR value changes.
+
+Remote attestation server can:
+
+* Request TPM quote
+* Compare PCR values to known-good baseline
+* Detect compromise
+
+---
+
+# Important Difference
+
+Secure Boot → prevents unsigned modules
+Measured Boot → records what was actually loaded
+
+One blocks.
+One audits.
+
+---
+
+# Simple View
+
+Module loads →
+Kernel hashes it →
+TPM extends PCR →
+Tampering becomes cryptographically visible.
+
+
+Integrity Measurement Architecture (IMA) extends Measured Boot from **boot components** to the **entire runtime system**.
+
+TPM alone records early boot.
+IMA records what happens *after* the kernel starts.
+
+---
+
+# 1️⃣ Measures Files at Runtime
+
+IMA can hash:
+
+* Kernel modules
+* Executables (`/bin`, `/usr/bin`)
+* Shared libraries
+* Config files
+* Scripts
+
+Every time a file is opened for execution or read.
+
+Each hash is:
+
+* Logged
+* Extended into TPM PCR (often PCR 10)
+
+---
+
+# 2️⃣ Creates a Measurement Log
+
+Stored in:
+
+```
+/sys/kernel/security/ima/ascii_runtime_measurements
+```
+
+This contains:
+
+* File path
+* Hash
+* PCR index
+
+TPM keeps only final cumulative PCR value.
+IMA log keeps full history.
+
+---
+
+# 3️⃣ Adds Appraisal (Not Just Measurement)
+
+IMA can enforce signature verification.
+
+If enabled:
+
+* File must be signed
+* Hash must match stored value
+* Unsigned file → execution blocked
+
+This goes beyond passive measurement.
+
+---
+
+# 4️⃣ Protects Against Runtime Tampering
+
+Without IMA:
+
+* Attacker modifies `/bin/ls`
+* System runs it silently
+
+With IMA appraisal:
+
+* Hash mismatch detected
+* Execution denied
+
+---
+
+# 5️⃣ Enables Remote Attestation
+
+Server can:
+
+1. Request TPM quote
+2. Get PCR values
+3. Compare against approved baseline
+4. Decide if system is trusted
+
+This works even after boot.
+
+---
+
+# Full Protection Chain
+
+Firmware → Secure Boot → Kernel → IMA → TPM
+
+Secure Boot = enforce trust at boot
+Measured Boot = record boot hashes
+IMA = record and optionally enforce runtime integrity
+
+---
+
+## Simple View
+
+TPM = secure notebook
+Measured Boot = writes boot hashes
+IMA = keeps writing everything important during system life
+
+It turns the whole OS into a measurable, auditable system.
+
+
+
+
+## BootHole (CVE-2020-10713)
+
+BootHole was a flaw in GRUB that allowed bypassing Secure Boot — even though everything was properly signed.
+
+---
+
+# Core Problem
+
+GRUB parsed its configuration file:
+
+```
+grub.cfg
+```
+
+But:
+
+* `grub.cfg` is **not signed**
+* GRUB trusted it
+* Parser had a **buffer overflow bug**
+
+Attacker could modify `grub.cfg` and trigger memory corruption.
+
+---
+
+# How It Worked (Technically)
+
+### 1️⃣ Secure Boot loads signed GRUB
+
+UEFI verifies signature → GRUB allowed.
+
+---
+
+### 2️⃣ Attacker modifies grub.cfg
+
+ESP is usually writable from OS.
+
+Attacker places:
+
+* Maliciously long command
+* Special crafted syntax
+
+Example concept:
+
+```
+menuentry 'AAAAA...(very long)...'
+```
+
+This overflowed an internal buffer.
+
+---
+
+### 3️⃣ Buffer Overflow Occurs
+
+GRUB’s config parser:
+
+* Copied input into fixed-size buffer
+* No proper bounds checking
+* Overflow overwrote memory
+
+This allowed:
+
+* Code execution inside GRUB context
+
+---
+
+### 4️⃣ Load Unsigned Kernel
+
+After gaining control:
+
+* Disable verification logic
+* Load unsigned kernel
+* Secure Boot bypassed
+
+Because attack happened *inside* trusted GRUB.
+
+---
+
+# Why It Was Serious
+
+* GRUB is signed by Microsoft
+* Used by many Linux distributions
+* Exploit worked even with Secure Boot ON
+* Persisted below OS level
+
+---
+
+# Fix
+
+Vendors:
+
+* Patched GRUB parser
+* Revoked vulnerable GRUB versions in UEFI dbx (revocation list)
+* Updated shim + GRUB packages
+
+---
+
+# Key Lesson
+
+Secure Boot verifies binaries.
+It does NOT verify configuration files.
+
+If signed code has parsing bugs →
+trust chain collapses.
+
+---
+
+## Simple View
+
+Secure Boot → “Is GRUB signed?” ✔
+BootHole → “GRUB signed, but exploitable.”
+
+Signed ≠ safe if code has vulnerability.
+
+
+
+
+Firmware rootkits live **below the OS and bootloader**.
+They modify firmware itself, not just disk files.
+
+Secure Boot verifies bootloaders —
+but does **not** verify firmware integrity at runtime.
+
+---
+
+# How They Persist
+
+## 1️⃣ Modify SPI Flash Firmware
+
+UEFI firmware is stored in SPI flash chip.
+
+Attacker:
+
+* Gains kernel-level access
+* Uses firmware update interface
+* Rewrites part of firmware image
+* Inserts malicious DXE driver
+
+Now malware runs **before Secure Boot**.
+
+Secure Boot trusts firmware completely.
+
+---
+
+## 2️⃣ Insert Malicious DXE Driver
+
+During boot:
+
+UEFI loads DXE drivers from firmware volume.
+
+Malicious DXE can:
+
+* Hook disk reads
+* Modify bootloader in memory
+* Patch kernel before execution
+
+Secure Boot never sees this modification.
+
+---
+
+## 3️⃣ Modify NVRAM Variables
+
+Attackers can:
+
+* Add hidden `Boot####` entry
+* Change BootOrder
+* Enroll malicious keys
+
+If firmware protection is weak → persists across reinstalls.
+
+---
+
+## 4️⃣ Exploit Firmware Update Mechanism
+
+Some vendors:
+
+* Don’t verify capsule updates properly
+* Allow unsigned firmware flashing
+
+Attacker installs backdoored firmware image.
+
+---
+
+## 5️⃣ SMM (System Management Mode) Abuse
+
+SMM runs at higher privilege than OS.
+
+Malicious firmware can:
+
+* Inject code into kernel memory
+* Hide itself from OS detection
+
+This is extremely stealthy.
+
+---
+
+# Why Secure Boot Doesn't Stop It
+
+Secure Boot assumes:
+
+Firmware = trusted root.
+
+If firmware is compromised →
+entire trust chain collapses.
+
+---
+
+# Real Examples
+
+* LoJax (UEFI rootkit)
+* MoonBounce (SPI firmware implant)
+
+These survived:
+
+* Disk formatting
+* OS reinstall
+* Bootloader replacement
+
+---
+
+# Defense Mechanisms
+
+* Firmware write protection
+* Boot Guard (CPU-level firmware verification)
+* TPM Measured Boot
+* Firmware integrity checks
+
+---
+
+## Simple View
+
+Secure Boot protects **above firmware**.
+Firmware rootkits live **below Secure Boot**.
+
+If root of trust is infected →
+everything above can be silently controlled.
+
+
+TPM sealing ties a secret (like a disk key) to specific boot measurements.
+
+Uses Trusted Platform Module with Measured Boot.
+
+---
+
+# Core Idea
+
+Secret is stored in TPM in **sealed form**.
+
+It can only be released if:
+
+PCR values match expected measurements.
+
+If anything changes → TPM refuses.
+
+---
+
+# How It Works (Step by Step)
+
+## 1️⃣ During Setup
+
+Disk encryption key (for LUKS, BitLocker, etc.) is:
+
+* Generated
+* Sealed inside TPM
+* Bound to selected PCRs (e.g. PCR 0, 7, 10)
+
+TPM stores:
+
+```
+Encrypted key + PCR policy
+```
+
+---
+
+## 2️⃣ During Boot
+
+Measured Boot records hashes of:
+
+* Firmware
+* Bootloader
+* Kernel
+* (Optional) IMA runtime data
+
+PCR registers are extended.
+
+---
+
+## 3️⃣ Key Unseal Attempt
+
+System asks TPM:
+
+“Release disk key.”
+
+TPM checks:
+
+* Do current PCR values match sealed policy?
+
+If yes → returns key
+If no → refuses
+
+---
+
+# What Changes PCR?
+
+* Modified firmware
+* Different bootloader
+* Tampered kernel
+* Secure Boot state change
+
+Even one hash difference → different PCR value.
+
+---
+
+# Example Scenario
+
+Attacker:
+
+* Copies encrypted disk
+* Boots with modified GRUB
+* Tries to decrypt
+
+PCR values differ →
+TPM will not release key.
+
+Disk remains locked.
+
+---
+
+# Why This Is Strong
+
+PCR values cannot be rewritten manually.
+
+They are:
+
+```
+PCR_new = SHA256(PCR_old || measurement)
+```
+
+This makes rollback impossible without reset.
+
+---
+
+# Real Usage
+
+* Linux with LUKS2 + TPM2
+* Windows BitLocker
+* Enterprise remote attestation
+
+---
+
+## Simple View
+
+TPM sealing =
+
+“Only unlock disk if system booted exactly as expected.”
+
+Change boot chain →
+no key → no decryption.
+
+
+Measured Boot (with Trusted Platform Module) does not block execution — it records hashes.
+Attackers try to avoid, fake, or neutralize those measurements.
+
+---
+
+## 1️⃣ Disable TPM / Clear PCR Use
+
+If attacker has admin or firmware access:
+
+* Disable TPM in BIOS
+* Clear TPM
+* Remove sealing requirement
+* Boot without PCR binding
+
+Works only if system policy is weak.
+
+---
+
+## 2️⃣ Boot with Same Measurements (Evil but Identical)
+
+If attacker can:
+
+* Use same signed bootloader
+* Use same kernel version
+* Avoid changing measured files
+
+PCR values remain identical.
+
+Measured Boot cannot detect attacks that reuse trusted components.
+
+---
+
+## 3️⃣ Attack After Measurement
+
+Measured Boot records what was loaded.
+
+Attacker may:
+
+* Exploit kernel vulnerability *after* boot
+* Inject code into memory
+* Avoid modifying measured files
+
+PCR remains valid.
+
+---
+
+## 4️⃣ Compromise Firmware (Below Measurement)
+
+If firmware itself is malicious:
+
+* It can fake measurements
+* Extend fake hashes into PCR
+* Hide modifications
+
+Since firmware measures first — root compromise breaks trust.
+
+---
+
+## 5️⃣ Replay / Fake TPM Quote (Advanced)
+
+In remote attestation scenarios:
+
+* Malware intercepts TPM quote
+* Replays old valid PCR quote
+
+Mitigation: nonce-based challenge.
+
+---
+
+## 6️⃣ Exploit Weak PCR Selection
+
+If disk key sealed only to PCR7 (Secure Boot state):
+
+Attacker might:
+
+* Keep Secure Boot enabled
+* Modify kernel modules (not included in selected PCRs)
+
+Improper PCR policy weakens protection.
+
+---
+
+# Important Limitation
+
+Measured Boot:
+
+✔ Detects boot-time tampering
+❌ Does not prevent runtime exploits
+❌ Does not stop in-memory attacks
+
+It is an auditing system, not a firewall.
+
+---
+
+## Real Defense Requires
+
+* Secure Boot (enforcement)
+* TPM sealing
+* IMA appraisal
+* Firmware protections
+* Regular attestation validation
+
+---
+
+## Simple View
+
+Measured Boot records reality.
+Attackers try to:
+
+* Avoid being measured
+* Match expected measurements
+* Attack after measurement
+* Break root of trust
+
+If firmware or policy is weak → bypass becomes possible.
+
+
+
+
+Integrity Measurement Architecture (IMA) measures executables using **kernel hooks** in the file access path.
+
+It does this automatically inside the kernel — not user space.
+
+---
+
+# 1️⃣ Kernel Hook on File Open
+
+When a process tries to:
+
+* `execve()` (run a program)
+* `insmod` (load module)
+* Access protected file
+
+Kernel calls:
+
+```
+security_file_open()
+```
+
+IMA is hooked into Linux Security Module (LSM) framework.
+
+---
+
+# 2️⃣ Policy Decides What to Measure
+
+IMA policy file (example):
+
+```
+/etc/ima/ima-policy
+```
+
+Common rule:
+
+```
+measure func=BPRM_CHECK
+```
+
+Meaning:
+
+Measure every binary executed.
+
+Other rules can measure:
+
+* Modules
+* Firmware files
+* Libraries
+* Config files
+
+---
+
+# 3️⃣ Hash Calculation
+
+Before execution:
+
+1. Kernel reads file
+2. Computes hash (SHA-256 default)
+3. Creates measurement entry
+
+Hash includes file contents only.
+
+---
+
+# 4️⃣ Extend to TPM
+
+If TPM enabled:
+
+```
+PCR_new = SHA256(PCR_old || file_hash)
+```
+
+Usually extended into PCR 10.
+
+This makes measurements tamper-evident.
+
+---
+
+# 5️⃣ Store in Measurement Log
+
+Runtime log:
+
+```
+/sys/kernel/security/ima/ascii_runtime_measurements
+```
+
+Each line contains:
+
+* PCR index
+* Hash algorithm
+* File hash
+* File path
+
+Example entry:
+
+```
+10 sha256:abcd1234... /usr/bin/bash
+```
+
+---
+
+# 6️⃣ Optional: Appraisal Mode
+
+IMA can also enforce:
+
+* File must be signed
+* Hash must match xattr value
+* Otherwise execution blocked
+
+This is stronger than just measuring.
+
+---
+
+# Important Behavior
+
+IMA measures at:
+
+* Execution time
+* Module load time
+* File access time (if configured)
+
+It does NOT constantly scan disk.
+It measures when files are used.
+
+---
+
+# Limitations
+
+* In-memory tampering after load not re-measured
+* Kernel memory attacks bypass measurement
+* Requires correct policy configuration
+
+---
+
+## Simple View
+
+Process runs binary →
+Kernel intercepts →
+File hashed →
+Hash logged →
+PCR extended
+
+Every executed file leaves a cryptographic trace.
+
+
+
+BitLocker uses Trusted Platform Module to protect the disk encryption key by **sealing it to PCR values**.
+
+---
+
+# Core Idea
+
+Disk is encrypted with a **Volume Master Key (VMK)**.
+
+The VMK is:
+
+* Encrypted
+* Sealed inside TPM
+* Bound to specific PCR measurements
+
+If boot state changes → TPM refuses to release VMK.
+
+---
+
+# Step-by-Step Flow
+
+## 1️⃣ During Setup
+
+BitLocker:
+
+1. Generates VMK
+2. Encrypts disk sectors with Full Volume Encryption Key (FVEK)
+3. Seals VMK to TPM with selected PCRs
+
+Common PCR bindings:
+
+* PCR 0 → Firmware
+* PCR 2 → Option ROMs
+* PCR 4 → Bootloader
+* PCR 7 → Secure Boot state
+
+---
+
+## 2️⃣ Normal Boot
+
+Measured Boot records:
+
+* Firmware
+* Boot manager
+* Boot configuration
+* Secure Boot state
+
+PCR values match what was sealed.
+
+TPM releases VMK automatically.
+
+User sees no password prompt.
+
+---
+
+## 3️⃣ If Something Changes
+
+Examples:
+
+* Secure Boot disabled
+* Bootloader modified
+* Firmware updated
+* Disk moved to another machine
+
+PCR values differ.
+
+TPM refuses to unseal VMK.
+
+System asks for **Recovery Key**.
+
+---
+
+# Why This Is Strong
+
+Attacker cannot:
+
+* Copy disk to another PC
+* Modify bootloader silently
+* Disable Secure Boot unnoticed
+
+Without correct PCR state → no key.
+
+---
+
+# Recovery Mode
+
+If legitimate change happens:
+
+* Firmware update
+* BIOS reset
+
+User enters 48-digit recovery key
+System reseals VMK to new PCR values.
+
+---
+
+# Important Limitation
+
+If attacker has:
+
+* Full admin access while system running
+* DMA attack while unlocked
+
+They can extract keys from memory.
+
+TPM sealing protects **at boot**, not after unlock.
+
+---
+
+## Simple View
+
+BitLocker =
+
+“Unlock disk only if system booted exactly as expected.”
+
+Change boot chain → TPM blocks → recovery required.
+
+
+Attackers try to fake Trusted Platform Module PCR values to trick systems like BitLocker into releasing sealed keys.
+
+They **cannot directly modify PCRs** — TPM hardware prevents that.
+So they attack the measurement process instead.
+
+---
+
+## 1️⃣ Boot Before Measurement (Pre-measurement attacks)
+
+If malicious code runs **before** PCR extension happens:
+
+* It can measure clean code
+* Then execute malicious payload afterward
+
+Example: modify bootloader but keep measured part untouched.
+
+---
+
+## 2️⃣ Evil Maid Attack
+
+Attacker with physical access:
+
+* Replaces bootloader
+* Tricks user to enter recovery key
+* Captures it
+
+No PCR faking — just bypass via social engineering.
+
+---
+
+## 3️⃣ Firmware-Level Implants
+
+Malicious UEFI firmware:
+
+* Controls what gets measured
+* Can extend fake hashes into PCRs
+
+If firmware itself is compromised, trust chain breaks.
+
+---
+
+## 4️⃣ TPM Emulation / Virtual TPM Abuse
+
+In VMs:
+
+* If attacker controls hypervisor
+* They can fake virtual TPM PCR values
+
+Real hardware TPMs resist this.
+
+---
+
+## 5️⃣ Replay Attacks (Old PCR State)
+
+If system does not use proper anti-replay protections:
+
+* Previously valid PCR state may be replayed
+* TPM releases sealed secret
+
+Modern TPM 2.0 prevents most replay scenarios.
+
+---
+
+## 6️⃣ DMA or Memory Attacks After Unlock
+
+Attacker waits until:
+
+* System boots normally
+* TPM releases key
+
+Then extracts encryption keys from RAM.
+
+PCRs weren’t faked — protection bypassed after boot.
+
+---
+
+# Why Direct PCR Forging Is Nearly Impossible
+
+PCR extension formula:
+
+```
+PCR_new = HASH(PCR_old || new_measurement)
+```
+
+Because of chaining:
+
+* You cannot set arbitrary value
+* You must replay entire correct measurement chain
+
+And TPM does not allow manual PCR writes.
+
+---
+
+# Strongest Protection
+
+To resist PCR faking:
+
+* Secure Boot enabled
+* Firmware protected
+* TPM 2.0 hardware (not emulated)
+* Measured Boot enabled
+* Physical security enforced
+
+---
+
+## Simple View
+
+Attackers don’t “change PCR numbers.”
+They try to:
+
+* Control what gets measured
+* Run code before measurement
+* Steal keys after TPM unlock
+
+Real hardware TPM + clean firmware makes PCR faking extremely difficult.
+
+
+To check PCR values in Linux, you query the Trusted Platform Module directly.
+
+---
+
+## 1️⃣ Check if TPM exists
+
+```
+ls /dev/tpm*
+```
+
+If you see `/dev/tpm0`, TPM is present.
+
+---
+
+## 2️⃣ Install TPM2 tools
+
+Package:
+
+```
+tpm2-tools
+```
+
+---
+
+## 3️⃣ Read All PCRs
+
+For TPM 2.0:
+
+```
+tpm2_pcrread
+```
+
+Example output:
+
+```
+sha256:
+  0 : 3A5F...
+  1 : 9C12...
+  7 : B81D...
+  10: 7F4A...
+```
+
+Common PCR meanings:
+
+* PCR 0 → Firmware
+* PCR 2 → Option ROM
+* PCR 4 → Bootloader
+* PCR 7 → Secure Boot
+* PCR 10 → IMA measurements
+
+---
+
+## 4️⃣ Read Specific PCR
+
+Example:
+
+```
+tpm2_pcrread sha256:7
+```
+
+---
+
+## 5️⃣ Check IMA Measurement Log
+
+If using Integrity Measurement Architecture:
+
+```
+cat /sys/kernel/security/ima/ascii_runtime_measurements
+```
+
+These hashes are extended into PCR 10.
+
+---
+
+## 6️⃣ Verify Secure Boot State
+
+```
+mokutil --sb-state
+```
+
+PCR 7 changes if Secure Boot changes.
+
+---
+
+## Simple Summary
+
+```
+tpm2_pcrread
+```
+
+= shows your machine’s boot integrity fingerprints.
+
+If PCR values change unexpectedly → something in boot chain changed.
+
+
+Here’s the simple full picture:
+
+Linux boot with **UEFI + GPT + GRUB** is a chain of components working together.
+
+---
+
+# 1️⃣ Disk Layout (GPT)
+
+Disk uses **GPT (GUID Partition Table)**.
+
+Typical layout:
+
+* EFI System Partition (ESP) → FAT32
+* Linux root partition (ext4, btrfs, etc.)
+
+ESP contains bootloaders.
+
+---
+
+# 2️⃣ UEFI Firmware
+
+When PC powers on:
+
+UEFI firmware:
+
+1. Reads GPT
+2. Finds the EFI System Partition
+3. Looks for a boot entry in NVRAM (Boot####)
+4. Loads an `.efi` file from ESP
+
+Example path:
+
+```
+\EFI\ubuntu\grubx64.efi
+```
+
+---
+
+# 3️⃣ GRUB EFI Binary
+
+That file is:
+
+GNU GRUB compiled as a UEFI application (PE/COFF format).
+
+UEFI executes it like a program.
+
+No MBR stage.
+No BIOS real mode.
+It runs in 64-bit UEFI environment.
+
+---
+
+# 4️⃣ What GRUB Does
+
+GRUB:
+
+1. Loads its modules
+2. Reads `/boot/grub/grub.cfg`
+3. Displays boot menu
+4. Loads Linux kernel (`vmlinuz`)
+5. Loads initramfs
+6. Calls `ExitBootServices()`
+7. Jumps to kernel
+
+---
+
+# 5️⃣ Kernel Takes Over
+
+Linux kernel:
+
+* Initializes memory
+* Mounts root filesystem
+* Starts init system
+
+Boot complete.
+
+---
+
+# How GPT, UEFI, and GRUB Connect
+
+| Component | Role                     |
+| --------- | ------------------------ |
+| GPT       | Defines partitions       |
+| ESP       | Stores `.efi` bootloader |
+| UEFI      | Loads EFI executable     |
+| GRUB      | Loads Linux kernel       |
+
+GPT does NOT load GRUB.
+UEFI does.
+
+---
+
+# Secure Boot Case
+
+If Secure Boot enabled:
+
+UEFI verifies signature of:
+
+* `grubx64.efi`
+* Kernel (if shim used)
+
+Common chain:
+
+Firmware → shim → GRUB → kernel
+
+Shim example:
+
+Shim (bootloader)
+
+---
+
+# Important Distinction
+
+Old BIOS boot:
+MBR → GRUB stage1 → stage2
+
+Modern UEFI boot:
+UEFI → EFI file → GRUB → kernel
+
+No embedding in first sectors needed.
+
+---
+
+# Minimal Summary
+
+GPT = disk map
+ESP = bootloader storage
+UEFI = loader
+GRUB = kernel launcher
+Linux = operating system
+
+All independent but chained together cleanly.
+
+
+
+Here’s what happens when **GPT or ESP is corrupted** and how UEFI tries to handle it:
+
+---
+
+# 1️⃣ GPT Header Corruption
+
+* GPT stores **primary header at LBA 1** and **backup header at the last LBA**.
+* If **primary header** is corrupted:
+
+  * Firmware may still read **backup header**.
+  * UEFI checks CRC32 of header and partition entries.
+  * If backup is valid → firmware uses it to reconstruct primary.
+  * If both are corrupted → firmware cannot locate partitions → boot fails.
+
+**Symptoms:**
+
+* “No bootable device”
+* GRUB `.efi` not found
+* Recovery shell may appear
+
+---
+
+# 2️⃣ EFI System Partition (ESP) Corruption
+
+ESP is FAT32 and stores bootloaders (`.efi`):
+
+* **Directory entry corrupted:** bootloader file not found
+* **FAT table corrupted:** file partially readable → Secure Boot may fail (signature check)
+* **Boot sector damaged:** ESP unreadable → UEFI cannot access any `.efi` file
+
+**Symptoms:**
+
+* Boot entry fails
+* “No bootable device”
+* System drops to firmware setup or recovery
+
+---
+
+# 3️⃣ UEFI Automatic Recovery
+
+UEFI can attempt recovery:
+
+1. **Check backup GPT** if primary corrupted
+2. **Scan ESP partitions** for default bootloader path:
+
+```
+\EFI\BOOT\BOOTX64.EFI
+```
+
+3. **Fallback to other Boot#### entries** stored in NVRAM
+4. **Prompt user** for recovery media if nothing valid
+
+Some firmware vendors also:
+
+* Repair GPT header using backup automatically
+* Rebuild BootOrder entries if missing
+
+---
+
+# 4️⃣ Limitations
+
+* Only works if **backup GPT or ESP files are intact**
+* Does **not recover Linux root partition** or user files
+* If ESP FAT corrupted beyond repair → manual recovery needed (live USB + `fsck.vfat` or restore `.efi` files)
+
+---
+
+# 5️⃣ Summary
+
+| Component      | Corruption Effect                  | Automatic Recovery               |
+| -------------- | ---------------------------------- | -------------------------------- |
+| GPT header     | Disk map lost                      | Use backup header                |
+| ESP (FAT32)    | Bootloader not found or unreadable | Scan default path, NVRAM entries |
+| Both corrupted | System unbootable                  | Requires manual intervention     |
+
+**Simple analogy:**
+
+* GPT = house address → lost → firmware checks backup address
+* ESP = front door → damaged → firmware tries default door
+* If both gone → you need a new key (recovery disk)
+
+---
+
+This shows why **UEFI + GPT + backup headers + standard ESP paths** are resilient to minor corruption.
+
+
+
+Here’s how x86/x86_64 CPUs use **GDT + paging** together to safely access memory beyond 4 GB:
+
+---
+
+# 1️⃣ GDT (Global Descriptor Table)
+
+* GDT defines **segments** in memory.
+
+* Each segment has:
+
+  ```
+  Base, Limit, Access Rights
+  ```
+
+* On modern 32/64‑bit OS:
+
+  * **Flat memory model**: all segments start at 0, span full 4 GB (or 64 bit in x86_64)
+  * Segment **selector** in CS/DS/ES/SS registers tells CPU which GDT entry to use.
+
+**Purpose:** defines privilege and allowed access (kernel/user, code/data), not actual physical memory mapping.
+
+---
+
+# 2️⃣ Paging (Page Tables)
+
+Paging provides **virtual-to-physical memory translation**.
+
+* Virtual addresses = used by programs
+* Physical addresses = actual RAM locations
+
+CPU uses **page directory + page tables**:
+
+* 32‑bit: 2‑level paging (page directory → page table → 4 KB page)
+* 64‑bit: 4‑level paging (PML4 → PDPT → PD → PT → 4 KB page)
+
+Paging allows:
+
+* Access to >4 GB memory
+* Memory isolation between processes
+* Kernel/user separation
+
+---
+
+# 3️⃣ How They Work Together
+
+1. CPU gets a **virtual address** from instruction.
+
+2. Segment selector from GDT is applied:
+
+   ```
+   linear_address = base_of_segment + virtual_offset
+   ```
+
+   * In flat model, base = 0 → linear_address = virtual_address
+
+3. CPU passes **linear_address** to **paging unit**
+
+4. Paging unit translates linear_address → physical_address using page tables
+
+5. Memory access happens
+
+---
+
+# 4️⃣ Safety and Protection
+
+* **GDT**:
+
+  * Enforces **privilege levels** (ring 0 = kernel, ring 3 = user)
+  * Protects code/data access across segments
+
+* **Paging**:
+
+  * Enforces **virtual memory isolation**
+  * Prevents access to unallocated physical memory
+  * Supports copy-on-write, memory-mapped files, and >4 GB addressing
+
+Together:
+
+* GDT controls **what types of memory are allowed per segment**
+* Paging controls **which actual physical addresses are reachable**
+
+---
+
+# 5️⃣ 4 GB+ Memory Access
+
+* Without paging: 32‑bit virtual addresses → max 4 GB directly
+* With paging:
+
+  * OS can map **linear addresses >4 GB** to physical memory above 4 GB
+  * CPU never accesses physical addresses directly
+  * Multiple virtual regions can point to same physical memory safely
+
+---
+
+# 6️⃣ Modern OS Use
+
+* Linux / Windows:
+
+  * Flat segments (GDT)
+  * Full paging with PAE (32‑bit) or x86_64 4‑level paging
+  * Kernel accesses high memory safely
+  * User processes cannot touch kernel memory
+
+---
+
+## Simple View
+
+```
+Virtual Address
+   │
+   ▼
+GDT Segment Base Added
+   │
+   ▼
+Linear Address
+   │
+   ▼
+Page Tables Translate
+   │
+   ▼
+Physical Address → RAM
+```
+
+* GDT → **permissions & privilege**
+* Paging → **memory mapping & isolation**
+* Together → CPU safely uses >4 GB memory.
+
+
+The **Global Descriptor Table (GDT)** is a special CPU data structure on x86/x86_64 systems that defines **memory segments** and access rights.
+
+---
+
+# 1️⃣ Purpose
+
+* Specifies **base address**, **limit**, and **access permissions** for each memory segment.
+* Controls **privilege levels** (kernel vs user).
+* Works with **segment registers**: CS, DS, ES, SS, FS, GS.
+
+On modern OSes, GDT usually implements a **flat memory model**:
+
+* All segments start at base = 0
+* Limit = full 4 GB (32-bit) or 64-bit addressable space
+* Segment registers mainly enforce **privilege** rather than physical memory bounds.
+
+---
+
+# 2️⃣ Structure of a GDT Entry (Descriptor)
+
+Each entry (8 bytes) contains:
+
+| Field                              | Purpose                                               |
+| ---------------------------------- | ----------------------------------------------------- |
+| Base (24 bits / 32 bits in 64-bit) | Starting address of segment                           |
+| Limit (20 bits)                    | Size of segment                                       |
+| Access byte                        | Segment type (code/data), privilege ring, present bit |
+| Flags                              | Granularity, size (16/32-bit), long mode              |
+
+Example access byte:
+
+* 0x9A → code segment, executable, readable, ring 0
+* 0x92 → data segment, writable, ring 0
+
+---
+
+# 3️⃣ How CPU Uses GDT
+
+1. CPU uses **segment selector** in registers (CS/DS/ES/SS).
+2. Selector points to a GDT entry.
+3. CPU applies:
+
+```
+linear_address = base_of_segment + offset
+```
+
+4. Linear address then goes through **paging** to map to physical memory.
+
+---
+
+# 4️⃣ Modern Usage
+
+* Flat memory model: base=0, limit=max → segments are transparent
+* Segments still enforce **ring protection** (kernel vs user)
+* FS/GS used for thread-local storage in 64-bit Linux
+
+---
+
+# 5️⃣ Summary
+
+* GDT = table of **segment descriptors**
+* Defines **where segments start, how big, and who can access**
+* Works together with **paging** for memory safety and protection
+
+**Analogy:** Think of GDT as a **permission and address map** for different “zones” in memory.
+
+
+
+
+Here’s how **GPT (GUID Partition Table)** stores partition entries:
+
+---
+
+# 1️⃣ Partition Entry Array
+
+* GPT reserves **a table of partition entries** immediately after the GPT header.
+* Each entry describes **one partition** on the disk.
+* The size and number of entries are defined in the GPT header:
+
+```
+Number of entries (usually 128)
+Size of each entry (usually 128 bytes)
+```
+
+* Total table size = 128 × 128 B = 16 KB by default.
+
+---
+
+# 2️⃣ Structure of a Partition Entry
+
+Each entry (128 B typical) contains:
+
+| Field                 | Size                   | Purpose                              |
+| --------------------- | ---------------------- | ------------------------------------ |
+| Partition Type GUID   | 16 B                   | Type of partition (e.g., EFI, Linux) |
+| Unique Partition GUID | 16 B                   | Unique ID for this partition         |
+| Starting LBA          | 8 B                    | First sector of the partition        |
+| Ending LBA            | 8 B                    | Last sector of the partition         |
+| Attributes            | 8 B                    | Flags (bootable, read-only, hidden)  |
+| Partition Name        | 72 B (36 UTF-16 chars) | Human-readable name                  |
+
+---
+
+# 3️⃣ Primary vs Backup
+
+* **Primary GPT**:
+
+  * Header at LBA 1
+  * Partition entries at LBA 2…
+
+* **Backup GPT**:
+
+  * Header at last LBA
+  * Partition entries before that
+
+* CRC32 checksums in headers validate the integrity of partition entries.
+
+---
+
+# 4️⃣ How Firmware Uses It
+
+1. UEFI reads GPT header
+2. Verifies CRC
+3. Loads partition table into memory
+4. Uses entries to find **ESP**, root partitions, or other boot targets
+
+---
+
+# 5️⃣ Simple View
+
+```
+Disk layout (GPT):
+
+LBA 0: Protective MBR
+LBA 1: GPT Header (primary)
+LBA 2–33: Partition Entries (primary)
+...
+Last LBA-33–Last LBA-1: Partition Entries (backup)
+Last LBA: GPT Header (backup)
+```
+
+Each entry = **128 B descriptor** pointing to a partition with GUID, start/end LBA, attributes, and name.
+
+---
+
+This structure makes GPT:
+
+* **Self-describing**
+* **Resilient** (backup header/table)
+* **Extensible** (can store hundreds of partitions)
+
+
+
+Here’s a clear breakdown of how **UEFI boot** works:
+
+---
+
+# 1️⃣ Power-On and Firmware Initialization
+
+1. CPU powers on → **UEFI firmware** starts.
+2. Firmware initializes hardware:
+
+* Memory controller
+* PCI devices
+* CPU cores
+* Optional peripherals
+
+3. Firmware may run **POST** (Power-On Self Test) checks.
+
+---
+
+# 2️⃣ Read Boot Entries
+
+UEFI stores boot entries in **NVRAM**:
+
+* `Boot####` entries → point to `.efi` files on ESP (EFI System Partition)
+* Example:
+
+```
+\EFI\ubuntu\grubx64.efi
+```
+
+* BootOrder list determines which entry to try first.
+
+---
+
+# 3️⃣ Find EFI System Partition (ESP)
+
+* ESP is **FAT32 partition** with type GUID `EFI System Partition`
+* Firmware scans ESP for default loader if Boot#### entries fail:
+
+```
+\EFI\BOOT\BOOTX64.EFI
+```
+
+* All `.efi` files are **PE/COFF binaries**.
+
+---
+
+# 4️⃣ Secure Boot Check (Optional)
+
+If Secure Boot is enabled:
+
+1. Firmware verifies the digital signature of `.efi` file.
+2. Checks signature against **db (allowed)** and **dbx (revoked)** key databases.
+3. Only trusted `.efi` files are executed.
+
+---
+
+# 5️⃣ Execute EFI Binary
+
+* Firmware loads `.efi` binary into memory
+* Performs relocations if needed
+* Calls entry point
+
+Example: GRUB (`grubx64.efi`) is loaded this way.
+
+---
+
+# 6️⃣ Bootloader Phase
+
+GRUB or another EFI bootloader:
+
+1. Loads configuration (`grub.cfg`)
+2. Displays menu
+3. Loads **kernel (`vmlinuz`)** and **initramfs**
+4. Optionally verifies kernel signature (shim/IMA)
+5. Calls `ExitBootServices()`
+
+---
+
+# 7️⃣ Kernel Takes Over
+
+* Kernel initializes memory, devices, mounts root filesystem
+* Starts user-space init process
+* Boot complete
+
+---
+
+# 8️⃣ Automatic Recovery
+
+If boot fails:
+
+* UEFI tries backup `.efi` in ESP
+* Checks other Boot#### entries
+* Can prompt user for recovery media
+
+---
+
+# 9️⃣ Key Points
+
+| Feature        | Role                      |
+| -------------- | ------------------------- |
+| NVRAM Boot#### | Stores boot paths         |
+| ESP            | Stores `.efi` binaries    |
+| PE/COFF        | Format of EFI executables |
+| Secure Boot    | Verifies authenticity     |
+| Bootloader     | Loads OS kernel           |
+
+---
+
+## Simple View
+
+```
+Power on → Firmware → Check NVRAM → Load EFI binary → Bootloader → Kernel → OS
+```
+
+UEFI replaces old BIOS + MBR chain with **partition-independent, secure, and flexible boot system**.
+
+
+**Real mode** is the CPU’s initial operating mode on x86 systems, used at boot before protected mode or long mode.
+
+---
+
+# 1️⃣ Characteristics
+
+* **16-bit registers** (AX, BX, CX, DX, SP, BP, SI, DI)
+* **1 MB addressable memory** (20-bit address space)
+* **Segment:Offset addressing**:
+
+```
+physical_address = segment * 16 + offset
+```
+
+* No memory protection
+* No multitasking support
+* No paging or privilege levels
+
+---
+
+# 2️⃣ How CPU Enters Real Mode
+
+* After power-on or reset, x86 CPU starts in **real mode**
+* Executes instructions at **0xFFFF0** (BIOS entry)
+* Firmware and bootloader code initially run here
+
+---
+
+# 3️⃣ Segment:Offset Addressing
+
+Memory accessed using **segment registers** (CS, DS, ES, SS):
+
+* Example: `CS:IP = 0xF000:0xFFF0` → physical address = 0xFFFF0
+* Overlapping segments allow addressing all 1 MB memory with 16-bit offsets
+
+---
+
+# 4️⃣ Limitations
+
+* Only 1 MB memory accessible
+* No hardware-enforced protection
+* Only 16-bit instructions
+* Cannot use modern CPU features directly (paging, 32/64-bit registers)
+
+---
+
+# 5️⃣ Transition Out of Real Mode
+
+* Bootloader switches CPU to **protected mode** (32-bit)
+* Later, OS may switch to **long mode** (64-bit) for full memory and features
+
+---
+
+## Simple View
+
+```
+Power-on → CPU in real mode → BIOS/bootloader executes → switch to protected/long mode → OS
+```
+
+* Real mode = **simple, flat 1 MB memory, no protection**
+* Used only at **early boot**, legacy support, or DOS programs.
+
+
+
+Here’s how an x86 CPU switches from **real mode** to **protected mode**:
+
+---
+
+# 1️⃣ Prepare a Global Descriptor Table (GDT)
+
+* CPU needs **GDT** before entering protected mode.
+* GDT defines **code/data segments**, their base, limit, and access rights.
+* Typically, a **flat memory model** is used:
+
+```
+CS = 0x0000, base=0, limit=4GB
+DS/SS/ES = same
+```
+
+* Load GDT using **LGDT instruction**:
+
+```
+lgdt [gdt_descriptor]
+```
+
+---
+
+# 2️⃣ Set the PE (Protection Enable) Bit
+
+* PE bit is bit 0 of **CR0 register**.
+* To enable protected mode:
+
+```asm
+mov eax, cr0
+or  eax, 1      ; set PE bit
+mov cr0, eax
+```
+
+* CPU now enters **protected mode**.
+* Still using **old segment registers** until reloaded.
+
+---
+
+# 3️⃣ Far Jump to Flush Pipeline
+
+* Immediately after setting PE:
+
+```asm
+jmp CODE_SEG:flush_label
+flush_label:
+```
+
+* Forces CPU to reload **CS register** with new GDT selector.
+* Ensures proper segment descriptors are used.
+
+---
+
+# 4️⃣ Reload Segment Registers
+
+* Load **DS, ES, FS, GS, SS** with appropriate segment selectors:
+
+```asm
+mov ax, DATA_SEG
+mov ds, ax
+mov es, ax
+mov ss, ax
+```
+
+* Now all segments use **protected mode descriptors**.
+
+---
+
+# 5️⃣ Optional: Enable Paging
+
+* In protected mode, you can optionally enable **paging** for virtual memory.
+* Set CR3 with page directory base, then set **PG bit** in CR0.
+
+---
+
+# 6️⃣ Summary of Steps
+
+1. Prepare GDT in memory
+2. Load GDT (`LGDT`)
+3. Set PE bit in CR0
+4. Far jump to flush CS
+5. Reload all segment registers
+
+---
+
+## Simple View
+
+```
+Real Mode → (Setup GDT) → Set PE bit → Far jump → Reload segments → Protected Mode
+```
+
+* CPU now supports:
+
+  * 32-bit instructions
+  * Segmentation with protection
+  * Paging (optional)
+  * Privilege levels (rings 0–3)
+
+Protected mode is the foundation for modern 32-bit OSes like Linux and Windows.
+
+
+
+A **Protective MBR** is a special **Master Boot Record** used in **GPT-partitioned disks** to protect them from old software.
+
+---
+
+# 1️⃣ Purpose
+
+* Legacy BIOS systems only understand **MBR** (up to 2 TB, 4 partitions).
+* GPT disks use **LBA 1+ for headers and partition entries**, but old tools might see it as empty.
+* **Protective MBR** marks the disk as **“used”** to prevent accidental overwrite.
+
+---
+
+# 2️⃣ How It Works
+
+* Located at **LBA 0** (first sector of disk)
+
+* Contains **one partition entry**:
+
+  | Field          | Value/Meaning                                   |
+  | -------------- | ----------------------------------------------- |
+  | Partition type | 0xEE (GPT Protective)                           |
+  | Starting LBA   | 1                                               |
+  | Size           | Covers the entire disk (max 2 TB for old tools) |
+
+* BIOS or old OS sees a single large partition and avoids overwriting GPT.
+
+---
+
+# 3️⃣ Interaction with UEFI
+
+* UEFI ignores MBR except for **compatibility**.
+* Reads GPT header at **LBA 1**.
+* GPT header + backup entries are authoritative.
+
+---
+
+# 4️⃣ Key Points
+
+* **Not used for booting** on modern systems
+* Only serves to **protect GPT** from legacy MBR tools
+* Always present on GPT disks
+
+---
+
+## Simple Analogy
+
+* GPT = house with numbered rooms
+* Protective MBR = “Reserved: do not touch” sign on the door for old visitors
+* Old OS sees the disk as “occupied” and avoids overwriting it.
+
+

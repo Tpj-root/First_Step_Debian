@@ -6526,48 +6526,81 @@ png2jpg() {
 
 jpgs_to_pdf () {
 
-  # Enable nullglob (avoid *.JPG errors)
+  # -----------------------------------------
+  # Enable nullglob
+  # Prevents literal "*.jpg" if no files found
+  # -----------------------------------------
   shopt -s nullglob
 
   echo "🔍 Scanning for JPG/JPEG files..."
+
+  # -----------------------------------------
+  # Collect all jpg/jpeg files
+  # -----------------------------------------
   FILES=( *.jpg *.JPG *.jpeg *.JPEG )
 
+  # -----------------------------------------
+  # If no files found → exit
+  # -----------------------------------------
   if [ ${#FILES[@]} -eq 0 ]; then
     echo "❌ No JPG/JPEG files found"
     shopt -u nullglob
     return 1
   fi
 
-  echo "📸 Found ${#FILES[@]} image(s)"
+  # -----------------------------------------
+  # Sort files in NATURAL numeric order
+  # ls -v = version sort (1,2,3,10 correct)
+  # mapfile loads sorted result into array
+  # -----------------------------------------
+  mapfile -t FILES < <(printf '%s\n' "${FILES[@]}" | sort -V)
 
+  echo "📸 Found ${#FILES[@]} image(s)"
+  echo "🔢 Natural order enabled"
+
+  # -----------------------------------------
   # Temporary directory
-  TMP_DIR="/tmp/jpg_pdf_tmp"
-  echo "📂 Creating temp directory: $TMP_DIR"
+  # $$ = current process ID (avoids conflict)
+  # -----------------------------------------
+  TMP_DIR="/tmp/jpg_pdf_tmp_$$"
   mkdir -p "$TMP_DIR"
 
-  # Compress images
   COUNT=1
+
+  # -----------------------------------------
+  # Compress and copy in sorted order
+  # -----------------------------------------
   for img in "${FILES[@]}"; do
-    echo "⚙️  [$COUNT/${#FILES[@]}] Compressing: $img"
+    echo "⚙️  [$COUNT/${#FILES[@]}] Processing: $img"
+
     convert "$img" \
       -resize 2000x2000\> \
       -strip \
       -quality 75 \
       "$TMP_DIR/$img"
+
     ((COUNT++))
   done
 
-  echo "📄 Creating PDF..."
-  convert -density 150 "$TMP_DIR"/* output.pdf
+  echo "📄 Creating PDF in correct order..."
 
-  echo "🧹 Cleaning up temp files..."
+  # -----------------------------------------
+  # IMPORTANT:
+  # Use sorted array directly
+  # Not wildcard (*)
+  # -----------------------------------------
+  convert -density 150 \
+    "${FILES[@]/#/$TMP_DIR/}" \
+    output.pdf
+
+  echo "🧹 Cleaning up..."
   rm -rf "$TMP_DIR"
 
-  # Restore shell behavior
   shopt -u nullglob
 
   echo "✅ Done! Output file: output.pdf"
 }
+
 
 
 
@@ -6869,3 +6902,87 @@ video_cut() {
 ## Data
 # phonemeMap["I"] = "ஈ";
 # "a"
+
+
+
+
+
+# ===============================================
+# Function: rotate_jpeg_90
+# Purpose : Rotate .jpeg/.jpg images 90° clockwise
+#           and save them into a new folder
+#           called "modified_files"
+#
+# Usage:
+#   rotate_jpeg_90 file1.jpeg file2.jpeg
+#   rotate_jpeg_90 *.jpeg
+#   rotate_jpeg_90 *.jpg
+#
+# Requirement:
+#   Install ImageMagick first:
+#   sudo apt install imagemagick
+# ===============================================
+
+rotate_jpeg_90() {
+
+    # -------------------------------------------
+    # Check if at least one argument is given
+    # "$#" = number of input arguments
+    # If zero, show usage message and stop
+    # -------------------------------------------
+    if [ "$#" -eq 0 ]; then
+        echo "Usage: rotate_jpeg_90 <files>"
+        return 1
+    fi
+
+    # -------------------------------------------
+    # Create output directory
+    # -p  → prevents error if folder already exists
+    # All rotated images will be stored here
+    # -------------------------------------------
+    output_dir="modified_files"
+    mkdir -p "$output_dir"
+
+    # -------------------------------------------
+    # Loop through each input file
+    # "$@" means: all given arguments
+    # This allows wildcard like *.jpeg
+    # -------------------------------------------
+    for file in "$@"; do
+
+        # ---------------------------------------
+        # Check if file exists
+        # Prevents error if wildcard finds nothing
+        # ---------------------------------------
+        if [ ! -f "$file" ]; then
+            echo "Skipping: $file (not found)"
+            continue
+        fi
+
+        # ---------------------------------------
+        # Extract only filename (remove path)
+        # Example:
+        #   input:  /home/user/img/test.jpeg
+        #   output: test.jpeg
+        # ---------------------------------------
+        filename=$(basename "$file")
+
+        # ---------------------------------------
+        # Rotate image 90 degrees clockwise
+        #
+        # ImageMagick command:
+        #   magick input -rotate 90 output
+        #
+        # -rotate 90  → 90 degrees clockwise
+        # Output file is saved inside modified_files
+        # ---------------------------------------
+        magick "$file" -rotate -90 "$output_dir/$filename"
+
+        echo "Rotated: $filename → $output_dir/$filename"
+    done
+
+    # -------------------------------------------
+    # Done message
+    # -------------------------------------------
+    echo "All done. Rotated images are inside '$output_dir'"
+}
