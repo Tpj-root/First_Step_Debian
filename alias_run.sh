@@ -407,7 +407,7 @@ alias audio_help='pavucontrol'
 version="1.0"
 #echo "Script Name: ${BASH_SOURCE[0]}"
 
-alias date="date '+%d-%m-%Y %H:%M:%S' | tr ' ' '_'"
+alias mydate="date '+%d-%m-%Y %H:%M:%S' | tr ' ' '_'"
 
 ## Enabled for only one time for insatinng basicsoftwares
 ## Enabled or Disable
@@ -2083,6 +2083,25 @@ udp://tracker.0x.tf:6969/announce
 udp://tracker.moeking.me:6969/announce
 udp://tracker.pomf.se:80/announce
 udp://tracker.swateam.org.uk:2710/announce
+https://cny.fan:443/announce
+https://tracker.iperson.xyz:443/announce
+http://tracker.dler.com:6969/announce
+http://tracker.tvunderground.org.ru:3218/announce
+udp://rekcart.duckdns.org:15480/announce
+udp://tracker.bluefrog.pw:2710/announce
+udp://tracker.corpscorp.online:80/announce
+udp://tracker.darkness.services:6969/announce
+udp://tracker.ddunlimited.net:6969/announce
+udp://tracker-de-2.cutie.dating:1337/announce
+udp://tracker.ixuexi.click:6969/announce
+udp://tracker.wepzone.net:6969/announce
+udp://tracker.yume-hatsuyuki.moe:6969/announce
+http://004430.xyz:80/announce
+http://jvavav.com:80/announce
+https://pybittrack.retiolus.net:443/announce
+https://tracker.nekomi.cn:443/announce
+udp://seedpeer.net:6969/announce
+udp://tracker.004430.xyz:1337/announce
 "
 
 trackerscopy() {
@@ -6985,4 +7004,512 @@ rotate_jpeg_90() {
     # Done message
     # -------------------------------------------
     echo "All done. Rotated images are inside '$output_dir'"
+}
+
+
+
+
+### FIREFFOX
+
+har_extract_urls() {
+    if [ $# -lt 2 ]; then
+        echo "Usage: extract_urls <har_file> <search_key>"
+        return 1
+    fi
+
+    local file="$1"
+    local key="$2"
+
+    grep -oE '"url":\s*"[^"]+"' "$file" \
+    | sed -E 's/"url":\s*"//;s/"$//' \
+    | grep -i "\.${key}" \
+    | sort -u
+}
+
+
+har_stio_extract_urls() {
+    if [ $# -lt 1 ]; then
+        echo "Usage: cat file.har | har_extract_urls <ext>"
+        return 1
+    fi
+
+    local key="$1"
+
+    grep -oE '"url":\s*"[^"]+"' \
+    | sed -E 's/"url":\s*"//;s/"$//' \
+    | grep -i "\.${key}" \
+    | sort -u
+}
+
+
+
+###PYTHON_
+
+# Function: install_requirements
+# ----------------------------------------
+# This function scans the CURRENT directory
+# for a file named "requirements.txt".
+#
+# If found:
+#   → It installs all Python packages listed
+#     inside the file using pip.
+#
+# If not found:
+#   → It shows a clear error message.
+#
+# Usage:
+#   install_requirements
+#
+py_install_requirements() {
+
+    # Store current directory path
+    local CURRENT_DIR="$(pwd)"
+
+    # Define target file name
+    local REQ_FILE="requirements.txt"
+
+    # Check if requirements.txt exists in current directory
+    if [[ -f "$REQ_FILE" ]]; then
+
+        echo "----------------------------------------"
+        echo "Found $REQ_FILE in: $CURRENT_DIR"
+        echo "Starting installation..."
+        echo "----------------------------------------"
+
+        # Use python3 -m pip (safer than plain pip)
+        python3 -m pip install -r "$REQ_FILE"
+
+        # Check installation status
+        if [[ $? -eq 0 ]]; then
+            echo "----------------------------------------"
+            echo "All packages installed successfully."
+            echo "----------------------------------------"
+        else
+            echo "----------------------------------------"
+            echo "Error: Installation failed."
+            echo "Check pip or package errors above."
+            echo "----------------------------------------"
+        fi
+
+    else
+        echo "----------------------------------------"
+        echo "Error: requirements.txt not found!"
+        echo "Current directory: $CURRENT_DIR"
+        echo "Please make sure the file exists."
+        echo "----------------------------------------"
+        return 1
+    fi
+}
+
+#
+#
+#
+#   PDF HELP
+#
+#
+# Function name: generate_random_pdfs
+# When you call this function, it will create 5 random PDF files.
+generate_random_pdfs() {
+
+    # Create 5 PDF files
+    for pdfcount in $(seq 1 5)
+    do
+        # Unique filename using timestamp + loop number
+        NAME="random_${pdfcount}_$(date +%s).tex"
+
+        cat > "$NAME" <<EOF
+\documentclass[12pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{tikz}
+\usepackage{lmodern}
+\renewcommand{\familydefault}{\sfdefault}
+\begin{document}
+EOF
+
+        # Create 10 pages
+        for i in $(seq 1 10)
+        do
+            HEAD=$(tr -dc A-Za-z </dev/urandom | head -c 14)
+            PARA=$(tr -dc 'A-Za-z ' </dev/urandom | head -c 600)
+
+            cat >> "$NAME" <<EOF
+\begin{center}
+\Huge \textbf{$HEAD}
+\end{center}
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tikzpicture}
+\draw[thick] (0,0) rectangle (12,5);
+\draw (6,2.5) node {\Huge AZ};
+\end{tikzpicture}
+\end{center}
+
+\vspace{1cm}
+
+\large
+$PARA
+
+\newpage
+EOF
+        done
+
+        echo "\end{document}" >> "$NAME"
+
+        pdflatex -interaction=nonstopmode "$NAME" > /dev/null
+
+        rm -f *.log *.aux "$NAME"
+    done
+
+    echo "5 random PDF files generated successfully."
+}
+
+
+
+
+
+
+# Function: auto_join_media
+# Purpose:
+#   - Scan current directory
+#   - Find all .mp4 files
+#   - Check if matching .und.m4a exists (same base name)
+#   - Merge them using ffmpeg
+#   - Output file: Final_<timestamp>.mp4
+#   - Process multiple files automatically
+
+vid_auto_join_media() {
+
+    # Loop through every .mp4 file in current directory
+    for video in *.mp4; do
+        
+        # Skip if no mp4 files exist
+        [ -e "$video" ] || continue
+
+        # Extract base filename (remove .mp4)
+        base="${video%.mp4}"
+
+        # Define matching audio file
+        audio="${base}.und.m4a"
+
+        # Check if matching audio exists
+        if [ -f "$audio" ]; then
+
+            # Create timestamp for output file
+            timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+
+            # Define output filename
+            output="Final_${timestamp}.mp4"
+
+            echo "Merging:"
+            echo "  Video: $video"
+            echo "  Audio: $audio"
+            echo "  Output: $output"
+
+            # Merge video + audio without re-encoding
+            ffmpeg -i "$video" -i "$audio" -c copy "$output"
+
+            echo "Done ✔"
+            echo "--------------------------"
+
+            # Small delay so timestamps don’t duplicate
+            sleep 1
+        else
+            echo "No matching audio for $video"
+        fi
+    done
+}
+
+
+
+
+clean_names() {
+  for f in *; do
+    [ -f "$f" ] || continue
+
+    name="${f%.*}"
+    ext="${f##*.}"
+
+    new=$(echo "$name" | \
+      tr ' ' '_' | \
+      tr -d '0-9' | \
+      tr -d '<>?,/{}[]!@#$%^&*“”()+=\"\047')
+
+    new=$(echo "$new" | tr -s '_')
+
+    if [ "$name" != "$new" ]; then
+      mv -i "$f" "$new.$ext"
+      echo "Renamed: $f -> $new.$ext"
+    fi
+  done
+}
+
+
+
+
+#
+#
+#
+# GO
+#
+#
+export PATH=$PATH:~/go/bin
+pdftest() {
+
+  # -----------------------------------------
+  # Step 1: Check if content.json exists
+  # -----------------------------------------
+  if [ -f "content.json" ]; then
+    echo "[INFO] content.json found"
+
+    # -----------------------------------------
+    # Step 2: Generate PDF using pdfcpu
+    # -----------------------------------------
+    echo "[INFO] Creating PDF → out.pdf"
+    pdfcpu create content.json out.pdf
+
+    # -----------------------------------------
+    # Step 3: Check if PDF was created successfully
+    # -----------------------------------------
+    if [ -f "out.pdf" ]; then
+      echo "[SUCCESS] PDF created: out.pdf"
+
+      # -----------------------------------------
+      # Step 4: Validate the created PDF
+      # -----------------------------------------
+      echo "[INFO] Validating out.pdf"
+      pdfcpu validate out.pdf
+
+    else
+      echo "[ERROR] Failed to create out.pdf"
+    fi
+
+  else
+    echo "[WARNING] content.json NOT found"
+
+    # -----------------------------------------
+    # Step 5: Scan all PDF files in current folder
+    # -----------------------------------------
+    echo "[INFO] Scanning all PDF files..."
+
+    # Loop through all .pdf files
+    for file in *.pdf; do
+
+      # If no PDF files exist, '*.pdf' stays literal → handle that
+      [ -e "$file" ] || { echo "[INFO] No PDF files found"; break; }
+
+      echo "---------------------------------"
+      echo "[CHECK] Validating: $file"
+
+      # -----------------------------------------
+      # Step 6: Validate each PDF
+      # -----------------------------------------
+      pdfcpu validate "$file"
+
+      # Optional: check exit status
+      if [ $? -eq 0 ]; then
+        echo "[OK] $file is VALID"
+      else
+        echo "[FAIL] $file is CORRUPTED or INVALID"
+      fi
+
+    done
+  fi
+}
+
+
+
+
+# # You can’t “undo” a `cd` directly, but there are easy ways to go back:
+
+# ### 🔁 Go back to previous folder
+
+# ```bash
+# cd -
+# ```
+
+# ➡️ This returns to the last directory you were in.
+
+# ### 🔼 Go up one folder
+
+# ```bash
+# cd ..
+# ```
+
+# ### 🏠 Go to home
+
+# ```bash
+# cd ~
+# ```
+
+# ### 📍 See current location
+
+# ```bash
+# pwd
+# ```
+# alias audio_help='pavucontrol'
+
+alias undo='cd -'
+alias up='cd ..'
+alias home='cd ~'
+
+
+
+
+
+
+###
+#
+# WGET
+# 
+download_urls() {
+    local INPUT_FILE="$1"
+
+    if [ -z "$INPUT_FILE" ]; then
+        echo "Usage: download_urls <inputfile>"
+        return 1
+    fi
+
+    if [ ! -f "$INPUT_FILE" ]; then
+        echo "File not found: $INPUT_FILE"
+        return 1
+    fi
+
+    mkdir -p downloads
+
+    while IFS= read -r url
+    do
+        [ -z "$url" ] && continue
+
+        echo "Downloading: $url"
+        curl -L --fail --silent --show-error -O "$url"
+
+        file_name=$(basename "$url")
+        [ -f "$file_name" ] && mv "$file_name" downloads/
+
+    done < "$INPUT_FILE"
+
+    echo "Done!"
+}
+
+
+
+
+#
+# works for all images in folder
+#
+
+Image_rotate_ccw_90_allfolder() {
+    local dir="${1:-.}"
+
+    if [ ! -d "$dir" ]; then
+        echo "Directory not found: $dir"
+        return 1
+    fi
+
+    # rotate all jpg/jpeg/png
+    find "$dir" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) \
+        -exec mogrify -rotate -90 {} +
+
+    echo "Rotation done (CCW 90)!"
+}
+
+
+Image_rotate_cw_90_allfolder() {
+    local dir="${1:-.}"
+
+    if [ ! -d "$dir" ]; then
+        echo "Directory not found: $dir"
+        return 1
+    fi
+
+    find "$dir" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) \
+        -exec mogrify -rotate 90 {} +
+
+    echo "Rotation done (CW 90)!"
+}
+
+
+Image_rotate_cw_180_allfolder() {
+    local dir="${1:-.}"
+
+    if [ ! -d "$dir" ]; then
+        echo "Directory not found: $dir"
+        return 1
+    fi
+
+    find "$dir" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) \
+        -exec mogrify -rotate 180 {} +
+
+    echo "Rotation done (180°)!"
+}
+
+
+
+
+Image_rotate_cw_180_current_dir() {
+    local dir="${1:-.}"
+
+    if [ ! -d "$dir" ]; then
+        echo "Directory not found: $dir"
+        return 1
+    fi
+
+    find "$dir" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) \
+        -exec mogrify -rotate 180 {} +
+
+    echo "Rotation done (180°, current dir only)!"
+}
+
+
+Image_rotate_cw_90_current_dir() {
+    local dir="${1:-.}"
+
+    if [ ! -d "$dir" ]; then
+        echo "Directory not found: $dir"
+        return 1
+    fi
+
+    find "$dir" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) \
+        -exec mogrify -rotate 90 {} +
+
+    echo "Rotation done (90°, current dir only)!"
+}
+
+Image_rotate_ccw_90_current_dir() {
+    local dir="${1:-.}"
+
+    if [ ! -d "$dir" ]; then
+        echo "Directory not found: $dir"
+        return 1
+    fi
+
+    find "$dir" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) \
+        -exec mogrify -rotate -90 {} +
+
+    echo "Rotation done (90°, current dir only)!"
+}
+
+
+
+
+
+
+
+
+compress_text_images() {
+    local dir="${1:-.}"
+
+    find "$dir" -type f \( -iname "*.jpg" -o -iname "*.jpeg" \) | while read -r img; do
+        mogrify \
+            -strip \
+            -colorspace sRGB \
+            -filter Lanczos \
+            -resize 50% \
+            -quality 70 \
+            "$img"
+    done
+
+    echo "Done: optimized for text readability"
 }
