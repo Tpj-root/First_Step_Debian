@@ -7513,3 +7513,76 @@ compress_text_images() {
 
     echo "Done: optimized for text readability"
 }
+
+
+
+
+
+function tor() {
+
+    ############################################################
+    # STEP 1: Variables
+    ############################################################
+    local version="15.0.10"
+    local build_dir="$HOME/Desktop/BUILD"
+
+    local file_name="tor-browser-linux-x86_64-${version}.tar.xz"
+    local download_url="https://www.torproject.org/dist/torbrowser/${version}/${file_name}"
+    local tar_file="${build_dir}/${file_name}"
+
+    ############################################################
+    # STEP 2: Ensure BUILD directory exists
+    ############################################################
+    [[ -d "$build_dir" ]] || mkdir -p "$build_dir" || return 1
+
+    ############################################################
+    # STEP 3: Download
+    ############################################################
+    if [[ ! -f "$tar_file" ]]; then
+        echo "Downloading..."
+        wget -O "$tar_file" "$download_url" || return 1
+    else
+        echo "Tar file already exists. Skipping download."
+    fi
+
+    ############################################################
+    # STEP 4: Check if already extracted
+    ############################################################
+
+    local version_dir="${build_dir}/tor-browser-linux-x86_64-${version}"
+    local simple_dir="${build_dir}/tor-browser"
+
+    if [[ -d "$version_dir" || -d "$simple_dir" ]]; then
+        echo "Already extracted. Skipping extraction."
+    else
+        echo "Extracting archive..."
+        tar -xf "$tar_file" -C "$build_dir" || return 1
+    fi
+
+    ############################################################
+    # STEP 5: Detect correct run directory
+    ############################################################
+
+    local run_dir="${version_dir}/tor-browser"
+
+    if [[ ! -d "$run_dir" ]]; then
+        run_dir="${simple_dir}"
+    fi
+
+    if [[ ! -d "$run_dir" ]]; then
+        echo "Tor browser directory not found!"
+        return 1
+    fi
+
+    ############################################################
+    # STEP 6: Run
+    ############################################################
+    local start_script="${run_dir}/start-tor-browser.desktop"
+
+    [[ -f "$start_script" ]] || { echo "Start script missing!"; return 1; }
+    [[ -x "$start_script" ]] || chmod +x "$start_script"
+
+    echo "Launching Tor Browser..."
+    cd "$run_dir" || return 1
+    ./start-tor-browser.desktop
+}
