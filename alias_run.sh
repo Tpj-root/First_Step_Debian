@@ -2102,6 +2102,18 @@ https://pybittrack.retiolus.net:443/announce
 https://tracker.nekomi.cn:443/announce
 udp://seedpeer.net:6969/announce
 udp://tracker.004430.xyz:1337/announce
+https://open.ftorrent.com:443/announce
+https://torrents.tmtime.dev:443/announce
+https://tracker.7471.top:443/announce
+udp://admin.52ywp.com:6969/announce
+udp://open.ftorrent.com:443/announce
+udp://torrents.tmtime.dev:6969/announce
+udp://tracker.hismz.cn:6969/announce
+udp://tracker.iperson.xyz:6969/announce
+udp://tracker.nyaa.vc:6969/announce
+udp://tracker.wildkat.net:6969/announce
+udp://uabits.today:6990/announce
+udp://yuptracker-eu.gaijinent.com:27022/announce
 "
 
 trackerscopy() {
@@ -7586,3 +7598,684 @@ function tor() {
     cd "$run_dir" || return 1
     ./start-tor-browser.desktop
 }
+
+
+
+# Function: find_all_ip
+# Usage: find_all_ip 192.168.1.1
+# It will scan from 192.168.1.1 → 192.168.1.255
+# and print ONLY reachable IP addresses
+
+function find_all_ip() {
+
+    ############################################################
+    # STEP 1: Validate input
+    ############################################################
+    if [[ -z "$1" ]]; then
+        echo "Usage: find_all_ip <IP>"
+        return 1
+    fi
+
+    ############################################################
+    # STEP 2: Extract base IP
+    ############################################################
+    local base_ip
+    base_ip=$(echo "$1" | awk -F. '{print $1"."$2"."$3}')
+
+    echo "Scanning network: ${base_ip}.0/24"
+    echo "----------------------------------"
+
+    ############################################################
+    # STEP 3: Fast parallel scan WITHOUT job messages
+    ############################################################
+
+    # Generate IP list → pipe into xargs for parallel execution
+    seq 1 255 | xargs -P 50 -I{} bash -c '
+        ip="'"$base_ip"'.{}"
+        if ping -c 1 -W 1 "$ip" &> /dev/null; then
+            echo "✔ $ip"
+        fi
+    '
+
+    ############################################################
+    # STEP 4: Done
+    ############################################################
+    echo "----------------------------------"
+    echo "Scan completed."
+}
+
+
+
+
+batch_threshold_1_to_100() {
+
+    mkdir -p test_files
+
+    # Loop through all images in current directory
+    for img in *.jpg *.jpeg *.png *.bmp *.webp; do
+        [ -e "$img" ] || continue
+
+        base_name="${img%.*}"
+
+        echo "Processing: $img"
+
+        # Loop 1 → 100
+        for t in $(seq 1 100); do
+
+            output_file="test_files/${base_name}_t${t}.png"
+
+            convert "$img" -colorspace Gray -threshold "${t}%" "$output_file"
+
+        done
+    done
+
+    echo "Done: Generated 1% → 100% threshold images."
+}
+
+
+# ==============================
+# Function: batch_threshold_convert
+# ==============================
+# This function:
+# 1. Takes all image files in the current directory
+# 2. Converts them to grayscale
+# 3. Applies multiple threshold values (like 10%, 20%, etc.)
+# 4. Saves output into separate folders:
+#       threshold_10/
+#       threshold_20/
+#       ...
+#
+# You can easily change the threshold values later
+
+batch_threshold_convert() {
+
+    # ------------------------------
+    # STEP 1: Define threshold values
+    # ------------------------------
+    # You can MODIFY this array anytime
+    # Example:
+    #   thresholds=(10 20 30)
+    #   thresholds=(10 20 35 50)
+    # thresholds=(10 15 20 25 30 35)
+
+
+
+    mkdir -p test_files
+
+
+    # STUDY
+    # thresholds=(5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100)
+    # thresholds=(5 10 15 20 25 30 35 40 45 50)
+#    thresholds=(5 10 15 20 25 30 35 40 45 50)
+    thresholds=(40 45 50)
+
+
+    # ------------------------------
+    # STEP 2: Supported file types
+    # ------------------------------
+    # Add/remove extensions if needed
+    # This will only process files in CURRENT directory
+    extensions=("jpg" "jpeg" "png" "bmp" "webp")
+
+    # ------------------------------
+    # STEP 3: Loop through thresholds
+    # ------------------------------
+    for t in "${thresholds[@]}"; do
+
+        # Create output folder like: threshold_10
+        out_dir="threshold_${t}"
+
+        # mkdir -p ensures:
+        #   - creates folder if not exists
+        #   - does NOT error if already exists
+        mkdir -p "$out_dir"
+
+        echo "Processing threshold ${t}% -> Folder: $out_dir"
+
+        # ------------------------------
+        # STEP 4: Loop through images
+        # ------------------------------
+        for ext in "${extensions[@]}"; do
+
+            # Loop only files in CURRENT directory
+            for img in *."$ext"; do
+
+                # Skip if no files found (important safety)
+                [ -e "$img" ] || continue
+
+                # Extract filename without extension
+                # Example:
+                #   input:  photo.jpg
+                #   output: photo
+                base_name="${img%.*}"
+
+                # Output file name
+                # output_file="${out_dir}/${base_name}.png"
+
+                # DEbug mode with folder
+                output_file="${out_dir}/${base_name}_threshold_${t}.png"
+
+                # DEbug mode without folder # bug # loop # dont run
+                # output_file="${base_name}_threshold_${t}.png"
+
+                # DEbug mode without folder # bug # loop # dont run
+                output_file="test_files/${base_name}_threshold_${t}.png"
+
+
+                # ------------------------------
+                # STEP 5: Convert image
+                # ------------------------------
+                # -colorspace Gray  → convert to grayscale
+                # -threshold X%     → apply threshold
+                #
+                # Example:
+                # convert input.jpg -colorspace Gray -threshold 50% output.png
+                convert "$img" -colorspace Gray -threshold "${t}%" "$output_file"
+
+            done
+        done
+    done
+
+    echo "All conversions completed!"
+}
+
+
+
+
+images_to_video_perfect() {
+
+    frames=(5 10 15 20 25 30 35 40)
+
+    # Step 1: create properly sorted list
+    ls *.png | sort -V | awk '{print "file \""$0"\""}' > list.txt
+
+    # Step 2: create videos for each fps
+    for fps in "${frames[@]}"; do
+
+        echo "Creating video ${fps} FPS..."
+
+        ffmpeg -y -r "$fps" -f concat -safe 0 -i list.txt \
+        -c:v libx264 -pix_fmt yuv420p \
+        "output_${fps}fps.mp4"
+
+    done
+
+    # cleanup
+    rm list.txt
+
+    echo "All videos created successfully!"
+}
+
+
+
+images_to_video_perfect_auto() {
+
+    frames=(5 10 15 20 25 30 35 40)
+
+    # Step 1: check if list.txt exists
+    if [ ! -f "list.txt" ]; then
+
+        echo "list.txt not found → generating..."
+
+        files=(4_t*.png)
+
+        # safety check
+        [ -e "${files[0]}" ] || { echo "No images found!"; return; }
+
+        printf "%s\n" "${files[@]}" | sort -V | while read f; do
+            echo "file '$f'"
+        done > list.txt
+
+    else
+        echo "Using existing list.txt"
+    fi
+
+    # Step 2: show preview (debug safety)
+    echo "---- list.txt preview ----"
+    head list.txt
+
+    # Step 3: generate videos
+    for fps in "${frames[@]}"; do
+
+        echo "Creating video at ${fps} FPS..."
+
+        ffmpeg -y -r "$fps" -f concat -safe 0 -i list.txt \
+        -c:v libx264 -pix_fmt yuv420p \
+        "output_${fps}fps.mp4"
+
+    done
+
+    echo "Done: All videos created!"
+}
+
+
+
+
+
+
+
+# ============================================
+# Function: join_images_grid
+# ============================================
+# This function:
+# 1. Takes images from CURRENT directory
+# 2. Joins them into a grid (default: 4 columns × 5 rows)
+# 3. Outputs a single combined image
+#
+# REQUIREMENT:
+#   ImageMagick installed (montage command)
+#   sudo apt install imagemagick
+
+join_images_grid() {
+
+    # ------------------------------
+    # STEP 1: Grid size
+    # ------------------------------
+    # 4 columns × 5 rows = 20 images
+    cols=4
+    rows=5
+
+    # ------------------------------
+    # STEP 2: Output file name
+    # ------------------------------
+    output="grid_output.png"
+
+    # ------------------------------
+    # STEP 3: Collect images
+    # ------------------------------
+    # This grabs all jpg/png/jpeg files in current folder
+    # You can modify extensions if needed
+    images=(*.jpg *.jpeg *.png)
+
+    # ------------------------------
+    # STEP 4: Safety check
+    # ------------------------------
+    # Ensure at least 20 images exist
+    if [ "${#images[@]}" -lt 20 ]; then
+        echo "Error: Need at least 20 images for 4x5 grid"
+        return 1
+    fi
+
+    # ------------------------------
+    # STEP 5: Use only first 20 images
+    # ------------------------------
+    # Even if more images exist, we only take 20
+    selected_images=("${images[@]:0:20}")
+
+    # ------------------------------
+    # STEP 6: Create grid using montage
+    # ------------------------------
+    # -tile 4x5     → grid layout
+    # -geometry     → spacing (0 means no gap)
+    #
+    montage "${selected_images[@]}" \
+        -tile ${cols}x${rows} \
+        -geometry +0+0 \
+        "$output"
+
+    # ------------------------------
+    # DONE
+    # ------------------------------
+    echo "Grid image created: $output"
+}
+
+
+
+
+
+shred_horizontal_recursive() {
+    local slice_height="$1"
+    local prefix="${2:-slice}"
+
+    # Loop through all images in current directory
+    for input in *.png *.jpg *.jpeg; do
+        [ -f "$input" ] || continue
+
+        # Get base filename (without extension)
+        local base="${input%.*}"
+        local out_dir="${base}_cut"
+
+        mkdir -p "$out_dir"
+
+        # Get image size
+        local width height
+        read width height <<< $(identify -format "%w %h" "$input")
+
+        echo "Processing: $input (${width}x${height})"
+
+        # Recursive function
+        _slice_recursive() {
+            local y_start="$1"
+            local index="$2"
+
+            if [ "$y_start" -ge "$height" ]; then
+                return
+            fi
+
+            local y_end=$((y_start + slice_height))
+            if [ "$y_end" -gt "$height" ]; then
+                y_end="$height"
+            fi
+
+            local current_height=$((y_end - y_start))
+
+            local output_file="${out_dir}/${prefix}_$(printf "%03d" "$index").png"
+
+            convert "$input" -crop "${width}x${current_height}+0+${y_start}" "$output_file"
+
+            echo "[✔] $output_file"
+
+            _slice_recursive "$y_end" $((index + 1))
+        }
+
+        # Start slicing
+        _slice_recursive 0 1
+
+        echo "Done → $out_dir"
+        echo "-------------------------"
+    done
+}
+
+
+
+
+join_slices_and_cleanup() {
+    # Loop through folders: 1 2 3 4 ...
+    for dir in */; do
+        # Remove trailing slash
+        dir="${dir%/}"
+
+        echo "Processing folder: $dir"
+
+        # Check if folder contains slice images
+        shopt -s nullglob
+        files=("$dir"/slice_*.png)
+
+        if [ ${#files[@]} -eq 0 ]; then
+            echo "No slice files in $dir, skipping..."
+            continue
+        fi
+
+        # Sort files numerically (IMPORTANT: keeps correct order)
+        # slice_001, slice_002 ... not random order
+        sorted_files=$(printf "%s\n" "${files[@]}" | sort -V)
+
+        # Output file name
+        output_file="${dir}/${dir}_joined.png"
+
+        # Join vertically (-append = top to bottom)
+        convert $sorted_files -append "$output_file"
+
+        echo "[✔] Created: $output_file"
+
+        # Delete old slice files AFTER successful join
+        if [ -f "$output_file" ]; then
+            rm "$dir"/slice_*.png
+            echo "[🗑] Removed old slices in $dir"
+        else
+            echo "[✘] Join failed, keeping original slices"
+        fi
+
+        echo "-----------------------------"
+    done
+}
+
+
+
+
+
+smart_join_slices() {
+
+    local map_file="joining.txt"
+    local output_prefix="joined"
+
+    # Enable nullglob so no-match doesn't break loop
+    shopt -s nullglob
+
+    # -------------------------------
+    # AUTO MODE (if joining.txt exists)
+    # -------------------------------
+    if [ -f "$map_file" ]; then
+        echo "[INFO] Found joining.txt → Running AUTO mode"
+
+        while read -r line; do
+            # Skip empty lines
+            [ -z "$line" ] && continue
+
+            # First word = output file
+            output=$(echo "$line" | awk '{print $1}')
+
+            # Remaining = slice files
+            files=$(echo "$line" | cut -d' ' -f2-)
+
+            echo "[JOIN] $output ← $files"
+
+            convert $files -append "$output"
+
+        done < "$map_file"
+
+        echo "[DONE] All images joined using joining.txt"
+        return
+    fi
+
+    # -------------------------------
+    # INTERACTIVE MODE
+    # -------------------------------
+    echo "[INFO] No joining.txt → Running INTERACTIVE mode"
+
+    files=(slice_*.png)
+    index=0
+    group=1
+    current_group=()
+
+    > "$map_file"   # clear file
+
+    while [ $index -lt ${#files[@]} ]; do
+        file="${files[$index]}"
+
+        echo ""
+        echo "File: $file"
+        read -p "Need this file? (y/n): " need
+
+        if [ "$need" = "n" ]; then
+            echo "[DEL] Removing $file"
+            rm "$file"
+            ((index++))
+            continue
+        fi
+
+        # HEAD selection
+        read -p "Is this HEAD? (y/n): " is_head
+
+        if [ "$is_head" = "y" ]; then
+            current_group=("$file")
+
+            while true; do
+                ((index++))
+                [ $index -ge ${#files[@]} ] && break
+
+                next_file="${files[$index]}"
+
+                echo ""
+                echo "Next file: $next_file"
+                read -p "Type: (b=body, t=tail, n=delete): " type
+
+                if [ "$type" = "n" ]; then
+                    echo "[DEL] Removing $next_file"
+                    rm "$next_file"
+                    continue
+                fi
+
+                current_group+=("$next_file")
+
+                if [ "$type" = "t" ]; then
+                    # Finish group
+                    output_file="${group}.jpg"
+
+                    echo "[JOIN] Creating $output_file"
+
+                    convert "${current_group[@]}" -append "$output_file"
+
+                    # Save mapping
+                    echo "$output_file ${current_group[*]}" >> "$map_file"
+
+                    ((group++))
+                    break
+                fi
+            done
+        fi
+
+        ((index++))
+    done
+
+    echo ""
+    echo "[DONE] Interactive joining completed"
+    echo "[INFO] Mapping saved in joining.txt"
+}
+
+
+
+
+
+jpg_to_png_all() {
+    for jpg in *.jpg *.JPG; do
+        [ -e "$jpg" ] || continue
+
+        png="${jpg%.*}.png"
+
+        echo "Converting: $jpg -> $png"
+        convert "$jpg" "$png"
+    done
+    rm *jpg
+}
+
+
+
+make_notes() {
+    read -p "Enter starting number: " start
+
+    # Ensure it's treated as decimal (avoid leading zero issues)
+    start=$((10#$start))
+
+    # Get sorted list (numeric order)
+    files=($(ls *.png 2>/dev/null | sort -V))
+
+    if [ ${#files[@]} -eq 0 ]; then
+        echo "No PNG files found."
+        return
+    fi
+
+    counter=$start
+
+    for f in "${files[@]}"; do
+        printf -v num "%03d" "$counter"
+
+        new_img="note_${num}.png"
+        new_txt="note_${num}.gt.txt"
+
+        # Rename image
+        mv "$f" "$new_img"
+
+        # Create txt file (empty or add placeholder)
+        echo "" > "$new_txt"
+
+        echo "Created: $new_img + $new_txt"
+
+        ((counter++))
+    done
+}
+
+
+
+shift_notes_txt() {
+    read -p "Enter new starting number: " start
+    start=$((10#$start))
+
+    # Get sorted files
+    files=($(ls note_*.gt.txt 2>/dev/null | sort -V))
+
+    if [ ${#files[@]} -eq 0 ]; then
+        echo "No note_*.gt.txt files found."
+        return
+    fi
+
+    # Step 1: temporary rename (avoid overwrite conflict)
+    i=0
+    for f in "${files[@]}"; do
+        tmp=$(printf "tmp_%03d.gt.txt" "$i")
+        mv "$f" "$tmp"
+        tmp_files[$i]="$tmp"
+        ((i++))
+    done
+
+    # Step 2: final rename
+    counter=$start
+    for f in "${tmp_files[@]}"; do
+        printf -v num "%03d" "$counter"
+        new_name="note_${num}.gt.txt"
+
+        mv "$f" "$new_name"
+        echo "Renamed → $new_name"
+
+        ((counter++))
+    done
+}
+
+
+# Join all images vertically (top -> down)
+# Requires: ImageMagick
+# Install:
+#   Ubuntu/Debian : sudo apt install imagemagick
+#   Arch          : sudo pacman -S imagemagick
+#   Fedora        : sudo dnf install imagemagick
+
+join_vertical() {
+    local out="${1:-joined_output.png}"
+
+    # Find images in current directory
+    mapfile -t imgs < <(
+        find . -maxdepth 1 -type f \
+        \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" \) \
+        | sort
+    )
+
+    # Check images found
+    if [ ${#imgs[@]} -eq 0 ]; then
+        echo "No images found."
+        return 1
+    fi
+
+    echo "Found ${#imgs[@]} images"
+    printf ' - %s\n' "${imgs[@]}"
+
+    # Join vertically
+    magick "${imgs[@]}" -append "$out"
+
+    echo ""
+    echo "Created: $out"
+}
+
+
+
+joinpdf () {
+
+    # check pdfunite installed or not
+    if ! command -v pdfunite >/dev/null 2>&1; then
+        echo "pdfunite not found. Installing poppler-utils..."
+        sudo apt update
+        sudo apt install -y poppler-utils
+    fi
+
+    output="${1:-merged.pdf}"
+
+    # check pdf files exist
+    if ! ls ./*.pdf >/dev/null 2>&1; then
+        echo "No PDF files found in current directory"
+        return 1
+    fi
+
+    pdfunite ./*.pdf "$output"
+
+    echo "Created: $output"
+}
+
