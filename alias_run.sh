@@ -7780,6 +7780,54 @@ batch_threshold_convert() {
 }
 
 
+jpg2pdf() {
+    # output file name
+    out="${1:-output}.pdf"
+
+    # check img2pdf installed or not
+    if ! command -v img2pdf >/dev/null 2>&1; then
+        echo "[+] img2pdf not found. Installing..."
+
+        # detect package manager
+        if command -v apt >/dev/null 2>&1; then
+            sudo apt update
+            sudo apt install -y img2pdf
+
+        elif command -v pacman >/dev/null 2>&1; then
+            sudo pacman -Sy --noconfirm img2pdf
+
+        elif command -v dnf >/dev/null 2>&1; then
+            sudo dnf install -y img2pdf
+
+        else
+            echo "[-] Unsupported package manager."
+            return 1
+        fi
+    fi
+
+    # collect image files
+    files=()
+
+    for f in *.{jpg,jpeg,JPG,JPEG,png,PNG}; do
+        [ -f "$f" ] && files+=("$f")
+    done
+
+    # no images
+    if [ ${#files[@]} -eq 0 ]; then
+        echo "[-] No image files found."
+        return 1
+    fi
+
+    # natural sort
+    IFS=$'\n' files=($(printf "%s\n" "${files[@]}" | sort -V))
+
+    echo "[+] Creating PDF..."
+
+    img2pdf "${files[@]}" -o "$out"
+
+    echo "[✓] Created: $out"
+}
+
 
 
 images_to_video_perfect() {
@@ -8279,3 +8327,152 @@ joinpdf () {
     echo "Created: $output"
 }
 
+alpha_batch() {
+    # alpha values
+    ALPHAS=(5 10 15 20 25 35 40 45 50 55 60 65 70)
+
+    # loop all images in current dir
+    for img in *.{jpg,jpeg,png,JPG,JPEG,PNG}; do
+        [ -f "$img" ] || continue
+
+        # filename without extension
+        base="${img%.*}"
+
+        for a in "${ALPHAS[@]}"; do
+            # create folder
+            mkdir -p "$a"
+
+            # output filename
+            out="$a/alpha_${a}_${base}.png"
+
+            # apply alpha using imagemagick
+            convert "$img" -alpha set -channel A -evaluate set "${a}%" "$out"
+
+            echo "Created: $out"
+        done
+    done
+}
+
+
+ocr_alpha_batch() {
+
+    # alpha levels
+    ALPHAS=(30 35 40 45 50 55 60 65 70)
+
+    for img in *.{jpg,jpeg,png,JPG,JPEG,PNG}; do
+        [ -f "$img" ] || continue
+
+        base="${img%.*}"
+
+        for a in "${ALPHAS[@]}"; do
+
+            mkdir -p "$a"
+
+            out="$a/alpha_${a}_${base}.png"
+
+            convert "$img" \
+                -colorspace Gray \
+                -contrast-stretch 0 \
+                -threshold 55% \
+                -negate \
+                -alpha set \
+                -channel A \
+                -evaluate set "${a}%" \
+                "$out"
+
+            echo "Created: $out"
+
+        done
+    done
+}
+
+ocr_whitepaper_batch() {
+
+    # ALPHAS=(5 10 15 20 25 35 40 45 50 55 60 65 70)
+    # perfect for black and white book
+    ALPHAS=(50) 
+
+    for img in *.{jpg,jpeg,png,JPG,JPEG,PNG}; do
+        [ -f "$img" ] || continue
+
+        base="${img%.*}"
+
+        for a in "${ALPHAS[@]}"; do
+
+            mkdir -p "$a"
+
+            out="$a/alpha_${a}_${base}.png"
+
+            convert "$img" \
+                -colorspace Gray \
+                -contrast-stretch 0 \
+                -brightness-contrast 20x60 \
+                -threshold 70% \
+                -background white \
+                -alpha remove \
+                -alpha off \
+                -fill black \
+                -opaque black \
+                -alpha set \
+                -channel A \
+                -evaluate set "${a}%" \
+                "$out"
+
+            echo "Created: $out"
+
+        done
+    done
+}
+
+
+same_size() {
+    # usage:
+    # same_size 1.jpeg 2.jpeg
+    # output => resized_1.jpeg resized_2.jpeg
+
+    # check imagemagick
+    if ! command -v magick >/dev/null 2>&1; then
+        echo "[+] ImageMagick not found. Installing..."
+        sudo apt update && sudo apt install -y imagemagick
+    fi
+
+    img1="$1"
+    img2="$2"
+
+    # check files
+    [ -f "$img1" ] || { echo "File not found: $img1"; return 1; }
+    [ -f "$img2" ] || { echo "File not found: $img2"; return 1; }
+
+    # get dimensions
+    w1=$(magick identify -format "%w" "$img1")
+    h1=$(magick identify -format "%h" "$img1")
+
+    w2=$(magick identify -format "%w" "$img2")
+    h2=$(magick identify -format "%h" "$img2")
+
+    echo "[+] $img1 => ${w1}x${h1}"
+    echo "[+] $img2 => ${w2}x${h2}"
+
+    # choose biggest size
+    width=$(( w1 > w2 ? w1 : w2 ))
+    height=$(( h1 > h2 ? h1 : h2 ))
+
+    echo "[+] Using size: ${width}x${height}"
+
+    # resize with white background
+    magick "$img1" \
+        -resize "${width}x${height}" \
+        -background white \
+        -gravity center \
+        -extent "${width}x${height}" \
+        "resized_$img1"
+
+    magick "$img2" \
+        -resize "${width}x${height}" \
+        -background white \
+        -gravity center \
+        -extent "${width}x${height}" \
+        "resized_$img2"
+
+    echo "[+] Done"
+}
