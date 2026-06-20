@@ -8476,3 +8476,607 @@ same_size() {
 
     echo "[+] Done"
 }
+
+
+crop_right_all() {
+    local remove_px="$1"
+
+    mkdir -p cropped
+
+    shopt -s nullglob
+
+    for img in *.jpg *.jpeg *.JPG *.JPEG *.png *.PNG; do
+        echo "Processing: $img"
+
+        magick "$img" \
+            -gravity East \
+            -chop "${remove_px}x0" \
+            "cropped/$img"
+    done
+
+    echo "Done! Cropped images are in: ./cropped/"
+}
+
+
+make_montage() {
+    # Collect JPG files in natural numeric order
+    mapfile -t imgs < <(printf "%s\n" *.jpg *.JPG 2>/dev/null | sort -V)
+
+    # Check if any images were found
+    if [ ${#imgs[@]} -eq 0 ]; then
+        echo "No JPG images found in the current directory."
+        return 1
+    fi
+
+    # 3 columns × 4 rows
+    montage "${imgs[@]}" \
+        -tile 3x4 \
+        -geometry +0+0 \
+        -background white \
+        grid_3x4.jpg
+
+    # 4 columns × 3 rows
+    montage "${imgs[@]}" \
+        -tile 4x3 \
+        -geometry +0+0 \
+        -background white \
+        grid_4x3.jpg
+
+    echo "Done!"
+    echo "Created:"
+    echo "  grid_3x4.jpg"
+    echo "  grid_4x3.jpg"
+}
+
+
+crop_left_right_all() {
+    local remove_px="$1"
+
+    mkdir -p cropped
+
+    shopt -s nullglob
+
+    for img in *.jpg *.jpeg *.JPG *.JPEG *.png *.PNG; do
+        echo "Processing: $img"
+
+        magick "$img" \
+            -shave "${remove_px}x0" \
+            "cropped/$img"
+    done
+
+    echo "Done! Images saved in: ./cropped/"
+}
+
+
+crop_left_right_custom() {
+    local left_px="$1"
+    local right_px="$2"
+
+    mkdir -p cropped
+
+    shopt -s nullglob
+
+    for img in *.jpg *.jpeg *.JPG *.JPEG *.png *.PNG; do
+        echo "Processing: $img"
+
+        magick "$img" \
+            -gravity West -chop "${left_px}x0" \
+            -gravity East -chop "${right_px}x0" \
+            "cropped/$img"
+    done
+
+    echo "Done! Images saved in: ./cropped/"
+}
+
+
+make_montage_3x3() {
+    # Collect JPG files in natural numeric order
+    mapfile -t imgs < <(printf "%s\n" *.jpg *.JPG 2>/dev/null | sort -V)
+
+    # Check if any images were found
+    if [ ${#imgs[@]} -eq 0 ]; then
+        echo "No JPG images found in the current directory."
+        return 1
+    fi
+
+    # Create a 3 × 3 montage
+    montage "${imgs[@]}" \
+        -tile 3x3 \
+        -geometry +0+0 \
+        -background white \
+        grid_3x3.jpg
+
+    echo "Done!"
+    echo "Created:"
+    echo "  grid_3x3.jpg"
+}
+
+
+imggrid() {
+
+    local img="$1"
+
+    # Distance between grid lines (pixels)
+    local grid="${2:-10}"
+
+    # Line thickness (pixels)
+    local thickness="${3:-1}"
+
+    [[ -f "$img" ]] || {
+        echo "File not found: $img"
+        return 1
+    }
+
+    local out="${img%.*}_grid.${img##*.}"
+
+    local w h
+    w=$(identify -format "%w" "$img")
+    h=$(identify -format "%h" "$img")
+
+    local draw=()
+    local x y
+
+    #################################################################
+    # RED VERTICAL LINES
+    #################################################################
+    for ((x=0; x<=w; x+=grid)); do
+        draw+=(
+            -stroke red
+            -strokewidth "$thickness"
+            -draw "line $x,0 $x,$h"
+        )
+    done
+
+    #################################################################
+    # BLACK HORIZONTAL LINES
+    #################################################################
+    for ((y=0; y<=h; y+=grid)); do
+        draw+=(
+            -stroke black
+            -strokewidth "$thickness"
+            -draw "line 0,$y $w,$y"
+        )
+    done
+
+    magick "$img" "${draw[@]}" "$out"
+
+    echo "Created: $out"
+}
+
+
+
+pix2mm() {
+
+    #######################################################################
+    # Convert pixel measurement to millimeters using a known reference.
+    #
+    # Formula:
+    #
+    # object_mm =
+    #    object_pixels * reference_mm
+    #    --------------------------------
+    #          reference_pixels
+    #
+    # Example:
+    #
+    # reference_pixels = 534
+    # reference_mm     = 100
+    # object_pixels    = 820
+    #
+    # Result:
+    #
+    # 153.56 mm
+    #
+    #######################################################################
+
+    local object_pixels="$1"
+    local reference_pixels="$2"
+    local reference_mm="$3"
+
+    awk -v op="$object_pixels" \
+        -v rp="$reference_pixels" \
+        -v rm="$reference_mm" \
+        'BEGIN{
+            printf "%.2f\n",(op*rm)/rp
+        }'
+}
+
+
+imgmm() {
+
+    #######################################################################
+    # Calculate real-world image dimensions.
+    #
+    # Parameters:
+    #
+    # $1 = image
+    # $2 = reference_pixels
+    # $3 = reference_mm
+    #
+    # Example:
+    #
+    # imgmm photo.jpg 534 100
+    #
+    #######################################################################
+
+    local img="$1"
+    local ref_pixels="$2"
+    local ref_mm="$3"
+
+    local w h
+
+    w=$(identify -format "%w" "$img")
+    h=$(identify -format "%h" "$img")
+
+    awk \
+        -v w="$w" \
+        -v h="$h" \
+        -v rp="$ref_pixels" \
+        -v rm="$ref_mm" '
+        BEGIN {
+
+            mmpp = rm / rp
+
+            width_mm  = w * mmpp
+            height_mm = h * mmpp
+
+            printf "Image Width : %.2f mm\n", width_mm
+            printf "Image Height: %.2f mm\n", height_mm
+        }'
+}
+
+
+measure_img() {
+
+    ###########################################################################
+    #
+    # measure_img IMAGE REFERENCE_PIXELS REFERENCE_MM
+    #
+    # PURPOSE
+    # -------
+    # Calculate the real-world dimensions of an image and write the
+    # dimensions onto the image itself.
+    #
+    #
+    # WHY THIS IS NEEDED
+    # ------------------
+    # An image only contains PIXELS.
+    #
+    # Example:
+    #
+    #     1920 x 1470 pixels
+    #
+    # Pixels do NOT tell us millimeters.
+    #
+    # To convert pixels -> mm we need a known reference object.
+    #
+    #
+    # EXAMPLE
+    # -------
+    # Suppose a ruler is visible in the photo.
+    #
+    # Real ruler length:
+    #
+    #     100 mm
+    #
+    # Measured in photo:
+    #
+    #     534 pixels
+    #
+    # Scale:
+    #
+    #     mm_per_pixel = 100 / 534
+    #
+    #                  = 0.187266 mm/pixel
+    #
+    #
+    # IMAGE SIZE
+    # ----------
+    #
+    # If image width is:
+    #
+    #     1920 pixels
+    #
+    # Then:
+    #
+    #     width_mm =
+    #         1920 * 100 / 534
+    #
+    #     = 359.55 mm
+    #
+    #
+    # FORMULA
+    # -------
+    #
+    # mm_per_pixel =
+    #
+    #     reference_mm
+    #     ------------
+    #     reference_pixels
+    #
+    #
+    # object_mm =
+    #
+    #     object_pixels * mm_per_pixel
+    #
+    #
+    # PARAMETERS
+    # ----------
+    #
+    # $1 = image file
+    #
+    # $2 = reference length in pixels
+    #
+    # $3 = reference length in millimeters
+    #
+    #
+    # OUTPUT
+    # ------
+    #
+    # original:
+    #
+    #     photo.jpg
+    #
+    # output:
+    #
+    #     photo_measured.jpg
+    #
+    ###########################################################################
+
+    local img="$1"
+    local ref_pixels="$2"
+    local ref_mm="$3"
+
+    [[ -f "$img" ]] || {
+        echo "ERROR: image not found"
+        return 1
+    }
+
+    [[ "$ref_pixels" =~ ^[0-9]+([.][0-9]+)?$ ]] || {
+        echo "ERROR: invalid reference_pixels"
+        return 1
+    }
+
+    [[ "$ref_mm" =~ ^[0-9]+([.][0-9]+)?$ ]] || {
+        echo "ERROR: invalid reference_mm"
+        return 1
+    }
+
+    ###########################################################################
+    # Get image dimensions in pixels
+    ###########################################################################
+
+    local width_px
+    local height_px
+
+    width_px=$(identify -format "%w" "$img")
+    height_px=$(identify -format "%h" "$img")
+
+    ###########################################################################
+    # Calculate dimensions in millimeters
+    ###########################################################################
+
+    local width_mm
+    local height_mm
+
+    width_mm=$(
+        awk -v p="$width_px" \
+            -v rp="$ref_pixels" \
+            -v rm="$ref_mm" \
+            'BEGIN{
+                printf "%.2f",(p*rm)/rp
+            }'
+    )
+
+    height_mm=$(
+        awk -v p="$height_px" \
+            -v rp="$ref_pixels" \
+            -v rm="$ref_mm" \
+            'BEGIN{
+                printf "%.2f",(p*rm)/rp
+            }'
+    )
+
+    ###########################################################################
+    # Text to print on image
+    ###########################################################################
+
+    local label
+
+    label="W=${width_mm} mm  H=${height_mm} mm"
+
+    ###########################################################################
+    # Output filename
+    ###########################################################################
+
+    local out
+
+    out="${img%.*}_measured.${img##*.}"
+
+    ###########################################################################
+    # Print dimensions onto image
+    #
+    # SouthWest = bottom-left corner
+    #
+    ###########################################################################
+
+    magick "$img" \
+        -fill yellow \
+        -stroke black \
+        -strokewidth 1 \
+        -pointsize 36 \
+        -gravity southwest \
+        -annotate +20+20 "$label" \
+        "$out"
+
+    ###########################################################################
+    # Console output
+    ###########################################################################
+
+    echo "Image            : $img"
+    echo "Image Width (px) : $width_px"
+    echo "Image Height(px) : $height_px"
+    echo
+    echo "Reference Pixels : $ref_pixels"
+    echo "Reference mm     : $ref_mm"
+    echo
+    echo "Width  : $width_mm mm"
+    echo "Height : $height_mm mm"
+    echo
+    echo "Created: $out"
+}
+
+
+
+
+img2grid_mm_pure() {
+
+    ####################################################################
+    #
+    # grid_mm
+    #
+    # Draw a 1 mm measurement grid on an image.
+    #
+    # Usage:
+    #
+    #     grid_mm IMAGE PIXELS MM
+    #
+    # Example:
+    #
+    #     grid_mm test.jpeg 100 8
+    #
+    # Means:
+    #
+    #     100 pixels = 8 mm
+    #
+    # Therefore:
+    #
+    #     1 mm = 100 / 8 = 12.5 pixels
+    #
+    # Output:
+    #
+    #     grid_output.png
+    #
+    ####################################################################
+
+    INPUT="$1"
+    PIXELS="$2"
+    MM="$3"
+
+    ############################################################
+    # Check arguments
+    ############################################################
+
+    if [ $# -ne 3 ]; then
+        echo
+        echo "Usage:"
+        echo "    grid_mm IMAGE PIXELS MM"
+        echo
+        echo "Example:"
+        echo "    grid_mm test.jpeg 100 8"
+        echo
+        return 1
+    fi
+
+    ############################################################
+    # Verify image exists
+    ############################################################
+
+    if [ ! -f "$INPUT" ]; then
+        echo "Error: File not found -> $INPUT"
+        return 1
+    fi
+
+    ############################################################
+    # Read image size
+    ############################################################
+
+    WIDTH=$(identify -format "%w" "$INPUT")
+    HEIGHT=$(identify -format "%h" "$INPUT")
+
+    ############################################################
+    # Calculate pixels per 1 mm
+    #
+    # Example:
+    #
+    #   100 pixels = 8 mm
+    #
+    #   STEP = 100 / 8
+    #        = 12.5 pixels
+    #
+    ############################################################
+
+    STEP=$(awk "BEGIN { printf \"%.6f\", $PIXELS / $MM }")
+
+    ############################################################
+    # Show information
+    ############################################################
+
+    echo
+    echo "Image Width  : $WIDTH px"
+    echo "Image Height : $HEIGHT px"
+    echo "Calibration  : $PIXELS pixels = $MM mm"
+    echo "1 mm         : $STEP pixels"
+    echo
+
+    ############################################################
+    # Build draw commands
+    ############################################################
+
+    DRAW=""
+
+    ############################################################
+    # Draw RED vertical lines
+    ############################################################
+
+    X=0
+
+    while (( $(echo "$X <= $WIDTH" | bc -l) ))
+    do
+
+        DRAW="$DRAW stroke red line $X,0 $X,$HEIGHT "
+
+        X=$(awk "BEGIN { print $X + $STEP }")
+
+    done
+
+    ############################################################
+    # Draw BLACK horizontal lines
+    ############################################################
+
+    Y=0
+
+    while (( $(echo "$Y <= $HEIGHT" | bc -l) ))
+    do
+
+        DRAW="$DRAW stroke black line 0,$Y $WIDTH,$Y "
+
+        Y=$(awk "BEGIN { print $Y + $STEP }")
+
+    done
+
+    ############################################################
+    # Draw grid and footer text
+    ############################################################
+
+    convert "$INPUT" \
+        -fill none \
+        -strokewidth 1 \
+        -draw "$DRAW" \
+        -gravity south \
+        -fill red \
+        -stroke none \
+        -pointsize 48 \
+        -annotate +0+10 "ALL DIMENSIONS ARE IN MM   |   Script by Shadow6" \
+        grid_output.png
+
+    ############################################################
+    # Finished
+    ############################################################
+
+    echo "====================================="
+    echo "Grid image created successfully."
+    echo "Output : grid_output.png"
+    echo "====================================="
+
+}
