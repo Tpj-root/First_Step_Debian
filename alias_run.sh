@@ -5506,51 +5506,107 @@ reduce_to_size() {
 
 
 
+join_images_side_by_side()
+{
+    ###########################################################################
+    # Function:
+    #   join_images_side_by_side
+    #
+    # Description:
+    #   Automatically scans the current directory for image files and joins
+    #   them horizontally (side by side).
+    #
+    # Supported Formats:
+    #   *.png
+    #   *.jpg
+    #   *.jpeg
+    #
+    # Requirements:
+    #   ImageMagick
+    #
+    # Output:
+    #   Final_result.png
+    #
+    # Example:
+    #   join_images_side_by_side
+    #
+    # Notes:
+    #   - Images are sorted alphabetically.
+    #   - Works with any number of images (2, 3, 5, 20...).
+    #   - Images with different heights are automatically padded by ImageMagick.
+    ###########################################################################
 
-join_images_side_by_side() {
-  # Usage: join_images_side_by_side img1.jpg img2.jpg output.jpg
-  #
-  # Description:
-  #   Combines two images side by side (horizontally)
-  #
-  # Requirements:
-  #   - ImageMagick (`convert`)
-  #
-  # Arguments:
-  #   $1 = first input image
-  #   $2 = second input image
-  #   $3 = output image filename
-  #
-  # Example:
-  #   join_images_side_by_side left.jpg right.jpg joined.jpg
-  #
-  # Notes:
-  #   - If heights of images are different, the smaller one is padded
-  #   - Output format is based on the extension of $3 (e.g., .jpg, .png)
+    local output="Final_result.png"
 
-  if [[ $# -ne 2 ]]; then
-    echo "❌ Usage: join_images_side_by_side img1.jpg img2.jpg output.jpg"
-    return 1
-  fi
+    # Enable extended filename matching
+    shopt -s nullglob nocaseglob
 
-  local img1="$1"
-  local img2="$2"
-  local output="Final_result"
+    # Collect all supported image files
+    local images=(
+        *.png
+        *.jpg
+        *.jpeg
+    )
 
-  if [[ ! -f "$img1" || ! -f "$img2" ]]; then
-    echo "❌ Error: One or both input files not found."
-    return 1
-  fi
+    # Restore default shell behavior
+    shopt -u nullglob nocaseglob
 
-  # Join images horizontally (side by side)
-  convert "$img1" "$img2" +append "$output"
+    # Remove output file from the list (if it already exists)
+    local filtered=()
 
-  if [[ $? -eq 0 ]]; then
-    echo "✅ Images joined side by side → $output"
-  else
-    echo "❌ Failed to join images."
-    return 1
-  fi
+    for img in "${images[@]}"
+    do
+        [[ "$img" == "$output" ]] && continue
+        filtered+=("$img")
+    done
+
+    # Check whether any images were found
+    if (( ${#filtered[@]} == 0 )); then
+        echo "❌ No PNG/JPG/JPEG images found in current directory."
+        return 1
+    fi
+
+    echo "-----------------------------------------"
+    echo "Images found : ${#filtered[@]}"
+    echo "-----------------------------------------"
+
+    for img in "${filtered[@]}"
+    do
+        echo "  $img"
+    done
+
+    echo "-----------------------------------------"
+    echo "Joining images..."
+    echo
+
+    ###########################################################################
+    # +append
+    #
+    # Joins images horizontally.
+    #
+    # Example:
+    #
+    #   Image1  Image2  Image3
+    #
+    # becomes
+    #
+    #   +---------------------------+
+    #   | Image1 | Image2 | Image3 |
+    #   +---------------------------+
+    ###########################################################################
+
+    convert "${filtered[@]}" +append "$output"
+
+    if [[ $? -eq 0 ]]; then
+        echo
+        echo "✅ Successfully created:"
+        echo "   $output"
+        echo
+        echo "Total Images Joined : ${#filtered[@]}"
+    else
+        echo "❌ Failed to join images."
+        return 1
+    fi
 }
 
 
@@ -9079,4 +9135,171 @@ img2grid_mm_pure() {
     echo "Output : grid_output.png"
     echo "====================================="
 
+}
+
+
+lock_time() {
+    #######################################################################
+    # 4-DIGIT LOCK TIME CALCULATOR
+    #
+    # Assumptions:
+    #   - Lock range: 0000 to 9999
+    #   - Total possible combinations = 10000
+    #   - Default checking time per attempt = 1 second
+    #
+    # Usage:
+    #
+    #   lock_time
+    #       Uses default 1 second per attempt.
+    #
+    #   lock_time 2
+    #       Uses 2 seconds per attempt.
+    #
+    #   lock_time 1 0308
+    #       Uses 1 second per attempt and calculates
+    #       the time needed to reach code 0308.
+    #
+    #######################################################################
+
+    local sec_per_try="${1:-1}"
+    local code="$2"
+
+    local total_combinations=10000
+    local total_seconds=$(( total_combinations * sec_per_try ))
+
+    echo "===================================================="
+    echo "4-DIGIT LOCK ANALYSIS"
+    echo "===================================================="
+    echo "Total combinations : $total_combinations"
+    echo "Time per attempt   : $sec_per_try second(s)"
+    echo
+
+    echo "Worst-case (trying ALL combinations):"
+    echo "-------------------------------------"
+
+    local days=$(( total_seconds / 86400 ))
+    local hours=$(( (total_seconds % 86400) / 3600 ))
+    local mins=$(( (total_seconds % 3600) / 60 ))
+    local secs=$(( total_seconds % 60 ))
+
+    echo "Total seconds : $total_seconds"
+    echo "Total time    : ${days}d ${hours}h ${mins}m ${secs}s"
+    echo
+
+    if [[ -n "$code" ]]; then
+
+        # Remove leading zeros safely
+        local num=$((10#$code))
+
+        # Position if counting starts from 0000
+        local attempts=$(( num + 1 ))
+
+        local code_seconds=$(( attempts * sec_per_try ))
+
+        days=$(( code_seconds / 86400 ))
+        hours=$(( (code_seconds % 86400) / 3600 ))
+        mins=$(( (code_seconds % 3600) / 60 ))
+        secs=$(( code_seconds % 60 ))
+
+        echo "Specific code analysis"
+        echo "----------------------"
+        echo "Code             : $code"
+        echo "Numeric position : $num"
+        echo "Attempts needed  : $attempts"
+        echo "Total seconds    : $code_seconds"
+        echo "Time required    : ${days}d ${hours}h ${mins}m ${secs}s"
+        echo
+    fi
+
+    echo "Examples:"
+    echo "  lock_time"
+    echo "  lock_time 2"
+    echo "  lock_time 1 0308"
+    echo "  lock_time 0.5 0308   # (bash arithmetic won't handle decimals)"
+    echo "===================================================="
+}
+
+
+
+
+decode_hex() {
+    local hex="${1^^}"
+
+    echo "=============================="
+    echo "Hex String"
+    echo "$hex"
+    echo
+
+    echo "Length        : ${#hex} hex digits"
+    echo "Bytes         : $((${#hex}/2))"
+    echo "Bits          : $((${#hex}*4))"
+    echo
+
+    echo "ASCII (printable only):"
+    echo "$hex" | xxd -r -p | strings
+    echo
+
+    echo "Hex Dump:"
+    echo "$hex" | xxd -r -p | xxd
+    echo
+
+    echo "Base64:"
+    echo "$hex" | xxd -r -p | base64
+    echo
+
+    echo "Decimal:"
+    printf "%d\n" "0x$hex" 2>/dev/null || \
+    python3 - <<EOF
+print(int("$hex",16))
+EOF
+    echo
+
+    echo "SHA256 size? : $([[ ${#hex} -eq 64 ]] && echo "Yes (32 bytes)" || echo "No")"
+    echo "=============================="
+}
+
+
+
+
+read_pixels() {
+    local file="${1:-framebuffer.raw}"
+
+    if [[ ! -f "$file" ]]; then
+        echo "File not found: $file"
+        return 1
+    fi
+
+    # Read first 10 pixels (40 bytes)
+    xxd -p -l 40 "$file" | tr -d '\n' | \
+    sed 's/.\{8\}/&\n/g' | \
+    while read -r px; do
+        # Assume RGBA (RRGGBBAA)
+        r=$((16#${px:0:2}))
+        g=$((16#${px:2:2}))
+        b=$((16#${px:4:2}))
+        a=$((16#${px:6:2}))
+
+        color="Unknown"
+
+        if ((r==0 && g==0 && b==0)); then
+            color="Black"
+        elif ((r==255 && g==255 && b==255)); then
+            color="White"
+        elif ((r==255 && g==0 && b==0)); then
+            color="Red"
+        elif ((r==0 && g==255 && b==0)); then
+            color="Green"
+        elif ((r==0 && g==0 && b==255)); then
+            color="Blue"
+        elif ((r==255 && g==255 && b==0)); then
+            color="Yellow"
+        elif ((r==0 && g==255 && b==255)); then
+            color="Cyan"
+        elif ((r==255 && g==0 && b==255)); then
+            color="Magenta"
+        fi
+
+        printf "R=%3d G=%3d B=%3d A=%3d -> %s\n" \
+            "$r" "$g" "$b" "$a" "$color"
+    done
 }
