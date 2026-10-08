@@ -1446,7 +1446,7 @@ alias gits='git status'
 alias gitlog='git log'
 alias gitd='git diff'
 alias gg='gitgo'
-alias gitsubmoduledownload='git submodule update --init --recursive'
+alias gitsubmoduleupdate='git submodule update --init --recursive --progress'
 alias gitwho='git remote get-url origin'
 alias gitrestore='git restore -- .'
 alias gitundo='git reset'
@@ -9302,4 +9302,2540 @@ read_pixels() {
         printf "R=%3d G=%3d B=%3d A=%3d -> %s\n" \
             "$r" "$g" "$b" "$a" "$color"
     done
+}
+
+
+# -----------------------------------------------------------------------------
+# Function : same_size
+#
+# Purpose:
+#   Make every image in the CURRENT directory the same canvas size.
+#
+# How it works:
+#   1. Scan all JPG/JPEG/PNG files.
+#   2. Find the LARGEST width and LARGEST height.
+#   3. Resize each image WITHOUT changing its aspect ratio.
+#   4. Add white padding so every image has identical dimensions.
+#   5. Save the results into a folder named "resized".
+#
+# Example:
+#
+#   Original Images
+#   ------------------------------
+#   image1.jpg   2171 x 1323
+#   image2.jpg   1942 x 1197
+#   image3.png   1600 x 900
+#
+#   Largest width  = 2171
+#   Largest height = 1323
+#
+#   Final Output
+#   ------------------------------
+#   image1.jpg   2171 x 1323
+#   image2.jpg   2171 x 1323
+#   image3.png   2171 x 1323
+#
+# Why use padding?
+#   Stretching changes the PCB dimensions and makes alignment inaccurate.
+#   Padding keeps the original proportions while making every image
+#   exactly the same size.
+#
+# Requirements:
+#   - ImageMagick 7 (magick command)
+#
+#   Install:
+#       sudo apt install imagemagick
+#
+# Usage:
+#
+#   cd ~/Downloads/JOIN_IMAGE
+#   same_size
+#
+# Output:
+#
+#   resized/
+#       image1.jpg
+#       image2.jpg
+#       image3.png
+#
+# -----------------------------------------------------------------------------
+
+same_size() {
+
+    # Enable "nullglob".
+    #
+    # Without this:
+    #   If no *.jpg files exist, Bash literally returns "*.jpg".
+    #
+    # With nullglob:
+    #   Empty matches disappear instead of becoming literal text.
+    #
+    shopt -s nullglob
+
+    # Variables storing the largest width and height discovered.
+    local max_w=0
+    local max_h=0
+
+    echo "----------------------------------------"
+    echo "Scanning images..."
+    echo "----------------------------------------"
+
+    # -------------------------------------------------------------------------
+    # First Pass
+    #
+    # Find the largest image dimensions.
+    #
+    # identify outputs:
+    #
+    #   width height
+    #
+    # Example:
+    #
+    #   2171 1323
+    #
+    # read stores:
+    #
+    #   w=2171
+    #   h=1323
+    #
+    # -------------------------------------------------------------------------
+
+    for f in *.{jpg,jpeg,JPG,JPEG,png,PNG}; do
+
+        # Skip unreadable files.
+        [[ -f "$f" ]] || continue
+
+        read w h < <(magick identify -format "%w %h" "$f")
+
+        printf "%-25s %5d x %-5d\n" "$f" "$w" "$h"
+
+        # Keep the largest width found.
+        (( w > max_w )) && max_w=$w
+
+        # Keep the largest height found.
+        (( h > max_h )) && max_h=$h
+
+    done
+
+    echo
+    echo "Largest Width  : $max_w"
+    echo "Largest Height : $max_h"
+    echo
+
+    # Create output directory.
+    mkdir -p resized
+
+    echo "----------------------------------------"
+    echo "Resizing images..."
+    echo "----------------------------------------"
+
+    # -------------------------------------------------------------------------
+    # Second Pass
+    #
+    # Resize every image.
+    #
+    # Important ImageMagick options:
+    #
+    # -resize
+    #     Shrinks or enlarges while preserving aspect ratio.
+    #
+    # -background white
+    #     Padding color.
+    #
+    # -gravity center
+    #     Places image in the center.
+    #
+    # -extent
+    #     Extends canvas to target size.
+    #
+    # -strip
+    #     Removes EXIF metadata.
+    #
+    # -------------------------------------------------------------------------
+
+    for f in *.{jpg,jpeg,JPG,JPEG,png,PNG}; do
+
+        [[ -f "$f" ]] || continue
+
+        echo "Processing: $f"
+
+        magick "$f" \
+            -resize "${max_w}x${max_h}" \
+            -background white \
+            -gravity center \
+            -extent "${max_w}x${max_h}" \
+            -strip \
+            "resized/$f"
+
+    done
+
+    echo
+    echo "----------------------------------------"
+    echo "Completed."
+    echo "Output Folder : resized/"
+    echo "Canvas Size   : ${max_w} x ${max_h}"
+    echo "----------------------------------------"
+
+    # Restore Bash default behavior.
+    shopt -u nullglob
+}
+
+
+
+
+# -----------------------------------------------------------------------------
+# Function : gray_images
+#
+# Purpose:
+#   Convert every JPG/JPEG/PNG image in the current directory to grayscale.
+#
+# Why?
+#   • Easier to trace PCB tracks.
+#   • Better contrast for schematic drawing.
+#   • Removes distracting colors.
+#   • Original images are NOT modified.
+#
+# Input:
+#   Current directory
+#
+# Output:
+#   gray/
+#       image1.png
+#       image2.jpg
+#       ...
+#
+# Requirements:
+#   sudo apt install imagemagick
+#
+# Usage:
+#
+#   cd ~/Downloads/JOIN_IMAGE
+#   gray_images
+#
+# -----------------------------------------------------------------------------
+
+gray_images() {
+
+    # Ignore patterns that don't match any files.
+    shopt -s nullglob
+
+    # Create output directory.
+    mkdir -p gray
+
+    echo "----------------------------------------"
+    echo "Converting images to grayscale..."
+    echo "----------------------------------------"
+
+    # Process every supported image.
+    for f in *.{jpg,jpeg,JPG,JPEG,png,PNG}; do
+
+        # Skip invalid entries.
+        [[ -f "$f" ]] || continue
+
+        echo "Processing: $f"
+
+        # Convert image to grayscale.
+        #
+        # -colorspace Gray
+        #     Converts the image to grayscale while preserving detail.
+        #
+        # -strip
+        #     Removes EXIF metadata.
+        #
+        magick "$f" \
+            -colorspace Gray \
+            -strip \
+            "gray/$f"
+
+    done
+
+    echo
+    echo "----------------------------------------"
+    echo "Done!"
+    echo "Output folder : gray/"
+    echo "----------------------------------------"
+
+    # Restore default shell behavior.
+    shopt -u nullglob
+}
+
+
+
+# -----------------------------------------------------------------------------
+# Function : xray_images
+#
+# Purpose:
+#   Create an X-ray style version of every JPG/JPEG/PNG image.
+#
+# Useful for:
+#   • PCB reverse engineering
+#   • Highlighting copper traces
+#   • Improving visibility before tracing
+#
+# Output:
+#   xray/
+#       image1.jpg
+#       image2.png
+#
+# Requirements:
+#   sudo apt install imagemagick
+#
+# Usage:
+#
+#   cd ~/Downloads/JOIN_IMAGE
+#   xray_images
+#
+# -----------------------------------------------------------------------------
+
+xray_images() {
+
+    shopt -s nullglob
+
+    mkdir -p xray
+
+    echo "----------------------------------------"
+    echo "Creating X-ray style images..."
+    echo "----------------------------------------"
+
+    for f in *.{jpg,jpeg,JPG,JPEG,png,PNG}; do
+
+        [[ -f "$f" ]] || continue
+
+        echo "Processing: $f"
+
+        magick "$f" \
+            -colorspace Gray \
+            -negate \
+            -auto-level \
+            -contrast-stretch 1%x1% \
+            -sharpen 0x1 \
+            -strip \
+            "xray/$f"
+
+    done
+
+    echo
+    echo "Done!"
+    echo "Output folder : xray/"
+
+    shopt -u nullglob
+}
+
+
+# -----------------------------------------------------------------------------
+# Function : bw_images
+#
+# Purpose:
+#   Convert every JPG/JPEG/PNG image into a pure Black & White image.
+#
+# Useful for:
+#   • PCB reverse engineering
+#   • Copper trace detection
+#   • Printing
+#   • Manual schematic drawing
+#
+# Output:
+#   bw/
+#       image1.jpg
+#       image2.png
+#
+# Requirements:
+#   sudo apt install imagemagick
+#
+# Usage:
+#
+#   cd ~/Downloads/JOIN_IMAGE
+#   bw_images
+#
+# -----------------------------------------------------------------------------
+
+bw_images() {
+
+    # Ignore patterns that match no files.
+    shopt -s nullglob
+
+    # Output directory.
+    mkdir -p bw
+
+    echo "----------------------------------------"
+    echo "Creating Black & White images..."
+    echo "----------------------------------------"
+
+    # Process every supported image.
+    for f in *.{jpg,jpeg,JPG,JPEG,png,PNG}; do
+
+        [[ -f "$f" ]] || continue
+
+        echo "Processing: $f"
+
+        magick "$f" \
+            -colorspace Gray \
+            -auto-level \
+            -contrast-stretch 1%x1% \
+            -threshold 55% \
+            -strip \
+            "bw/$f"
+
+    done
+
+    echo
+    echo "Done!"
+    echo "Output folder : bw/"
+
+    shopt -u nullglob
+}
+
+
+# -----------------------------------------------------------------------------
+# Function : edge_images
+#
+# Purpose:
+#   Detect the edges in every JPG/JPEG/PNG image.
+#
+# Useful for:
+#   • PCB reverse engineering
+#   • Highlighting copper track boundaries
+#   • Finding pad outlines
+#   • Comparing front/back scans
+#   • Manual schematic tracing
+#
+# Output:
+#   edge/
+#       image1.jpg
+#       image2.png
+#
+# Requirements:
+#   sudo apt install imagemagick
+#
+# Usage:
+#
+#   cd ~/Downloads/JOIN_IMAGE
+#   edge_images
+#
+# -----------------------------------------------------------------------------
+
+edge_images() {
+
+    # Ignore patterns that match no files.
+    shopt -s nullglob
+
+    # Create output directory.
+    mkdir -p edge
+
+    echo "----------------------------------------"
+    echo "Creating edge-detected images..."
+    echo "----------------------------------------"
+
+    # Process every supported image.
+    for f in *.{jpg,jpeg,JPG,JPEG,png,PNG}; do
+
+        [[ -f "$f" ]] || continue
+
+        echo "Processing: $f"
+
+        magick "$f" \
+            -colorspace Gray \
+            -auto-level \
+            -contrast-stretch 1%x1% \
+            -edge 1 \
+            -negate \
+            -strip \
+            "edge/$f"
+
+    done
+
+    echo
+    echo "Done!"
+    echo "Output folder : edge/"
+
+    # Restore shell default.
+    shopt -u nullglob
+}
+
+
+# -----------------------------------------------------------------------------
+# Function : emboss_images
+#
+# Purpose:
+#   Create an embossed (3D relief) version of every JPG/JPEG/PNG image.
+#
+# Useful for:
+#   • PCB reverse engineering
+#   • Making copper traces appear raised
+#   • Identifying pads and vias
+#   • Visual inspection of PCB tracks
+#
+# Output:
+#   emboss/
+#       image1.jpg
+#       image2.png
+#
+# Requirements:
+#   sudo apt install imagemagick
+#
+# Usage:
+#
+#   cd ~/Downloads/JOIN_IMAGE
+#   emboss_images
+#
+# -----------------------------------------------------------------------------
+
+emboss_images() {
+
+    # Ignore patterns that match no files.
+    shopt -s nullglob
+
+    # Create output directory.
+    mkdir -p emboss
+
+    echo "----------------------------------------"
+    echo "Creating embossed images..."
+    echo "----------------------------------------"
+
+    # Process every supported image.
+    for f in *.{jpg,jpeg,JPG,JPEG,png,PNG}; do
+
+        [[ -f "$f" ]] || continue
+
+        echo "Processing: $f"
+
+        magick "$f" \
+            -colorspace Gray \
+            -auto-level \
+            -contrast-stretch 1%x1% \
+            -emboss 1x1 \
+            -strip \
+            "emboss/$f"
+
+    done
+
+    echo
+    echo "Done!"
+    echo "Output folder : emboss/"
+
+    # Restore shell default.
+    shopt -u nullglob
+}
+
+# -----------------------------------------------------------------------------
+# Function : emboss_all
+#
+# Purpose:
+#   Generate multiple embossed versions of every image.
+#
+# Output:
+#
+# emboss/
+# ├── emboss_0x1/
+# ├── emboss_1x1/
+# ├── emboss_2x2/
+# ├── emboss_3x3/
+# └── emboss_5x5/
+#
+# Usage:
+#
+#   cd ~/Downloads/JOIN_IMAGE
+#   emboss_all
+#
+# -----------------------------------------------------------------------------
+
+emboss_all() {
+
+    shopt -s nullglob
+
+    # Emboss strengths to generate
+    local strengths=(
+        "0x1"
+        "1x1"
+        "2x2"
+        "3x3"
+        "5x5"
+    )
+
+    mkdir -p emboss
+
+    echo "----------------------------------------"
+    echo "Generating all emboss variations..."
+    echo "----------------------------------------"
+
+    # Loop through every emboss strength
+    for strength in "${strengths[@]}"; do
+
+        outdir="emboss/emboss_${strength}"
+        mkdir -p "$outdir"
+
+        echo
+        echo "Emboss Strength : $strength"
+
+        # Process every supported image
+        for f in *.{jpg,jpeg,JPG,JPEG,png,PNG}; do
+
+            [[ -f "$f" ]] || continue
+
+            echo "  -> $f"
+
+            magick "$f" \
+                -colorspace Gray \
+                -auto-level \
+                -contrast-stretch 1%x1% \
+                -emboss "$strength" \
+                -strip \
+                "$outdir/$f"
+
+        done
+    done
+
+    echo
+    echo "----------------------------------------"
+    echo "Completed!"
+    echo "Results saved in:"
+    echo "  emboss/"
+    echo "----------------------------------------"
+
+    shopt -u nullglob
+}
+
+
+resize_95x75_white() {
+    local outdir="95x75"
+
+    mkdir -p "$outdir"
+
+    shopt -s nullglob nocaseglob
+
+    for img in *.png *.jpg *.jpeg; do
+        echo "Processing: $img"
+
+        magick "$img" \
+            -thumbnail 95x75 \
+            -background white \
+            -gravity center \
+            -extent 95x75 \
+            "$outdir/$img"
+    done
+
+    echo "Done!"
+    echo "Images saved in: $outdir/"
+}
+
+
+
+resize_95x75_with_alpha() {
+    local outdir="95x75"
+
+    mkdir -p "$outdir"
+
+    shopt -s nullglob nocaseglob
+
+    for img in *.png *.jpg *.jpeg; do
+        echo "Processing: $img"
+
+        magick "$img" \
+            -thumbnail 95x75 \
+            -gravity center \
+            -background none \
+            -extent 95x75 \
+            "$outdir/$img"
+    done
+
+    echo "Done!"
+    echo "Images saved in: $outdir/"
+}
+
+
+png_to_jpg() {
+    local outdir="jpg"
+
+    mkdir -p "$outdir"
+
+    shopt -s nullglob nocaseglob
+
+    for img in *.png; do
+        echo "Converting: $img"
+
+        magick "$img" \
+            -background white \
+            -alpha remove \
+            -alpha off \
+            "$outdir/${img%.*}.jpg"
+    done
+
+    echo "Done!"
+    echo "JPEG images saved in: $outdir/"
+}
+
+
+qty_for_budget() {
+    local price="$1"
+    local budget="${2:-11}"   # Default budget = 10
+
+    awk -v p="$price" -v b="$budget" '
+    BEGIN {
+        q = int(b / p)
+        printf "Price   : %.2f\n", p
+        printf "Budget  : %.2f\n", b
+        printf "Quantity: %d\n", q
+        printf "Cost    : %.2f\n", q * p
+        printf "Next Qty: %d (Cost %.2f)\n", q + 1, (q + 1) * p
+    }'
+}
+
+
+pngreduce() {
+    if [ $# -lt 1 ]; then
+        echo "Usage: pngreduce input.png [output.png]"
+        return 1
+    fi
+
+    local input="$1"
+    local output="${2:-${input%.png}_small.png}"
+
+    if [ ! -f "$input" ]; then
+        echo "Error: File not found: $input"
+        return 1
+    fi
+
+    pngquant \
+        --quality=80-100 \
+        --speed=1 \
+        --strip \
+        --force \
+        --output "$output" \
+        "$input"
+
+    echo
+    echo "Original:"
+    ls -lh "$input"
+    echo "Optimized:"
+    ls -lh "$output"
+}
+
+
+
+# Convert PDF -> High Quality PNG Images
+pdf2img() {
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: pdf2img input.pdf [dpi]"
+        return 1
+    fi
+
+    local pdf="$1"
+    local dpi="${2:-600}"     # Default: 600 DPI
+    local outdir="${pdf%.*}_images"
+
+    mkdir -p "$outdir"
+
+    pdftoppm \
+        -png \
+        -r "$dpi" \
+        "$pdf" \
+        "$outdir/page"
+
+    echo "Done."
+    echo "Output: $outdir"
+}
+
+
+img2pencil() {
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: img2pencil image [output]"
+        return 1
+    fi
+
+    local in="$1"
+    local out="${2:-${in%.*}_pencil.png}"
+
+    magick "$in" \
+        -colorspace Gray \
+        -normalize \
+        -blur 0x1 \
+        -edge 1 \
+        -negate \
+        -auto-level \
+        -threshold 5% \
+        "$out"
+
+    echo "Saved: $out"
+}
+
+img2pencil_all() {
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: img2pencil_all image"
+        return 1
+    fi
+
+    local in="$1"
+    local base="$(basename "${in%.*}")"
+    local outdir="${base}_pencil_all"
+
+    mkdir -p "$outdir"
+
+    echo "Generating 99 images..."
+
+    for t in $(seq 0 5 100); do
+        printf "Threshold %02d%%...\n" "$t"
+
+        magick "$in" \
+            -colorspace Gray \
+            -normalize \
+            -blur 0x1 \
+            -edge 1 \
+            -negate \
+            -auto-level \
+            -threshold "${t}%" \
+            "$outdir/${base}_threshold_${t}.png"
+    done
+
+    echo
+    echo "Done!"
+    echo "Output folder:"
+    echo "  $outdir"
+}
+
+
+
+
+
+
+
+
+# -------------------------------------------------------------------------
+# Function : waitusb
+#
+# Purpose:
+#   Wait until a NEW USB device is connected, then display its details.
+#
+# How it works:
+#   1. Save the current lsusb output as a temporary snapshot.
+#   2. Continuously check lsusb every 0.5 seconds.
+#   3. Compare the current list with the original snapshot.
+#   4. If a new line appears, print the new device(s).
+#   5. Remove the temporary file and exit.
+#
+# Temporary storage:
+#   /tmp
+#
+# Why /tmp?
+#   - RAM-backed on many Linux systems.
+#   - Automatically cleared after reboot.
+#   - Perfect for temporary data.
+# -------------------------------------------------------------------------
+
+waitusb()
+{
+    # Create a temporary file.
+    # mktemp generates a unique filename such as:
+    # /tmp/waitusb.XYZ123
+    local snapshot
+    snapshot=$(mktemp)
+
+    # Save the current USB device list.
+    # This is our "before" snapshot.
+    lsusb > "$snapshot"
+
+    echo "=============================================="
+    echo " Waiting for a NEW USB device..."
+    echo " Press Ctrl+C to cancel."
+    echo "=============================================="
+
+    while true
+    do
+        # Compare the original snapshot with the current USB list.
+        #
+        # comm compares two sorted files.
+        #
+        # sort "$snapshot"
+        #     Sorts the original USB list.
+        #
+        # sort <(lsusb)
+        #     Sorts the current USB list.
+        #
+        # comm -13
+        #     -1 Hide lines unique to file1.
+        #     -2 Hide lines unique to file2.
+        #     -3 Hide common lines.
+        #
+        # Result:
+        # Only NEW USB devices remain.
+        new_devices=$(comm -13 \
+            <(sort "$snapshot") \
+            <(lsusb | sort))
+
+        # If something was found...
+        if [[ -n "$new_devices" ]]
+        then
+            echo
+            echo "New USB device detected!"
+            echo
+            echo "$new_devices"
+
+            # Remove the temporary snapshot.
+            rm -f "$snapshot"
+
+            # End the function.
+            return
+        fi
+
+        # Reduce CPU usage.
+        sleep 0.5
+    done
+}
+
+
+
+
+make_random_pdfs()
+{
+    timestamp=$(date '+%Y%m%d_%H%M%S')
+
+    for i in {1..5}
+    do
+        png="/tmp/${timestamp}_${i}.png"
+        pdf="${timestamp}_${i}.pdf"
+
+        python3 - "$png" <<'PY'
+from PIL import Image
+import random
+import sys
+
+img = Image.new("RGB", (320, 240))
+p = img.load()
+
+for y in range(240):
+    for x in range(320):
+        p[x, y] = (
+            random.randrange(256),
+            random.randrange(256),
+            random.randrange(256)
+        )
+
+img.save(sys.argv[1])
+PY
+
+        magick "$png" "$pdf"
+        rm "$png"
+
+        echo "Created: $pdf"
+    done
+}
+
+
+make_random_pdfs2()
+{
+    timestamp=$(date '+%Y%m%d_%H%M%S')
+
+    for pdf_num in {1..5}
+    do
+        pdf="${timestamp}_${pdf_num}.pdf"
+
+        python3 - "$pdf" <<'PY'
+from PIL import Image
+from reportlab.pdfgen import canvas
+import random
+import sys
+
+pdf_file = sys.argv[1]
+
+PAGE_W = 320
+PAGE_H = 240
+
+c = canvas.Canvas(pdf_file, pagesize=(PAGE_W, PAGE_H))
+
+for page in range(11):
+
+    # Create new random 320x240 image
+    img = Image.new("RGB", (320, 240))
+    pixels = img.load()
+
+    for y in range(240):
+        for x in range(320):
+            pixels[x, y] = (
+                random.randrange(256),
+                random.randrange(256),
+                random.randrange(256)
+            )
+
+    # Save temporary PNG
+    png_file = "/tmp/random_page.png"
+    img.save(png_file)
+
+    # Put image on PDF page
+    c.drawImage(
+        png_file,
+        0,
+        0,
+        width=320,
+        height=240
+    )
+
+    c.showPage()
+
+c.save()
+PY
+
+        echo "Created: $pdf"
+    done
+}
+
+
+
+mkstruct() {
+    local input="${1:-mkdir.txt}"
+
+    if [[ ! -f "$input" ]]; then
+        echo "Error: '$input' not found"
+        return 1
+    fi
+
+    local root=""
+    local -a dirs=()
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+
+        # Skip empty lines
+        [[ -z "${line//[[:space:]]/}" ]] && continue
+
+        # Root directory: no tree characters before it
+        if [[ "$line" =~ ^([^│├└─[:space:]]+\/)$ ]]; then
+            root="${BASH_REMATCH[1]}"
+            mkdir -p "$root"
+            echo "DIR  $root"
+            continue
+        fi
+
+        # Extract indentation/tree prefix
+        prefix="${line%%[^│├└─[:space:]]*}"
+        name="${line#"$prefix"}"
+
+        # Remove tree characters
+        name="${name#├── }"
+        name="${name#└── }"
+
+        # Calculate tree depth.
+        # Every "│   " or "    " represents one level.
+        clean_prefix="$prefix"
+        clean_prefix="${clean_prefix//│   /    }"
+        clean_prefix="${clean_prefix//├── /    }"
+        clean_prefix="${clean_prefix//└── /    }"
+
+        # Number of 4-space levels
+        spaces=${#clean_prefix}
+        depth=$((spaces / 4))
+
+        # Remove previous directory levels
+        while (( ${#dirs[@]} > depth )); do
+            unset 'dirs[${#dirs[@]}-1]'
+        done
+
+        # Build full path
+        path="$root"
+
+        for dir in "${dirs[@]}"; do
+            [[ -n "$dir" ]] && path="$path/$dir"
+        done
+
+        path="$path/$name"
+
+        if [[ "$name" == */ ]]; then
+            # Directory
+            mkdir -p "$path"
+            echo "DIR  $path"
+
+            # Store directory without trailing /
+            dirs[$depth]="${name%/}"
+        else
+            # File
+            mkdir -p "$(dirname "$path")"
+            touch "$path"
+            echo "FILE $path"
+        fi
+
+    done < "$input"
+
+    echo
+    echo "Done."
+}
+
+
+
+
+function DerivAPI_ENV() {
+
+    printenv | grep DER
+}
+
+
+
+
+###
+arduino_build_upload() {
+
+    echo "======================================"
+    echo " Arduino Build & Upload"
+    echo "======================================"
+
+    echo "📍 Current directory:"
+    pwd
+
+    echo
+    echo "🔎 Searching for .ino file..."
+
+    local ino_file
+    ino_file=$(find . -maxdepth 1 -type f -name "*.ino" | head -n 1)
+
+    if [[ -z "$ino_file" ]]; then
+        echo "❌ ERROR: No .ino file found"
+        echo "📁 Directory: $(pwd)"
+        return 1
+    fi
+
+    echo "✅ Found: $ino_file"
+
+    # Remove ./ from filename
+    ino_file="${ino_file#./}"
+
+    # Get filename without .ino
+    local sketch_name
+    sketch_name="${ino_file%.ino}"
+
+    echo "📝 Sketch name: $sketch_name"
+
+    # Arduino requires:
+    # folder/sketch_name/sketch_name.ino
+
+    local sketch_dir="./$sketch_name"
+
+    echo "📁 Sketch directory: $sketch_dir"
+
+    # Create folder if it doesn't exist
+    if [[ ! -d "$sketch_dir" ]]; then
+        echo "📂 Folder does not exist."
+        echo "➕ Creating: $sketch_dir"
+
+        mkdir -p "$sketch_dir"
+
+        if [[ $? -ne 0 ]]; then
+            echo "❌ ERROR: Cannot create folder"
+            return 1
+        fi
+    else
+        echo "✅ Sketch folder already exists"
+    fi
+
+    # Move .ino file into sketch folder
+    if [[ ! -f "$sketch_dir/$sketch_name.ino" ]]; then
+
+        echo "📦 Moving .ino file..."
+        echo "   From: $ino_file"
+        echo "   To  : $sketch_dir/$sketch_name.ino"
+
+        mv "$ino_file" "$sketch_dir/$sketch_name.ino"
+
+        if [[ $? -ne 0 ]]; then
+            echo "❌ ERROR: Cannot move .ino file"
+            return 1
+        fi
+
+    else
+        echo "✅ .ino file already inside sketch folder"
+    fi
+
+    echo
+    echo "======================================"
+    echo " Sketch structure"
+    echo "======================================"
+
+    find "$sketch_dir" -maxdepth 2 -type f -print
+
+    echo
+    echo "======================================"
+    echo " 🔨 BUILD"
+    echo "======================================"
+
+    arduino-cli compile \
+        --fqbn arduino:avr:nano:cpu=atmega328old \
+        "$sketch_dir" \
+        --verbose
+
+    if [[ $? -ne 0 ]]; then
+        echo
+        echo "❌ BUILD FAILED"
+        return 1
+    fi
+
+    echo
+    echo "======================================"
+    echo " ✅ BUILD SUCCESS"
+    echo "======================================"
+
+    echo
+    echo "======================================"
+    echo " ⬆️ UPLOAD"
+    echo "======================================"
+
+    # Check serial port
+    if [[ ! -e /dev/ttyUSB0 ]]; then
+        echo "❌ ERROR: /dev/ttyUSB0 not found"
+        return 1
+    fi
+
+    echo "🔌 Port: /dev/ttyUSB0"
+
+    arduino-cli upload \
+        -p /dev/ttyUSB0 \
+        --fqbn arduino:avr:nano:cpu=atmega328old \
+        "$sketch_dir" \
+        --verbose
+
+    if [[ $? -ne 0 ]]; then
+        echo
+        echo "❌ UPLOAD FAILED"
+        return 1
+    fi
+
+    echo
+    echo "======================================"
+    echo " 🎉 UPLOAD SUCCESS"
+    echo "======================================"
+}
+
+
+join_vertical() {
+    local top="$1"
+    local bottom="$2"
+    local output="${3:-joined.jpeg}"
+
+    if [[ -z "$top" || -z "$bottom" ]]; then
+        echo "Usage: join_vertical TOP_IMAGE BOTTOM_IMAGE [OUTPUT]"
+        return 1
+    fi
+
+    magick \
+        \( "$top" -resize 602x -gravity center -background white -extent 602x \) \
+        \( "$bottom" -resize 602x -gravity center -background white -extent 602x \) \
+        -append "$output"
+
+    echo "Created: $output"
+}
+
+
+
+
+timestamp_to_date() {
+    date -d "@$1" "+%Y-%m-%d %H:%M:%S"
+}
+
+
+py2pdf()
+{
+    # ============================================================
+    # Convert ALL .py files in the current directory to PDF.
+    #
+    # Python
+    #   ↓
+    # Pygments
+    #   ↓
+    # HTML
+    #   ↓
+    # WeasyPrint
+    #   ↓
+    # PDF
+    #
+    # No Chromium
+    # No wkhtmltopdf
+    # No LaTeX
+    # ============================================================
+
+    local OUTPUT_DIR="pdf"
+
+    # ------------------------------------------------------------
+    # Create output directory
+    # ------------------------------------------------------------
+    mkdir -p "$OUTPUT_DIR"
+
+
+    # ------------------------------------------------------------
+    # Check Pygments
+    # ------------------------------------------------------------
+    if ! command -v pygmentize >/dev/null 2>&1
+    then
+        echo "ERROR: pygmentize not found."
+        echo
+        echo "Install:"
+        echo "    pip install Pygments"
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Check WeasyPrint
+    # ------------------------------------------------------------
+    if ! command -v weasyprint >/dev/null 2>&1
+    then
+        echo "ERROR: weasyprint not found."
+        echo
+        echo "Install:"
+        echo "    pip install weasyprint"
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Find Python files
+    # ------------------------------------------------------------
+    local COUNT
+
+    COUNT=$(find . -maxdepth 1 -type f -name "*.py" | wc -l)
+
+
+    if [ "$COUNT" -eq 0 ]
+    then
+        echo "No .py files found."
+        return 1
+    fi
+
+
+    echo "Found $COUNT Python files."
+    echo
+
+
+    # ------------------------------------------------------------
+    # Process every .py file
+    # ------------------------------------------------------------
+    for FILE in ./*.py
+    do
+        [ -f "$FILE" ] || continue
+
+
+        # --------------------------------------------------------
+        # Get filename without extension
+        # --------------------------------------------------------
+        NAME=$(basename "$FILE" .py)
+
+
+        # --------------------------------------------------------
+        # Temporary HTML file
+        # --------------------------------------------------------
+        HTML=$(mktemp --suffix=".html")
+
+
+        echo "Converting: $FILE"
+
+
+        # --------------------------------------------------------
+        # Python → HTML
+        #
+        # Pygments provides:
+        #
+        #   - Python syntax highlighting
+        #   - line numbers
+        #   - source-code formatting
+        # --------------------------------------------------------
+        pygmentize \
+            -l python \
+            -f html \
+            -O "full,style=monokai,linenos=1" \
+            -o "$HTML" \
+            "$FILE"
+
+
+        if [ $? -ne 0 ]
+        then
+            echo "ERROR: Pygments failed for $FILE"
+            rm -f "$HTML"
+            continue
+        fi
+
+
+        # --------------------------------------------------------
+        # Add PDF-friendly CSS to the HTML
+        # --------------------------------------------------------
+        python3 - "$HTML" "$NAME" <<'PY'
+import sys
+
+html_file = sys.argv[1]
+name = sys.argv[2]
+
+with open(html_file, "r", encoding="utf-8") as f:
+    html = f.read()
+
+css = f"""
+<style>
+
+@page {{
+    size: A4;
+    margin: 15mm 12mm 15mm 12mm;
+}}
+
+body {{
+    font-family: "DejaVu Sans", sans-serif;
+    margin: 0;
+    padding: 0;
+}}
+
+h1 {{
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 18pt;
+    margin-bottom: 12px;
+}}
+
+pre {{
+    font-family: "DejaVu Sans Mono", monospace;
+    font-size: 8.5pt;
+    line-height: 1.25;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}}
+
+table {{
+    width: 100%;
+    border-collapse: collapse;
+}}
+
+td {{
+    vertical-align: top;
+}}
+
+.linenos {{
+    user-select: none;
+}}
+
+</style>
+
+<h1>{name}.py</h1>
+"""
+
+html = html.replace("</head>", css + "</head>")
+
+with open(html_file, "w", encoding="utf-8") as f:
+    f.write(html)
+PY
+
+
+        # --------------------------------------------------------
+        # HTML → PDF
+        # --------------------------------------------------------
+        weasyprint \
+            "$HTML" \
+            "$OUTPUT_DIR/$NAME.pdf"
+
+
+        if [ $? -eq 0 ]
+        then
+            echo "  -> $OUTPUT_DIR/$NAME.pdf"
+        else
+            echo "ERROR: PDF conversion failed for $FILE"
+        fi
+
+
+        # --------------------------------------------------------
+        # Remove temporary HTML
+        # --------------------------------------------------------
+        rm -f "$HTML"
+
+
+        echo
+    done
+
+
+    # ------------------------------------------------------------
+    # Finished
+    # ------------------------------------------------------------
+    echo "========================================"
+    echo "Finished."
+    echo
+    echo "PDF files are in:"
+    echo "    $OUTPUT_DIR/"
+    echo "========================================"
+}
+
+
+
+pdfjoin()
+{
+    # ============================================================
+    # Join all PDF files from the ./pdf directory into ONE PDF.
+    #
+    # Example:
+    #
+    #     pdfjoin
+    #
+    # Input:
+    #
+    #     pdf/backtest.pdf
+    #     pdf/compare_tv.pdf
+    #     pdf/fair_value.pdf
+    #     ...
+    #
+    # Output:
+    #
+    #     combined.pdf
+    # ============================================================
+
+
+    local PDF_DIR="pdf"
+    local OUTPUT="combined.pdf"
+
+
+    # ------------------------------------------------------------
+    # Check pdfunite
+    # ------------------------------------------------------------
+    if ! command -v pdfunite >/dev/null 2>&1
+    then
+        echo "ERROR: pdfunite is not installed."
+        echo
+        echo "Install with:"
+        echo "    sudo apt install poppler-utils"
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Check PDF directory
+    # ------------------------------------------------------------
+    if [ ! -d "$PDF_DIR" ]
+    then
+        echo "ERROR: Directory '$PDF_DIR' does not exist."
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Collect PDF files
+    #
+    # sort -V gives natural filename ordering.
+    # ------------------------------------------------------------
+    mapfile -t FILES < <(
+        find "$PDF_DIR" \
+            -maxdepth 1 \
+            -type f \
+            -name "*.pdf" \
+            ! -name "$(basename "$OUTPUT")" \
+            -print | sort -V
+    )
+
+
+    # ------------------------------------------------------------
+    # Check that PDFs exist
+    # ------------------------------------------------------------
+    if [ "${#FILES[@]}" -eq 0 ]
+    then
+        echo "No PDF files found in '$PDF_DIR'."
+        return 1
+    fi
+
+
+    echo "PDF files to join:"
+    echo
+
+
+    for FILE in "${FILES[@]}"
+    do
+        echo "  $FILE"
+    done
+
+
+    echo
+    echo "Joining ${#FILES[@]} PDF files..."
+
+
+    # ------------------------------------------------------------
+    # Join PDFs
+    # ------------------------------------------------------------
+    pdfunite \
+        "${FILES[@]}" \
+        "$OUTPUT"
+
+
+    # ------------------------------------------------------------
+    # Check result
+    # ------------------------------------------------------------
+    if [ $? -eq 0 ]
+    then
+        echo
+        echo "========================================"
+        echo "PDF JOIN SUCCESS"
+        echo "========================================"
+        echo
+        echo "Output:"
+        echo "    $OUTPUT"
+        echo
+        ls -lh "$OUTPUT"
+    else
+        echo
+        echo "ERROR: PDF join failed."
+        return 1
+    fi
+}
+
+
+md2pdf()
+{
+    # ============================================================
+    # Convert ALL .md files in the CURRENT directory into PDF.
+    #
+    # Each Markdown file gets its own PDF.
+    #
+    # Example:
+    #
+    #     README.md
+    #     INSTALL.md
+    #     NOTES.md
+    #
+    # becomes:
+    #
+    #     pdf/
+    #       README.pdf
+    #       INSTALL.pdf
+    #       NOTES.pdf
+    #
+    # Usage:
+    #
+    #     md2pdf
+    #
+    # ============================================================
+
+
+    # ------------------------------------------------------------
+    # Output directory
+    # ------------------------------------------------------------
+    local OUTPUT_DIR="pdf"
+
+    mkdir -p "$OUTPUT_DIR"
+
+
+    # ------------------------------------------------------------
+    # Check Pandoc
+    # ------------------------------------------------------------
+    if ! command -v pandoc >/dev/null 2>&1
+    then
+        echo "ERROR: pandoc is not installed."
+        echo
+        echo "Install with:"
+        echo "    sudo apt install pandoc"
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Check XeLaTeX
+    # ------------------------------------------------------------
+    if ! command -v xelatex >/dev/null 2>&1
+    then
+        echo "ERROR: xelatex is not installed."
+        echo
+        echo "Install with:"
+        echo "    sudo apt install texlive-xetex"
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Find all Markdown files in CURRENT directory
+    # ------------------------------------------------------------
+    mapfile -t FILES < <(
+        find . \
+            -maxdepth 1 \
+            -type f \
+            \( -iname "*.md" -o -iname "*.markdown" \) \
+            -print | sort -V
+    )
+
+
+    # ------------------------------------------------------------
+    # Check if Markdown files exist
+    # ------------------------------------------------------------
+    if [ "${#FILES[@]}" -eq 0 ]
+    then
+        echo "No Markdown files found."
+        return 1
+    fi
+
+
+    echo "Found ${#FILES[@]} Markdown files."
+    echo
+
+
+    # ------------------------------------------------------------
+    # Convert each Markdown file
+    # ------------------------------------------------------------
+    for FILE in "${FILES[@]}"
+    do
+
+        # --------------------------------------------------------
+        # Get filename without extension
+        # --------------------------------------------------------
+        BASENAME=$(basename "$FILE")
+
+        NAME="${BASENAME%.*}"
+
+        OUTPUT="$OUTPUT_DIR/$NAME.pdf"
+
+
+        echo "Converting: $FILE"
+
+
+        # --------------------------------------------------------
+        # Markdown → PDF
+        #
+        # XeLaTeX gives good Unicode support and handles:
+        #
+        #   headings
+        #   tables
+        #   code blocks
+        #   lists
+        #   links
+        #   Unicode characters
+        # --------------------------------------------------------
+        pandoc "$FILE" \
+            -o "$OUTPUT" \
+            --pdf-engine=xelatex \
+            --standalone \
+            -V geometry:margin=1in \
+            -V fontsize=11pt \
+            -V colorlinks=true \
+            -V linkcolor=blue \
+            -V urlcolor=blue
+
+
+        # --------------------------------------------------------
+        # Check conversion result
+        # --------------------------------------------------------
+        if [ $? -eq 0 ]
+        then
+            echo "  -> $OUTPUT"
+        else
+            echo "ERROR: Failed to convert $FILE"
+
+            # Remove incomplete PDF if one was created.
+            rm -f "$OUTPUT"
+        fi
+
+
+        echo
+
+    done
+
+
+    # ------------------------------------------------------------
+    # Finished
+    # ------------------------------------------------------------
+    echo "========================================"
+    echo "Markdown → PDF finished."
+    echo
+    echo "PDF files are in:"
+    echo "    $OUTPUT_DIR/"
+    echo "========================================"
+}
+
+
+html2pdf()
+{
+    # ============================================================
+    # Convert ALL .html / .htm files in the CURRENT directory
+    # into individual PDF files.
+    #
+    # Example:
+    #
+    #     index.html
+    #     README_md.html
+    #     docker-compose_yml.html
+    #
+    # becomes:
+    #
+    #     pdf/
+    #       index.pdf
+    #       README_md.pdf
+    #       docker-compose_yml.pdf
+    #
+    # Usage:
+    #
+    #     html2pdf
+    #
+    # ============================================================
+
+
+    # ------------------------------------------------------------
+    # Output directory
+    # ------------------------------------------------------------
+    local OUTPUT_DIR="pdf"
+
+    mkdir -p "$OUTPUT_DIR"
+
+
+    # ------------------------------------------------------------
+    # Check WeasyPrint
+    # ------------------------------------------------------------
+    if ! command -v weasyprint >/dev/null 2>&1
+    then
+        echo "ERROR: weasyprint is not installed."
+        echo
+        echo "Install with:"
+        echo "    pip install weasyprint"
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Find HTML files in CURRENT directory only
+    # ------------------------------------------------------------
+    mapfile -t FILES < <(
+        find . \
+            -maxdepth 1 \
+            -type f \
+            \( -iname "*.html" -o -iname "*.htm" \) \
+            -print | sort -V
+    )
+
+
+    # ------------------------------------------------------------
+    # Check if HTML files exist
+    # ------------------------------------------------------------
+    if [ "${#FILES[@]}" -eq 0 ]
+    then
+        echo "No HTML files found."
+        return 1
+    fi
+
+
+    echo "Found ${#FILES[@]} HTML files."
+    echo
+
+
+    # ------------------------------------------------------------
+    # Convert every HTML file
+    # ------------------------------------------------------------
+    for FILE in "${FILES[@]}"
+    do
+
+        # --------------------------------------------------------
+        # Get filename without extension
+        # --------------------------------------------------------
+        BASENAME=$(basename "$FILE")
+
+        NAME="${BASENAME%.*}"
+
+        OUTPUT="$OUTPUT_DIR/$NAME.pdf"
+
+
+        echo "Converting: $FILE"
+
+
+        # --------------------------------------------------------
+        # HTML → PDF
+        #
+        # --base-url="$PWD/"
+        #
+        # This is important because your HTML may contain:
+        #
+        #     highlight.css
+        #     images/
+        #     docs/
+        #     frontend/
+        #
+        # relative paths.
+        # --------------------------------------------------------
+        weasyprint \
+            --base-url="$PWD/" \
+            "$FILE" \
+            "$OUTPUT"
+
+
+        # --------------------------------------------------------
+        # Check result
+        # --------------------------------------------------------
+        if [ $? -eq 0 ]
+        then
+            echo "  -> $OUTPUT"
+        else
+            echo "ERROR: Failed to convert $FILE"
+
+            # Remove incomplete PDF.
+            rm -f "$OUTPUT"
+        fi
+
+
+        echo
+
+    done
+
+
+    # ------------------------------------------------------------
+    # Finished
+    # ------------------------------------------------------------
+    echo "========================================"
+    echo "HTML → PDF finished."
+    echo
+    echo "PDF files are in:"
+    echo "    $OUTPUT_DIR/"
+    echo "========================================"
+}
+
+
+html2pdf_v2()
+{
+    # ============================================================
+    # HTML → PDF
+    #
+    # Recursively scans:
+    #
+    #     CURRENT DIRECTORY
+    #         ↓
+    #     ALL SUBDIRECTORIES
+    #         ↓
+    #     ALL FOLDER NAMES
+    #         ↓
+    #     ALL .html / .htm FILES
+    #
+    # Directory structure is preserved inside ./pdf/
+    #
+    # Example:
+    #
+    #     ./index.html
+    #     ./docs/a.html
+    #     ./frontend/pages/b.html
+    #     ./anything/abc/xyz/test.html
+    #
+    # becomes:
+    #
+    #     ./pdf/index.pdf
+    #     ./pdf/docs/a.pdf
+    #     ./pdf/frontend/pages/b.pdf
+    #     ./pdf/anything/abc/xyz/test.pdf
+    #
+    # ============================================================
+
+
+    local OUTPUT_DIR="pdf"
+
+
+    # ------------------------------------------------------------
+    # Check WeasyPrint
+    # ------------------------------------------------------------
+    if ! command -v weasyprint >/dev/null 2>&1
+    then
+        echo "ERROR: WeasyPrint is not installed."
+        echo
+        echo "Install with:"
+        echo "    pip install weasyprint"
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Project root
+    # ------------------------------------------------------------
+    local ROOT="$PWD"
+
+
+    # ------------------------------------------------------------
+    # Create output directory
+    # ------------------------------------------------------------
+    mkdir -p "$OUTPUT_DIR"
+
+
+    # ------------------------------------------------------------
+    # Recursively find EVERY HTML file.
+    #
+    # There is NO folder-name restriction.
+    #
+    # -type d -name pdf
+    #     ↓
+    #     Skip only our output directory.
+    #
+    # Everything else is scanned.
+    # ------------------------------------------------------------
+    mapfile -t FILES < <(
+        find . \
+            -type d -name "$OUTPUT_DIR" -prune -o \
+            -type f \
+            \( -iname "*.html" -o -iname "*.htm" \) \
+            -print | sort -V
+    )
+
+
+    # ------------------------------------------------------------
+    # No files?
+    # ------------------------------------------------------------
+    if [ "${#FILES[@]}" -eq 0 ]
+    then
+        echo "No HTML files found."
+        return 1
+    fi
+
+
+    echo "========================================"
+    echo "HTML → PDF"
+    echo "========================================"
+    echo
+    echo "Project:"
+    echo "    $ROOT"
+    echo
+    echo "HTML files found: ${#FILES[@]}"
+    echo
+
+
+    # ------------------------------------------------------------
+    # Process every HTML file
+    # ------------------------------------------------------------
+    for FILE in "${FILES[@]}"
+    do
+
+        # --------------------------------------------------------
+        # Remove ./ from path
+        # --------------------------------------------------------
+        RELATIVE="${FILE#./}"
+
+
+        # --------------------------------------------------------
+        # Directory containing HTML file
+        # --------------------------------------------------------
+        FILE_DIR=$(dirname "$RELATIVE")
+
+
+        # --------------------------------------------------------
+        # Filename
+        # --------------------------------------------------------
+        FILE_NAME=$(basename "$RELATIVE")
+
+
+        # --------------------------------------------------------
+        # Remove .html / .htm
+        # --------------------------------------------------------
+        PDF_NAME="${FILE_NAME%.*}.pdf"
+
+
+        # --------------------------------------------------------
+        # Create identical directory structure inside pdf/
+        # --------------------------------------------------------
+        mkdir -p "$OUTPUT_DIR/$FILE_DIR"
+
+
+        # --------------------------------------------------------
+        # Final PDF path
+        # --------------------------------------------------------
+        OUTPUT="$OUTPUT_DIR/$FILE_DIR/$PDF_NAME"
+
+
+        echo "----------------------------------------"
+        echo "HTML:"
+        echo "    $FILE"
+        echo
+        echo "PDF:"
+        echo "    $OUTPUT"
+        echo
+
+
+        # --------------------------------------------------------
+        # Convert HTML → PDF
+        #
+        # base-url:
+        #
+        #     Project root
+        #
+        # This allows HTML files to find local resources such as:
+        #
+        #     CSS
+        #     images
+        #     fonts
+        #     JavaScript
+        # --------------------------------------------------------
+        if weasyprint \
+            --base-url="$ROOT/" \
+            "$FILE" \
+            "$OUTPUT"
+        then
+
+            echo "STATUS: OK"
+
+        else
+
+            echo "STATUS: FAILED"
+
+            # Remove incomplete PDF.
+            rm -f "$OUTPUT"
+
+        fi
+
+
+        echo
+
+    done
+
+
+    # ------------------------------------------------------------
+    # Finished
+    # ------------------------------------------------------------
+    echo "========================================"
+    echo "FINISHED"
+    echo "========================================"
+    echo
+    echo "HTML files processed:"
+    echo "    ${#FILES[@]}"
+    echo
+    echo "PDF directory:"
+    echo "    $ROOT/$OUTPUT_DIR/"
+    echo
+}
+
+
+
+pdfjoinall()
+{
+    # ============================================================
+    # RECURSIVE PDF JOINER
+    #
+    # Scans:
+    #
+    #     CURRENT DIRECTORY
+    #         ↓
+    #     ALL SUBDIRECTORIES
+    #         ↓
+    #     ALL FOLDER NAMES
+    #         ↓
+    #     ALL .pdf FILES
+    #
+    # Then combines everything into ONE PDF.
+    #
+    # Output:
+    #
+    #     combined.pdf
+    #
+    # ============================================================
+
+
+    # ------------------------------------------------------------
+    # Output PDF
+    # ------------------------------------------------------------
+    local OUTPUT="combined.pdf"
+
+
+    # ------------------------------------------------------------
+    # Check pdfunite
+    # ------------------------------------------------------------
+    if ! command -v pdfunite >/dev/null 2>&1
+    then
+        echo "ERROR: pdfunite is not installed."
+        echo
+        echo "Install with:"
+        echo "    sudo apt install poppler-utils"
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Find ALL PDFs recursively.
+    #
+    # IMPORTANT:
+    # Exclude the output file itself.
+    # ------------------------------------------------------------
+    mapfile -t FILES < <(
+        find . \
+            -type f \
+            -iname "*.pdf" \
+            ! -path "./$OUTPUT" \
+            -print | sort -V
+    )
+
+
+    # ------------------------------------------------------------
+    # Check if PDFs exist
+    # ------------------------------------------------------------
+    if [ "${#FILES[@]}" -eq 0 ]
+    then
+        echo "No PDF files found."
+        return 1
+    fi
+
+
+    # ------------------------------------------------------------
+    # Display files
+    # ------------------------------------------------------------
+    echo "========================================"
+    echo "RECURSIVE PDF JOINER"
+    echo "========================================"
+    echo
+    echo "Found ${#FILES[@]} PDF files:"
+    echo
+
+
+    local NUMBER=1
+
+    for FILE in "${FILES[@]}"
+    do
+        echo "  $NUMBER. $FILE"
+        NUMBER=$((NUMBER + 1))
+    done
+
+
+    echo
+    echo "Joining..."
+    echo
+
+
+    # ------------------------------------------------------------
+    # Join ALL PDFs
+    # ------------------------------------------------------------
+    pdfunite \
+        "${FILES[@]}" \
+        "$OUTPUT"
+
+
+    # ------------------------------------------------------------
+    # Check result
+    # ------------------------------------------------------------
+    if [ $? -eq 0 ]
+    then
+
+        echo
+        echo "========================================"
+        echo "SUCCESS"
+        echo "========================================"
+        echo
+        echo "Input PDFs:"
+        echo "    ${#FILES[@]}"
+        echo
+        echo "Output:"
+        echo "    $OUTPUT"
+        echo
+        echo "Size:"
+        ls -lh "$OUTPUT"
+
+    else
+
+        echo
+        echo "========================================"
+        echo "ERROR"
+        echo "========================================"
+        echo
+        echo "PDF joining failed."
+
+        return 1
+
+    fi
+}
+
+
+
+## HELP MATH
+
+math_sumfunction() {
+    awk '{sum += $1} END {print sum}'
+}
+
+
+math_multiplicationfunction() {
+    awk 'BEGIN {result=1} {result *= $1} END {print result}'
+}
+
+
+math_averagefunction() {
+    awk '{sum += $1; count++} END {if (count) print sum / count}'
+}
+
+
+math_minfunction() {
+    sort -n | head -1
+}
+
+math_maxfunction() {
+    sort -n | tail -1
+}
+
+math_countfunction() {
+    wc -l
+}
+
+
+
+# WINDOWS SSHA HELP
+# win_upload()
+# {
+#     # Windows SSH username
+#     local USER="MOM"
+
+#     # Windows destination directory
+#     local DEST="/Users/MOM/Desktop/MY5_python/samba"
+
+#     # Windows IP address list
+#     local IPS=(
+#         "192.168.1.38"
+#         "10.130.82.199"
+#         "192.168.1.50"
+#         "192.168.1.36"
+#     )
+
+#     # Temporary SSH control socket directory
+#     local CONTROL_DIR="/tmp/win_upload_ssh"
+
+#     mkdir -p "$CONTROL_DIR"
+
+#     echo
+#     echo "============================================================"
+#     echo "Checking Windows machines"
+#     echo "============================================================"
+
+#     local FOUND_IP=""
+
+#     # Check every IP
+#     for HOST in "${IPS[@]}"; do
+
+#         echo
+#         echo "Checking: $HOST"
+
+#         # Create a unique SSH control socket for this host
+#         local CONTROL_SOCKET="$CONTROL_DIR/$HOST"
+
+#         # SSH test
+#         # The connection is kept alive and reused by SCP.
+#         if ssh \
+#             -o ConnectTimeout=3 \
+#             -o StrictHostKeyChecking=no \
+#             -o ControlMaster=auto \
+#             -o ControlPath="$CONTROL_SOCKET" \
+#             -o ControlPersist=10m \
+#             "$USER@$HOST" "ipconfig" >/dev/null
+#         then
+#             echo "  [OK] Windows machine found"
+#             echo "  [OK] SSH connection successful"
+
+#             FOUND_IP="$HOST"
+#             break
+#         else
+#             echo "  [FAILED] Cannot connect"
+#         fi
+
+#     done
+
+#     echo
+#     echo "============================================================"
+
+#     if [ -z "$FOUND_IP" ]; then
+#         echo "No Windows machine found."
+#         echo
+#         echo "Please check the Windows machine with:"
+#         echo
+#         echo "    ipconfig"
+#         echo
+#         echo "============================================================"
+
+#         rm -rf "$CONTROL_DIR"
+
+#         return 1
+#     fi
+
+#     echo "Windows machine found: $FOUND_IP"
+#     echo "Starting upload..."
+#     echo "============================================================"
+#     echo
+
+#     local CONTROL_SOCKET="$CONTROL_DIR/$FOUND_IP"
+
+#     # Upload everything from current directory.
+#     #
+#     # SCP reuses the already authenticated SSH connection.
+#     # Therefore the password is NOT requested again.
+#     scp \
+#         -o ControlMaster=auto \
+#         -o ControlPath="$CONTROL_SOCKET" \
+#         -o ControlPersist=10m \
+#         -r . "$USER@$FOUND_IP:$DEST"
+
+#     local RESULT=$?
+
+#     # Close the SSH master connection
+#     ssh \
+#         -o ControlPath="$CONTROL_SOCKET" \
+#         -O exit \
+#         "$USER@$FOUND_IP" 2>/dev/null
+
+#     # Remove temporary control sockets
+#     rm -rf "$CONTROL_DIR"
+
+#     if [ $RESULT -eq 0 ]; then
+#         echo
+#         echo "============================================================"
+#         echo "Upload completed successfully"
+#         echo "Windows IP : $FOUND_IP"
+#         echo "Destination: $DEST"
+#         echo "============================================================"
+#     else
+#         echo
+#         echo "============================================================"
+#         echo "Upload failed"
+#         echo "============================================================"
+#         return 1
+#     fi
+# }
+
+# WINDOWS SSH UPLOAD HELP
+win_upload()
+{
+    # ---------------------------------------------------------
+    # Linux source directory
+    # ---------------------------------------------------------
+    local SOURCE="/home/when/sambashare"
+
+    # Windows SSH username
+    local USER="MOM"
+
+    # Windows destination directory
+    local DEST="/Users/MOM/Desktop/MY5_python/samba"
+
+    # Windows IP address list
+    local IPS=(
+        "192.168.1.38"
+        "10.130.82.199"
+        "192.168.1.50"
+        "192.168.1.36"
+    )
+
+    # Temporary SSH control socket directory
+    local CONTROL_DIR="/tmp/win_upload_ssh"
+
+    mkdir -p "$CONTROL_DIR"
+
+    echo
+    echo "============================================================"
+    echo "        WINDOWS SSH FILE UPLOAD"
+    echo "============================================================"
+    echo
+    echo "Source      : $SOURCE"
+    echo "Destination : $DEST"
+    echo
+
+    # ---------------------------------------------------------
+    # Make sure source directory exists
+    # ---------------------------------------------------------
+    if [ ! -d "$SOURCE" ]; then
+        echo "[ERROR] Source directory does not exist:"
+        echo "$SOURCE"
+        return 1
+    fi
+
+    # ---------------------------------------------------------
+    # Find Windows machine
+    # ---------------------------------------------------------
+    local FOUND_IP=""
+
+    for HOST in "${IPS[@]}"; do
+
+        echo "Checking: $HOST"
+
+        local CONTROL_SOCKET="$CONTROL_DIR/$HOST"
+
+        if ssh \
+            -o ConnectTimeout=3 \
+            -o StrictHostKeyChecking=no \
+            -o ControlMaster=auto \
+            -o ControlPath="$CONTROL_SOCKET" \
+            -o ControlPersist=10m \
+            "$USER@$HOST" "echo connected" >/dev/null
+        then
+            echo "  [OK] Windows machine found"
+            echo "  [OK] SSH connection successful"
+
+            FOUND_IP="$HOST"
+            break
+        else
+            echo "  [FAILED] Cannot connect"
+        fi
+
+    done
+
+    echo
+    echo "============================================================"
+
+    # ---------------------------------------------------------
+    # No Windows machine found
+    # ---------------------------------------------------------
+    if [ -z "$FOUND_IP" ]; then
+
+        echo "No Windows machine found."
+        echo
+        echo "Check Windows IP addresses with:"
+        echo
+        echo "    ipconfig"
+        echo
+
+        rm -rf "$CONTROL_DIR"
+
+        return 1
+    fi
+
+    echo "Windows machine found: $FOUND_IP"
+    echo
+    echo "Uploading files..."
+    echo
+
+    # ---------------------------------------------------------
+    # Upload CONTENTS of /home/when/sambashare
+    # ---------------------------------------------------------
+    local CONTROL_SOCKET="$CONTROL_DIR/$FOUND_IP"
+
+    scp \
+        -o ControlMaster=auto \
+        -o ControlPath="$CONTROL_SOCKET" \
+        -o ControlPersist=10m \
+        -r "$SOURCE"/. "$USER@$FOUND_IP:$DEST"
+
+    local RESULT=$?
+
+    # ---------------------------------------------------------
+    # Close SSH master connection
+    # ---------------------------------------------------------
+    ssh \
+        -o ControlPath="$CONTROL_SOCKET" \
+        -O exit \
+        "$USER@$FOUND_IP" 2>/dev/null
+
+    # ---------------------------------------------------------
+    # Remove temporary SSH control files
+    # ---------------------------------------------------------
+    rm -rf "$CONTROL_DIR"
+
+    # ---------------------------------------------------------
+    # Result
+    # ---------------------------------------------------------
+    if [ $RESULT -eq 0 ]; then
+
+        echo
+        echo "============================================================"
+        echo "UPLOAD COMPLETED SUCCESSFULLY"
+        echo "============================================================"
+        echo
+        echo "Windows IP : $FOUND_IP"
+        echo "Source     : $SOURCE"
+        echo "Destination: $DEST"
+        echo
+
+    else
+
+        echo
+        echo "============================================================"
+        echo "UPLOAD FAILED"
+        echo "============================================================"
+        echo
+
+        return 1
+    fi
+}
+
+
+
+gifmake() {
+    files=()
+
+    for f in *.png *.jpg *.jpeg *.webp; do
+        [ -f "$f" ] && files+=("$f")
+    done
+
+    [ ${#files[@]} -eq 0 ] && {
+        echo "No image files found."
+        return 1
+    }
+
+    magick -delay 100 -loop 0 "${files[@]}" output.gif
+
+    echo "Created: output.gif"
 }
